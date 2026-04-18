@@ -1,4 +1,4 @@
-import React, { useState, Component, forwardRef } from 'react';
+import React, { useState, useEffect, Component, forwardRef } from 'react';
 import {
   ThemeProvider, CssBaseline, AppBar, Toolbar, Typography,
   Button, Container, Box,
@@ -32,6 +32,7 @@ import TorneioConhecimento from './components/torneios/TorneioConhecimento.jsx';
 import TreinamentoDoDragao from './components/torneios/TreinamentoDoDragao.jsx';
 import Dragoes from './components/dragoes/Dragoes.jsx';
 import DragaoDetalhe from './components/dragoes/DragaoDetalhe.jsx';
+import DragaoTracker from './components/dragoes/DragaoTracker.jsx';
 import { dbDragoes } from './data/dragoes.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -172,6 +173,12 @@ const App = () => {
   const [route, setRoute] = useState('home');
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
 
+  // Expõe setRoute globalmente para componentes filhos que não recebem a prop
+  useEffect(() => {
+    window.__setRoute = setRoute;
+    return () => { delete window.__setRoute; };
+  }, [setRoute]);
+
   const renderComponent = () => {
     switch (route) {
       case 'home':               return <Home setRoute={setRoute} />;
@@ -199,6 +206,10 @@ const App = () => {
       case 'dragoes':            return <Dragoes setRoute={setRoute} />;
       // Rotas dinâmicas de detalhe de dragão
       default: {
+        if (route.startsWith('dragao_tracker_')) {
+          const id = route.replace('dragao_tracker_', '');
+          return <DragaoTracker dragaoId={id} />;
+        }
         if (route.startsWith('dragao_')) {
           const id = route.replace('dragao_', '');
           return <DragaoDetalhe dragaoId={id} />;
@@ -246,7 +257,12 @@ const App = () => {
   };
 
   // Labels dinâmicos para detalhes de dragão
-  if (route.startsWith('dragao_')) {
+  if (route.startsWith('dragao_tracker_')) {
+    const id = route.replace('dragao_tracker_', '');
+    const dragao = dbDragoes.find(d => d.id === id);
+    if (dragao) ROUTE_LABELS[route] = { label: `${dragao.nome} — Progresso`, icon: '📊' };
+  }
+  if (route.startsWith('dragao_') && !route.startsWith('dragao_tracker_')) {
     const id = route.replace('dragao_', '');
     const dragao = dbDragoes.find(d => d.id === id);
     if (dragao) {

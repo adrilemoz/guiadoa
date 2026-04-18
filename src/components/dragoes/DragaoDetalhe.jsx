@@ -475,6 +475,44 @@ const DragaoDetalhe = ({ dragaoId }) => {
         </>
       )}
 
+      {/* ══ BOTÃO TRACKER ══ */}
+      {dragao.habilidades?.some((h) => h.nivelAtual) && (
+        <>
+          <ParchmentDivider label="PROGRESSO PESSOAL" />
+          <Box
+            onClick={() => {
+              // Navegar para tracker — o setRoute está disponível via prop
+              if (typeof window !== 'undefined') {
+                window.__setRoute?.(`dragao_tracker_${dragao.id}`);
+              }
+            }}
+            sx={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              p: 1.8, borderRadius: '10px', cursor: 'pointer', mb: 1,
+              background: `linear-gradient(135deg, rgba(62,47,28,0.85) 0%, ${dragao.cor}55 100%)`,
+              border: `2px solid ${dragao.cor}66`,
+              boxShadow: `0 4px 16px ${dragao.cor}22`,
+              transition: 'all 0.2s',
+              '&:hover': { transform: 'translateY(-2px)', boxShadow: `0 8px 24px ${dragao.cor}33` },
+              '&:active': { transform: 'scale(0.98)' },
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+              <Box sx={{ fontSize: '1.6rem', lineHeight: 1 }}>📊</Box>
+              <Box>
+                <Box sx={{ fontFamily: '"Nunito", sans-serif', fontWeight: 900, fontSize: '0.95rem', color: '#FFF8EE', mb: 0.2 }}>
+                  Meu Progresso
+                </Box>
+                <Box sx={{ fontFamily: '"Nunito", sans-serif', fontWeight: 600, fontSize: '0.72rem', color: 'rgba(255,248,238,0.6)' }}>
+                  Acompanhe o nível e XP de cada habilidade
+                </Box>
+              </Box>
+            </Box>
+            <Box sx={{ fontSize: '1.2rem', color: dragao.cor, opacity: 0.8 }}>›</Box>
+          </Box>
+        </>
+      )}
+
     </Box>
   );
 };

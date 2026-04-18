@@ -31,6 +31,15 @@ export const dbDragoes = [
     descricao:
       'O Grande Dragão é o símbolo máximo do poder dracônico. Forjado nas entranhas dos vulcões antigos, ele comanda o campo de batalha com chamas devastadoras e uma presença que faz tremer até os mais corajosos guerreiros.',
 
+    // ── NÍVEL DO DRAGÃO ───────────────────────────────────────────────────
+    // Dados conhecidos via print. xpNecessaria = XP total do nível.
+    nivelDragao: {
+      nivelVisto: 20,
+      xpConhecida: [
+        { nivel: 20, xpNecessaria: 4517 },
+      ],
+    },
+
     // ── ATRIBUTOS BASE (Nv.1 conforme jogo) ──────────────────────────────
     atributosBase: {
       vida:           0,
@@ -79,8 +88,12 @@ export const dbDragoes = [
         id: 'disparo_fogo',
         nome: 'Disparo de Fogo',
         emoji: '🔥',
-        corTipo: '#2E7D32',       // verde — Efeito de Batalha
+        corTipo: '#2E7D32',
         tipo: 'Efeito de Batalha',
+        // XP necessária por nível (dados conhecidos via prints)
+        xpConhecida: [
+          { nivel: 1, xpNecessaria: 200 },
+        ],
         nivelAtual: {
           nivel: 1,
           xp: '0/200',
@@ -98,6 +111,9 @@ export const dbDragoes = [
         emoji: '🏰',
         corTipo: '#2E7D32',
         tipo: 'Efeito de Batalha + Efeito em Campo',
+        xpConhecida: [
+          { nivel: 1, xpNecessaria: 200 },
+        ],
         nivelAtual: {
           nivel: 1,
           xp: '0/200',
@@ -115,6 +131,9 @@ export const dbDragoes = [
         emoji: '🌋',
         corTipo: '#2E7D32',
         tipo: 'Efeito de Batalha',
+        xpConhecida: [
+          { nivel: 1, xpNecessaria: 200 },
+        ],
         nivelAtual: {
           nivel: 1,
           xp: '0/200',
@@ -132,6 +151,9 @@ export const dbDragoes = [
         emoji: '🛡️',
         corTipo: '#2E7D32',
         tipo: 'Efeito de Batalha',
+        xpConhecida: [
+          { nivel: 1, xpNecessaria: 200 },
+        ],
         nivelAtual: {
           nivel: 1,
           xp: '0/200',
@@ -147,8 +169,12 @@ export const dbDragoes = [
         id: 'orbe_protecao',
         nome: 'Orbe de Proteção',
         emoji: '🔮',
-        corTipo: '#7B1C1C',       // vermelho — Efeito em Campo
+        corTipo: '#7B1C1C',
         tipo: 'Efeito em Campo',
+        xpConhecida: [
+          { nivel: 1,  xpNecessaria: 200  },
+          { nivel: 9,  xpNecessaria: 1500 },
+        ],
         nivelAtual: {
           nivel: 9,
           xp: '809/1500',

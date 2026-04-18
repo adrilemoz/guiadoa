@@ -74,10 +74,10 @@ const Sobre = () => {
             🛡️
           </Typography>
           <Typography sx={{ fontWeight: 900, color: 'primary.main', fontSize: '1.5rem', textTransform: 'uppercase' }}>
-            Versão 2.2.0
+            Versão 2.3.0
           </Typography>
           <Typography sx={{ fontWeight: 'bold', color: 'text.secondary', fontSize: '0.9rem', mb: 2 }}>
-            Codinome: "Torre do Grande Dragão"
+            Codinome: "Tracker Dracônico"
           </Typography>
           <Divider sx={{ borderColor: '#C8A96B', opacity: 0.5, mb: 2 }} />
           <Typography sx={{ fontSize: '0.85rem', color: 'text.primary', textAlign: 'justify', fontWeight: 'bold' }}>
@@ -91,6 +91,21 @@ const Sobre = () => {
         <GameHeader title="Últimas Atualizações" />
         <Box sx={{ p: 2, bgcolor: C.BG_CARD }}>
           <List disablePadding>
+
+            {/* v2.3 — TRACKER DRACÔNICO */}
+            <ListItem sx={{ alignItems: 'flex-start', px: 0, pb: 2 }}>
+              <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}><Typography sx={{ fontSize: '1.5rem' }}>📊</Typography></ListItemIcon>
+              <ListItemText
+                primary={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                    <Chip label="v2.3.0" size="small" sx={{ bgcolor: '#1a3a1a', color: '#80ff80', fontWeight: 'bold', border: '1px solid #2e7d32' }} />
+                    <Typography sx={{ fontWeight: 900, color: 'primary.main' }}>Tracker Dracônico — Progresso Pessoal</Typography>
+                  </Box>
+                }
+                secondary={<Typography component="span" sx={{ fontSize: '0.8rem', color: 'text.secondary', fontWeight: 'bold' }}>Novo sistema de tracker pessoal para acompanhar o progresso de cada habilidade do dragão. Registra nível atual, XP atual e XP total (preenchido automaticamente quando os dados são conhecidos, ou manualmente para níveis ainda não mapeados). Salvo automaticamente no localStorage. Painel "Meu Progresso" acessível direto da página de detalhe do dragão. Barra de XP visual, progresso geral em % e botão de reset.</Typography>}
+              />
+            </ListItem>
+            <Divider sx={{ borderColor: '#C8A96B', opacity: 0.3, mb: 2 }} />
 
             {/* v2.2 — TORRE DO GRANDE DRAGÃO */}
             <ListItem sx={{ alignItems: 'flex-start', px: 0, pb: 2 }}>
