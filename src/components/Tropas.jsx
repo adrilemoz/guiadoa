@@ -107,6 +107,45 @@ const Tropas = ({ setRoute }) => {
       {/* Cabeçalho */}
       <GameHeader title="Central de Unidades" />
 
+      {/* Badge de última atualização dos dados */}
+      <Box sx={{
+        display: 'flex', alignItems: 'center', gap: 0.8,
+        px: 1.2, py: 0.7, mb: 1.2,
+        border: `1px solid ${C.BORDER_SOFT}`,
+        borderLeft: `3px solid ${C.ACCENT}`,
+        borderRadius: '6px',
+        bgcolor: 'rgba(184,150,90,0.06)',
+      }}>
+        <Box sx={{ fontSize: '0.8rem', lineHeight: 1 }}>📝</Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Box sx={{
+            fontFamily: '"Nunito", sans-serif', fontWeight: 700,
+            fontSize: '0.70rem', color: C.TEXT_MUTED, letterSpacing: '0.3px',
+          }}>
+            {`53 unidades · dados v1.7.0`}
+          </Box>
+          <Box sx={{
+            fontFamily: '"Nunito", sans-serif', fontWeight: 600,
+            fontSize: '0.68rem', color: C.TEXT_FAINT, mt: 0.15,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            última atualização: adicionados Perseguidor das Sombras e Fantasma do Trovão
+          </Box>
+        </Box>
+        <Box sx={{
+          px: 0.8, py: 0.25,
+          border: `1px solid ${C.BORDER_SOFT}`,
+          borderRadius: '4px',
+          bgcolor: C.BG_SECONDARY,
+          fontFamily: '"IBM Plex Mono", monospace',
+          fontSize: '0.62rem', fontWeight: 700,
+          color: C.TEXT_MUTED, flexShrink: 0,
+          letterSpacing: '0.5px',
+        }}>
+          #a3f9c2
+        </Box>
+      </Box>
+
       {/* Banner de totais */}
       <ExercitoBanner
         totTropas={totTropas}

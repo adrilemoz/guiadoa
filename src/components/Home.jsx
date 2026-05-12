@@ -103,7 +103,7 @@ const Home = ({ setRoute }) => {
         radial-gradient(ellipse 40% 40% at 100% 50%,  rgba(168,132,74,0.06) 0%, transparent 60%),
         radial-gradient(ellipse 60% 25% at 50% 100%,  rgba(140,104,48,0.10) 0%, transparent 60%)
       `,
-      pb: 5,
+      pb: 3,
       position: 'relative',
     }}>
 
@@ -126,14 +126,14 @@ const Home = ({ setRoute }) => {
       <AlertaModal open={alertaModal.open} message={alertaModal.msg} onClose={() => setAlertaModal({ open: false, msg: '' })} />
 
       {/* ── CORPO ── */}
-      <Box sx={{ maxWidth: 430, mx: 'auto', px: 2, pt: 2.5, position: 'relative', zIndex: 1 }}>
+      <Box sx={{ maxWidth: 430, mx: 'auto', px: 0.5, pt: 1.5, position: 'relative', zIndex: 1 }}>
 
         {/* ══════════════════════════════════════════
             BLOCO 2 — PERFIL DO COMANDANTE
         ══════════════════════════════════════════ */}
         <Box sx={{
           display: 'flex', alignItems: 'center', gap: 1.8,
-          px: 2, py: 1.6, mb: 2.5,
+          px: 1.2, py: 1.2, mb: 1.5,
           border: `1.5px solid ${C.BORDER}`,
           borderRadius: '10px',
           background: `linear-gradient(135deg, ${C.BG_CARD} 0%, ${C.BG_CARD_TOP} 100%)`,
@@ -231,8 +231,8 @@ const Home = ({ setRoute }) => {
         ══════════════════════════════════════════ */}
         <Box sx={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          px: 1.8, py: 1,
-          mb: 2,
+          px: 1.2, py: 0.8,
+          mb: 1.5,
           border: `1px solid ${C.BORDER_SOFT}`,
           borderRadius: '8px',
           background: `linear-gradient(135deg, ${C.BG_CARD} 0%, ${C.BG_CARD_TOP} 100%)`,
@@ -317,14 +317,14 @@ const Home = ({ setRoute }) => {
 
           <ParchmentDivider label="ARSENAL DO QUARTEL" />
 
-          <Box sx={{ mt: 2, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+          <Box sx={{ mt: 1.5, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
             {FERRAMENTAS.map((tool, i) => (
               <Box
                 key={tool.id}
                 onClick={() => setRoute(tool.id)}
                 sx={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  pt: 1.8, pb: 1.4, px: 0.5,
+                  pt: 1.4, pb: 1.1, px: 0.5,
                   border: `1.5px solid ${C.BORDER_SOFT}`,
                   borderBottom: `2px solid ${C.BORDER}`,
                   borderRadius: '10px',

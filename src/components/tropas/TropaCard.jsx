@@ -125,15 +125,19 @@ const TropaCard = ({ tropa, quantidade, onQuantidadeChange, onFecharTeclado }) =
           </Box>
 
           {/* Stats resumidos */}
-          <Box sx={{ display: 'flex', gap: 0.9, alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
             {resumo.map((s, i) => (
-              <Typography key={i} sx={{
-                fontSize: '0.5rem',
-                fontFamily: '"Nunito", sans-serif',
-                color: C.TEXT_MUTED, whiteSpace: 'nowrap',
-              }}>
-                {s.icon} {s.val}
-              </Typography>
+              <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                <Typography sx={{ fontSize: '0.72rem', lineHeight: 1 }}>{s.icon}</Typography>
+                <Typography sx={{
+                  fontSize: '0.72rem',
+                  fontFamily: '"Nunito", sans-serif',
+                  fontWeight: 700,
+                  color: C.TEXT_SECONDARY, whiteSpace: 'nowrap',
+                }}>
+                  {s.val}
+                </Typography>
+              </Box>
             ))}
           </Box>
 
@@ -154,7 +158,7 @@ const TropaCard = ({ tropa, quantidade, onQuantidadeChange, onFecharTeclado }) =
           }}>
             {tropa.poder}
           </Typography>
-          <Typography sx={{ color: C.TEXT_FAINT, fontSize: '0.4rem', letterSpacing: '1px', mb: 0.3 }}>
+          <Typography sx={{ color: C.TEXT_FAINT, fontSize: '0.62rem', letterSpacing: '1px', mb: 0.3 }}>
             POD
           </Typography>
           <Typography sx={{
