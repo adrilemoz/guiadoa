@@ -1,142 +1,87 @@
-import React, { forwardRef, useMemo, useState } from 'react';
-import {
-  Box, Button, Card, Dialog, DialogActions, DialogContent,
-  DialogTitle, IconButton, LinearProgress, Slide, TextField, Typography,
-} from '@mui/material';
-import DeleteIcon  from '@mui/icons-material/Delete';
-import CloseIcon   from '@mui/icons-material/Close';
-import AddIcon     from '@mui/icons-material/Add';
-
+import React, { useMemo, useState } from 'react';
 import { C } from '../theme.js';
-import { dbTropas } from '../db.js';
+import { useTropas } from '../hooks/useTropas.js';
 import { getIcone, getTipoAtaque, fmt, fmtFull, getAtributosResumo } from './tropas/tropaUtils.js';
 import GameHeader from './shared/GameHeader.jsx';
+import Modal from '../ui/Modal.jsx';
+import { createPortal } from 'react-dom';
 
-const TransitionUp   = forwardRef((props, ref) => <Slide direction="up"   ref={ref} {...props} />);
-const TransitionDown = forwardRef((props, ref) => <Slide direction="down" ref={ref} {...props} />);
-
-// ─── Mini barra de stat (reutilizada da lista de seleção) ─────────────────
+// ── Mini barra ──────────────────────────────────────────────────────────────
 const MiniBar = ({ value, max, color }) => {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   return (
-    <Box sx={{ flex: 1, height: '3px', bgcolor: 'rgba(255,255,255,0.04)', borderRadius: '2px', overflow: 'hidden' }}>
-      <Box sx={{
-        height: '100%', width: `${pct}%`,
-        background: value ? `linear-gradient(90deg, ${color}55, ${color})` : 'transparent',
-        borderRadius: '2px',
-      }} />
-    </Box>
+    <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(62,47,28,0.08)' }}>
+      <div style={{ height: '100%', width: `${pct}%`, background: value ? `linear-gradient(90deg,${color}55,${color})` : 'transparent', borderRadius: 2 }} />
+    </div>
   );
 };
 
-// ─── Linha de seleção de tropa (mesmo visual do TropaCard, sem expandir) ─
+// ── Linha de seleção ────────────────────────────────────────────────────────
 const SelectRow = ({ tropa, onClick }) => {
   const tipo   = getTipoAtaque(tropa);
   const resumo = getAtributosResumo(tropa);
-
   return (
-    <Box
+    <div
       onClick={onClick}
-      sx={{
-        display: 'flex', alignItems: 'center', gap: 1.2,
-        px: 1.5, py: 1.1, cursor: 'pointer',
-        border: `1px solid ${C.BORDER_SOFT}`,
-        borderLeft: `3px solid ${C.BORDER}`,
-        borderRadius: '6px',
-        bgcolor: C.BG_CARD,
-        transition: 'all 0.15s',
-        '&:hover': {
-          borderLeftColor: C.ACCENT_HOVER,
-          bgcolor: C.BG_CARD_TOP,
-        },
-        '&:active': { opacity: 0.8 },
-      }}
+      className="flex items-center gap-2.5 px-3 py-2.5 cursor-pointer rounded-lg transition-all"
+      style={{ border: `1px solid ${C.BORDER_SOFT}`, borderLeft: `3px solid ${C.BORDER}`, background: C.BG_CARD }}
     >
-      {/* Ícone */}
-      <Typography sx={{ fontSize: '1.6rem', lineHeight: 1, flexShrink: 0, width: 30, textAlign: 'center' }}>
-        {getIcone(tropa.nome)}
-      </Typography>
-
-      {/* Nome + resumo */}
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7, mb: 0.3, flexWrap: 'wrap' }}>
-          <Typography sx={{ color: C.ACCENT, fontSize: '0.80rem', fontWeight: 900, fontFamily: '"Nunito", sans-serif', lineHeight: 1 }}>
-            {tropa.nome}
-          </Typography>
-          <Box sx={{ px: 0.7, py: 0.15, border: `1px solid ${tipo.color}55`, borderRadius: '8px', bgcolor: `${tipo.color}10`, flexShrink: 0 }}>
-            <Typography sx={{ color: tipo.color, fontSize: '0.75rem', fontFamily: '"Nunito", sans-serif', fontWeight: 700 }}>
-              {tipo.label}
-            </Typography>
-          </Box>
-        </Box>
-
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 0.4 }}>
+      <span className="text-3xl leading-none shrink-0 w-8 text-center">{getIcone(tropa.nome)}</span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+          <span className="font-nunito font-black text-[0.82rem]" style={{ color: C.ACCENT }}>{tropa.nome}</span>
+          <span className="font-nunito font-bold text-[0.65rem] px-1.5 py-0.5 rounded-full shrink-0"
+            style={{ border: `1px solid ${tipo.color}55`, background: `${tipo.color}12`, color: tipo.color }}>
+            {tipo.label}
+          </span>
+        </div>
+        <div className="flex gap-2 items-center mb-1">
           {resumo.map((s, i) => (
-            <Typography key={i} sx={{ fontSize: '0.75rem', fontFamily: '"Nunito", sans-serif', color: C.TEXT_SECONDARY, whiteSpace: 'nowrap' }}>
-              {s.icon} {s.val}
-            </Typography>
+            <span key={i} className="font-nunito text-[0.6rem] whitespace-nowrap" style={{ color: C.TEXT_SECONDARY }}>{s.icon} {s.val}</span>
           ))}
-        </Box>
-
-        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-          <MiniBar value={tropa.vida}  max={32000} color="#e05030" />
-          <MiniBar value={tropa.def}   max={5000}  color="#1e6b8a" />
-          <MiniBar value={Math.max(tropa.atqPerto, tropa.atqDist)} max={6000} color={tropa.atqDist > tropa.atqPerto ? '#B8965A' : '#b91c1c'} />
-          <MiniBar value={tropa.vel}   max={3000}  color="#0369a1" />
-        </Box>
-      </Box>
-
-      {/* Poder */}
-      <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-        <Typography sx={{ color: '#9d4edd', fontSize: '0.75rem', fontWeight: 900, fontFamily: '"Nunito", sans-serif', lineHeight: 1 }}>
-          {tropa.poder}
-        </Typography>
-        <Typography sx={{ color: C.TEXT_SECONDARY, fontSize: '0.75rem', letterSpacing: '1px' }}>POD</Typography>
-      </Box>
-    </Box>
+        </div>
+        <div className="flex gap-1 items-center">
+          <MiniBar value={tropa.vida}  max={32000} color={C.HEALTH}  />
+          <MiniBar value={tropa.def}   max={5000}  color={C.DEFENSE} />
+          <MiniBar value={Math.max(tropa.atqPerto, tropa.atqDist)} max={6000} color={C.ATTACK} />
+          <MiniBar value={tropa.vel}   max={3000}  color={C.ENERGY}  />
+        </div>
+      </div>
+      <div className="text-right shrink-0">
+        <p className="font-nunito font-black text-[0.75rem] leading-none m-0" style={{ color: C.POWER }}>{tropa.poder}</p>
+        <p className="font-nunito text-[0.55rem] tracking-wider m-0" style={{ color: C.TEXT_MUTED }}>POD</p>
+      </div>
+    </div>
   );
 };
 
-// ─── Slot de seleção (comparar) ───────────────────────────────────────────
+// ── Slot comparar ────────────────────────────────────────────────────────────
 const SlotComparar = ({ tropa, label, side, onSelect }) => (
-  <Box
+  <div
     onClick={() => onSelect(side)}
-    sx={{
-      flex: 1, p: 1.5, textAlign: 'center', cursor: 'pointer', borderRadius: '6px',
-      border: tropa ? `2px solid ${C.ACCENT_HOVER}` : `2px dashed ${C.BORDER}`,
-      bgcolor: tropa ? `rgba(200,148,10,0.06)` : 'transparent',
-      transition: 'all 0.2s',
-      '&:active': { transform: 'scale(0.97)' },
-    }}
+    className="flex-1 p-3 text-center cursor-pointer rounded-lg transition-all"
+    style={{ border: tropa ? `2px solid ${C.ACCENT_HOVER}` : `2px dashed ${C.BORDER}`, background: tropa ? `rgba(200,148,10,0.06)` : 'transparent' }}
   >
-    <Typography sx={{ fontSize: '0.75rem', fontWeight: 900, color: C.TEXT_SECONDARY, mb: 0.8, fontFamily: '"Nunito", sans-serif', letterSpacing: '1px' }}>
-      {label}
-    </Typography>
-    <Box sx={{ fontSize: '2rem', mb: 0.6 }}>{tropa ? getIcone(tropa.nome) : '＋'}</Box>
-    <Typography sx={{ fontSize: '0.6rem', fontWeight: 900, color: tropa ? C.ACCENT : C.BORDER, fontFamily: '"Nunito", sans-serif', lineHeight: 1.2 }}>
+    <p className="font-nunito font-black text-[0.68rem] tracking-widest mb-1.5 m-0" style={{ color: C.TEXT_SECONDARY }}>{label}</p>
+    <div className="text-3xl mb-1.5 leading-none">{tropa ? getIcone(tropa.nome) : '＋'}</div>
+    <p className="font-nunito font-black text-[0.68rem] leading-tight m-0" style={{ color: tropa ? C.ACCENT : C.BORDER }}>
       {tropa ? tropa.nome : 'Escolher'}
-    </Typography>
-    {tropa && (
-      <Typography sx={{ fontSize: '0.75rem', color: '#9d4edd', mt: 0.4, fontFamily: '"Nunito", sans-serif' }}>
-        ⭐ {tropa.poder}
-      </Typography>
-    )}
-  </Box>
+    </p>
+    {tropa && <p className="font-nunito text-[0.7rem] mt-1 m-0" style={{ color: C.POWER }}>⭐ {tropa.poder}</p>}
+  </div>
 );
 
-// ─── Atributos do comparador ──────────────────────────────────────────────
 const ATTRS_COMPARAR = [
-  { id: 'vida',     label: 'Vida',       icon: '❤️', color: '#e05030', max: 32000 },
-  { id: 'def',      label: 'Defesa',     icon: '🛡️', color: '#1e6b8a', max: 5000  },
-  { id: 'atqPerto', label: 'Atq. Perto', icon: '⚔️', color: '#b91c1c', max: 6000  },
-  { id: 'atqDist',  label: 'Atq. Dist.', icon: '🏹', color: '#B8965A', max: 6000  },
-  { id: 'vel',      label: 'Vel.',       icon: '⚡', color: '#0369a1', max: 3000  },
-  { id: 'alcance',  label: 'Alcance',    icon: '🎯', color: '#0f766e', max: 3500  },
-  { id: 'poder',    label: 'Poder',      icon: '⭐', color: '#7c3aed', max: 50    },
+  { id: 'vida',     label: 'Vida',       icon: '❤️', color: C.HEALTH,  max: 32000 },
+  { id: 'def',      label: 'Defesa',     icon: '🛡️', color: C.DEFENSE, max: 5000  },
+  { id: 'atqPerto', label: 'Atq. Perto', icon: '⚔️', color: C.ATTACK,  max: 6000  },
+  { id: 'atqDist',  label: 'Atq. Dist.', icon: '🏹', color: C.GOLD_MAIN, max: 6000 },
+  { id: 'vel',      label: 'Vel.',       icon: '⚡', color: C.ENERGY,  max: 3000  },
+  { id: 'poder',    label: 'Poder',      icon: '⭐', color: C.POWER,   max: 50    },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────
 const CalculosTropas = ({ setRoute }) => {
+  const { tropas } = useTropas();
   const [aba,              setAba]              = useState('marcha');
   const [tropaA,           setTropaA]           = useState(null);
   const [tropaB,           setTropaB]           = useState(null);
@@ -146,10 +91,10 @@ const CalculosTropas = ({ setRoute }) => {
   const [confirmDialog,    setConfirmDialog]    = useState({ open: false, title: '', text: '', acao: null });
 
   const tropasFiltradas = useMemo(() =>
-    [...dbTropas]
+    [...tropas]
       .filter(t => t.nome.toLowerCase().includes(busca.toLowerCase()))
       .sort((a, b) => a.nome.localeCompare(b.nome)),
-    [busca]
+    [busca, tropas]
   );
 
   const handleSelect = (tropa) => {
@@ -162,372 +107,233 @@ const CalculosTropas = ({ setRoute }) => {
 
   const updateQtd = (index, value) => {
     const num = Number(value.replace(/\D/g, ''));
-    setEsquadroes(prev => {
-      const next = [...prev];
-      next[index] = { ...next[index], qtd: num === 0 ? '' : num };
-      return next;
-    });
+    setEsquadroes(prev => { const next = [...prev]; next[index] = { ...next[index], qtd: num || '' }; return next; });
   };
 
-  const fecharConfirmacao  = () => setConfirmDialog(d => ({ ...d, open: false }));
-  const executarConfirmacao = () => { confirmDialog.acao?.(); fecharConfirmacao(); };
-
   const confirmarRemocao = (index, nome) =>
-    setConfirmDialog({
-      open: true,
-      title: 'Remover unidade',
-      text: `Retirar ${nome} da formação?`,
-      acao: () => setEsquadroes(prev => prev.filter((_, i) => i !== index)),
-    });
+    setConfirmDialog({ open: true, title: 'Remover unidade', text: `Retirar ${nome} da formação?`, acao: () => setEsquadroes(prev => prev.filter((_, i) => i !== index)) });
 
   const solicitarSaida = () => {
-    const temDados = esquadroes.length > 0 || tropaA || tropaB;
-    if (temDados) {
-      setConfirmDialog({
-        open: true,
-        title: 'Sair do simulador',
-        text: 'Os dados da simulação serão perdidos. Confirma a saída?',
-        acao: () => setRoute('tropas'),
-      });
-    } else {
-      setRoute('tropas');
-    }
+    if (esquadroes.length > 0 || tropaA || tropaB) {
+      setConfirmDialog({ open: true, title: 'Sair do simulador', text: 'Os dados da simulação serão perdidos. Confirma a saída?', acao: () => setRoute('tropas') });
+    } else { setRoute('tropas'); }
   };
 
   const calcMarcha = useMemo(() => {
     let totTropas = 0, totPoder = 0, totCarga = 0, minVel = Infinity;
     esquadroes.forEach(({ tropa, qtd }) => {
       const q = qtd || 0;
-      if (q > 0) {
-        totTropas += q;
-        totPoder  += (tropa.poder || 0) * q;
-        totCarga  += (tropa.car   || 0) * q;
-        if (tropa.vel < minVel) minVel = tropa.vel;
-      }
+      if (q > 0) { totTropas += q; totPoder += (tropa.poder || 0) * q; totCarga += (tropa.car || 0) * q; if (tropa.vel < minVel) minVel = tropa.vel; }
     });
     return { tropas: totTropas, poder: totPoder, carga: totCarga, velocidade: minVel === Infinity ? 0 : minVel };
   }, [esquadroes]);
 
-  // ── Render ──────────────────────────────────────────────────────────────
   return (
-    <Box sx={{ maxWidth: 800, margin: 'auto', pb: 6 }}>
+    <div className="max-w-2xl mx-auto pb-6">
+      {/* Confirm dialog */}
+      <Modal open={confirmDialog.open} onClose={() => setConfirmDialog(d => ({ ...d, open: false }))} maxWidth={300}>
+        <div className="p-4 text-center">
+          <p className="font-nunito font-black text-sm m-0 mb-1" style={{ color: C.ERROR }}>{confirmDialog.title}</p>
+          <p className="font-nunito text-sm m-0 mb-4" style={{ color: C.TEXT_SECONDARY }}>{confirmDialog.text}</p>
+          <div className="flex gap-2 justify-center">
+            <button className="btn-ghost flex-1" onClick={() => setConfirmDialog(d => ({ ...d, open: false }))}>Cancelar</button>
+            <button className="btn-danger flex-1" onClick={() => { confirmDialog.acao?.(); setConfirmDialog(d => ({ ...d, open: false })); }}>Confirmar</button>
+          </div>
+        </div>
+      </Modal>
 
-      {/* ── Dialog de confirmação ── */}
-      <Dialog
-        open={confirmDialog.open} TransitionComponent={TransitionDown}
-        onClose={fecharConfirmacao}
-        PaperProps={{ sx: { bgcolor: C.BG_CARD, border: `2px solid ${C.ERROR}33`, borderRadius: '8px' } }}
-      >
-        <DialogTitle sx={{ color: C.ERROR, fontWeight: 900, textAlign: 'center', borderBottom: `1px solid ${C.BORDER_SOFT}`, fontFamily: '"Nunito", sans-serif', fontSize: '0.9rem' }}>
-          {confirmDialog.title}
-        </DialogTitle>
-        <DialogContent sx={{ textAlign: 'center', pt: 2, pb: 1 }}>
-          <Typography sx={{ color: C.ACCENT, fontSize: '0.85rem' }}>
-            {confirmDialog.text}
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, justifyContent: 'center', gap: 1.5, bgcolor: C.BG_CARD_TOP }}>
-          <Button onClick={fecharConfirmacao} variant="contained" color="info" sx={{ fontWeight: 900 }}>Cancelar</Button>
-          <Button onClick={executarConfirmacao} variant="contained" color="error" sx={{ fontWeight: 900 }}>Confirmar</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Header */}
+      <div className="mb-2">
+        <GameHeader title="Simulador de Batalha" />
+      </div>
+      <button className="btn-ghost btn-sm mb-2.5" onClick={solicitarSaida}>← Voltar ao Catálogo</button>
 
-      {/* ── Cabeçalho + voltar ── */}
-      <Box sx={{ mb: 1.5 }}>
-        <GameHeader title="Simulador" />
-      </Box>
-
-      <Button
-        variant="outlined" color="primary" size="small" onClick={solicitarSaida}
-        sx={{ mb: 2, fontWeight: 900, fontSize: '0.7rem' }}
-      >
-        ← Voltar ao Catálogo
-      </Button>
-
-      {/* ── Abas ── */}
-      <Box sx={{ display: 'flex', gap: 1, mb: 2.5 }}>
-        {[
-          { id: 'marcha',   label: '🛡️ Marcha'   },
-          { id: 'comparar', label: '⚔️ Comparar' },
-        ].map(({ id, label }) => {
+      {/* Abas */}
+      <div className="flex gap-2 mb-3">
+        {[{ id: 'marcha', label: '🛡️ Marcha' }, { id: 'comparar', label: '⚔️ Comparar' }].map(({ id, label }) => {
           const ativo = aba === id;
           return (
-            <Button
+            <button
               key={id} onClick={() => setAba(id)}
-              variant={ativo ? 'contained' : 'outlined'}
-              sx={{
-                flex: 1, fontWeight: 900, fontSize: '0.80rem',
-                borderColor: C.ACCENT_HOVER,
-                bgcolor: ativo ? C.ACCENT_HOVER : 'transparent',
-                color: ativo ? '#0e0a03' : C.ACCENT_HOVER,
-                '&:hover': { borderColor: C.ACCENT },
-              }}
+              className="flex-1 font-nunito font-black text-[0.8rem] py-2 rounded-lg transition-all border-none cursor-pointer"
+              style={{ background: ativo ? C.ACCENT_HOVER : 'transparent', color: ativo ? '#0e0a03' : C.ACCENT_HOVER, border: `1.5px solid ${C.ACCENT_HOVER}` }}
             >
               {label}
-            </Button>
+            </button>
           );
         })}
-      </Box>
+      </div>
 
-      {/* ══════════════════════ ABA MARCHA ══════════════════════════════ */}
+      {/* ABA MARCHA */}
       {aba === 'marcha' && (
-        <Box>
-          {/* Formação */}
-          <Card sx={{ mb: 2, overflow: 'hidden' }}>
-            <GameHeader title="Formação de Marcha" fontSize="0.85rem" />
-            <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
-
+        <div>
+          <div className="tw-card mb-2.5">
+            <GameHeader title="Formação de Marcha" fontSize="0.82rem" />
+            <div className="p-3 flex flex-col gap-2">
               {esquadroes.length === 0 && (
-                <Box sx={{ py: 3, textAlign: 'center', opacity: 0.45 }}>
-                  <Typography sx={{ color: C.TEXT_SECONDARY, fontSize: '0.6rem', fontFamily: '"Nunito", sans-serif', letterSpacing: '1px' }}>
-                    Nenhuma unidade adicionada
-                  </Typography>
-                </Box>
+                <div className="py-6 text-center opacity-50">
+                  <p className="font-nunito text-[0.68rem] tracking-widest m-0" style={{ color: C.TEXT_SECONDARY }}>Nenhuma unidade adicionada</p>
+                </div>
               )}
-
               {esquadroes.map((esq, idx) => (
-                <Box key={idx} sx={{
-                  display: 'flex', alignItems: 'center', gap: 1,
-                  px: 1.2, py: 0.9,
-                  border: `1px solid ${C.BORDER_SOFT}`,
-                  borderLeft: `3px solid ${C.BORDER}`,
-                  borderRadius: '6px',
-                  bgcolor: C.BG_CARD,
-                }}>
-                  {/* Ícone */}
-                  <Typography sx={{ fontSize: '1.5rem', lineHeight: 1, flexShrink: 0, width: 28, textAlign: 'center' }}>
-                    {getIcone(esq.tropa.nome)}
-                  </Typography>
-
-                  {/* Nome */}
-                  <Typography sx={{ flex: 1, color: C.ACCENT, fontSize: '0.80rem', fontWeight: 900, fontFamily: '"Nunito", sans-serif', lineHeight: 1.3, minWidth: 0 }}>
-                    {esq.tropa.nome}
-                  </Typography>
-
-                  {/* Qtd */}
-                  <TextField
-                    placeholder="Qtd." variant="outlined" size="small"
+                <div key={idx} className="flex items-center gap-2 px-2.5 py-2 rounded-lg"
+                  style={{ border: `1px solid ${C.BORDER_SOFT}`, borderLeft: `3px solid ${C.BORDER}`, background: C.BG_CARD }}>
+                  <span className="text-2xl leading-none shrink-0 w-7 text-center">{getIcone(esq.tropa.nome)}</span>
+                  <span className="font-nunito font-black text-[0.78rem] flex-1 min-w-0 truncate" style={{ color: C.ACCENT }}>{esq.tropa.nome}</span>
+                  <input
+                    className="tw-input text-center font-nunito font-black"
+                    style={{ width: 72, padding: '4px 8px', fontSize: '0.75rem' }}
+                    placeholder="Qtd."
                     value={esq.qtd ? esq.qtd.toLocaleString('pt-BR') : ''}
                     onChange={e => updateQtd(idx, e.target.value)}
-                    inputProps={{ inputMode: 'numeric' }}
-                    sx={{
-                      width: 80, flexShrink: 0,
-                      '& .MuiInputBase-input': {
-                        py: '5px', px: '8px',
-                        fontSize: '0.75rem', fontWeight: 900,
-                        textAlign: 'center',
-                        fontFamily: '"Nunito", sans-serif',
-                        color: C.TEXT_PRIMARY,
-                      },
-                    }}
+                    inputMode="numeric"
                   />
-
-                  {/* Delete */}
-                  <IconButton
-                    size="small"
+                  <button
+                    className="shrink-0 w-7 h-7 rounded flex items-center justify-center text-sm transition-all border-none cursor-pointer"
+                    style={{ color: C.ERROR, border: `1px solid ${C.ERROR}33`, background: 'transparent' }}
                     onClick={() => confirmarRemocao(idx, esq.tropa.nome)}
-                    sx={{
-                      flexShrink: 0,
-                      color: C.ERROR,
-                      border: `1px solid ${C.ERROR}33`,
-                      borderRadius: '4px',
-                      p: 0.5,
-                      '&:hover': { bgcolor: `${C.ERROR}15` },
-                    }}
                   >
-                    <DeleteIcon sx={{ fontSize: '1rem' }} />
-                  </IconButton>
-                </Box>
+                    ✕
+                  </button>
+                </div>
               ))}
-
-              <Button
-                variant="outlined" fullWidth
+              <button
+                className="font-nunito font-black text-xs py-2 rounded-lg transition-all border-none cursor-pointer mt-1"
+                style={{ borderStyle: 'dashed', border: `1.5px dashed ${C.BORDER}`, background: 'transparent', color: C.TEXT_MUTED }}
                 onClick={() => setSelecionandoPara('MARCHA')}
-                startIcon={<AddIcon />}
-                sx={{
-                  mt: 0.5, fontWeight: 900, fontSize: '0.7rem',
-                  borderStyle: 'dashed', borderColor: C.BORDER,
-                  color: C.TEXT_MUTED,
-                  '&:hover': { borderColor: C.ACCENT_HOVER, color: C.ACCENT_HOVER, borderStyle: 'dashed' },
-                }}
               >
-                Adicionar Unidade
-              </Button>
-            </Box>
-          </Card>
+                ＋ Adicionar Unidade
+              </button>
+            </div>
+          </div>
 
           {/* Relatório */}
-          <Card sx={{ overflow: 'hidden' }}>
-            <GameHeader title="Relatório" fontSize="0.85rem" />
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+          <div className="tw-card overflow-hidden">
+            <GameHeader title="Relatório" fontSize="0.82rem" />
+            <div className="grid grid-cols-2">
               {[
-                { label: 'Tropas',    value: fmt(calcMarcha.tropas),      color: C.ACCENT,    border: C.ACCENT_HOVER },
-                { label: 'Poder',     value: fmt(calcMarcha.poder),       color: '#9d4edd',       border: '#9d4edd'     },
-                { label: 'Saque',     value: fmt(calcMarcha.carga),       color: C.ACCENT_HOVER,   border: C.ACCENT_HOVER },
-                { label: 'Vel. base', value: fmtFull(calcMarcha.velocidade), color: '#0369a1',    border: '#0369a1'     },
+                { label: 'Tropas',    value: fmt(calcMarcha.tropas),        color: C.ACCENT,       border: C.ACCENT_HOVER },
+                { label: 'Poder',     value: fmt(calcMarcha.poder),         color: C.POWER,        border: C.POWER        },
+                { label: 'Saque',     value: fmt(calcMarcha.carga),         color: C.ACCENT_HOVER, border: C.ACCENT_HOVER },
+                { label: 'Vel. base', value: fmtFull(calcMarcha.velocidade), color: C.BLUE,         border: C.BLUE         },
               ].map(({ label, value, color, border }, i) => (
-                <Box key={label} sx={{
-                  py: 1.5, px: 1, textAlign: 'center',
-                  borderBottom: `3px solid ${border}`,
-                  borderRight: i % 2 === 0 ? `1px solid ${C.BORDER_SOFT}` : 'none',
-                  borderTop: i >= 2 ? `1px solid ${C.BORDER_SOFT}` : 'none',
-                }}>
-                  <Typography sx={{ color: C.TEXT_SECONDARY, fontSize: '0.75rem', letterSpacing: '1.5px', fontFamily: '"Nunito", sans-serif', fontWeight: 700, mb: 0.4 }}>
-                    {label.toUpperCase()}
-                  </Typography>
-                  <Typography sx={{ color, fontSize: '1.1rem', fontWeight: 900, fontFamily: '"Nunito", sans-serif', lineHeight: 1, textShadow: `0 0 10px ${color}55` }}>
-                    {value}
-                  </Typography>
-                </Box>
+                <div key={label} className="py-3 px-2 text-center"
+                  style={{ borderBottom: `3px solid ${border}`, borderRight: i % 2 === 0 ? `1px solid ${C.BORDER_SOFT}` : 'none', borderTop: i >= 2 ? `1px solid ${C.BORDER_SOFT}` : 'none' }}>
+                  <p className="font-nunito font-bold text-[0.65rem] tracking-widest mb-1 m-0" style={{ color: C.TEXT_SECONDARY }}>{label.toUpperCase()}</p>
+                  <p className="font-nunito font-black text-lg leading-none m-0" style={{ color }}>{value}</p>
+                </div>
               ))}
-            </Box>
-          </Card>
-        </Box>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* ══════════════════════ ABA COMPARAR ════════════════════════════ */}
+      {/* ABA COMPARAR */}
       {aba === 'comparar' && (
-        <Box>
-          {/* Slots */}
-          <Box sx={{ display: 'flex', gap: 1.5, mb: 2, alignItems: 'stretch' }}>
+        <div>
+          <div className="flex gap-3 mb-3 items-stretch">
             <SlotComparar tropa={tropaA} label="UNIDADE A" side="A" onSelect={setSelecionandoPara} />
-            <Box sx={{ display: 'flex', alignItems: 'center', px: 0.5 }}>
-              <Typography sx={{ fontWeight: 900, color: C.ERROR, fontSize: '1rem', fontFamily: '"Nunito", sans-serif' }}>VS</Typography>
-            </Box>
+            <div className="flex items-center px-1">
+              <span className="font-nunito font-black text-sm" style={{ color: C.ERROR }}>VS</span>
+            </div>
             <SlotComparar tropa={tropaB} label="UNIDADE B" side="B" onSelect={setSelecionandoPara} />
-          </Box>
+          </div>
 
           {(tropaA || tropaB) ? (
-            <Card sx={{ overflow: 'hidden' }}>
-              <GameHeader title="Comparação de Atributos" fontSize="0.85rem" />
-              <Box sx={{ p: 1.5 }}>
-
-                {/* Cabeçalho com nomes */}
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 56px 1fr', gap: 0.5, mb: 1.5, alignItems: 'center' }}>
-                  <Typography sx={{ color: C.ACCENT, fontSize: '0.78rem', fontWeight: 900, fontFamily: '"Nunito", sans-serif', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div className="tw-card overflow-hidden">
+              <GameHeader title="Comparação de Atributos" fontSize="0.82rem" />
+              <div className="p-3">
+                {/* Nomes */}
+                <div className="grid gap-1 mb-3" style={{ gridTemplateColumns: '1fr 36px 1fr' }}>
+                  <p className="font-nunito font-black text-[0.75rem] m-0 truncate text-left" style={{ color: C.ACCENT }}>
                     {getIcone(tropaA?.nome || '')} {tropaA?.nome || '—'}
-                  </Typography>
-                  <Box />
-                  <Typography sx={{ color: C.ACCENT, fontSize: '0.78rem', fontWeight: 900, fontFamily: '"Nunito", sans-serif', textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  </p>
+                  <div />
+                  <p className="font-nunito font-black text-[0.75rem] m-0 truncate text-right" style={{ color: C.ACCENT }}>
                     {tropaB?.nome || '—'} {getIcone(tropaB?.nome || '')}
-                  </Typography>
-                </Box>
+                  </p>
+                </div>
 
-                {ATTRS_COMPARAR.map((attr) => {
+                {ATTRS_COMPARAR.map(attr => {
                   const valA = tropaA ? (tropaA[attr.id] || 0) : 0;
                   const valB = tropaB ? (tropaB[attr.id] || 0) : 0;
                   const winA = valA > valB;
                   const winB = valB > valA;
+                  const pctA = attr.max > 0 ? Math.min(100, (valA / attr.max) * 100) : 0;
+                  const pctB = attr.max > 0 ? Math.min(100, (valB / attr.max) * 100) : 0;
 
                   return (
-                    <Box key={attr.id} sx={{ mb: 1.8 }}>
-                      {/* Label central */}
-                      <Typography sx={{ textAlign: 'center', fontSize: '0.5rem', fontWeight: 900, color: C.TEXT_SECONDARY, mb: 0.5, fontFamily: '"Nunito", sans-serif', letterSpacing: '1px' }}>
+                    <div key={attr.id} className="mb-3">
+                      <p className="text-center font-nunito font-black text-[0.6rem] tracking-widest m-0 mb-1" style={{ color: C.TEXT_SECONDARY }}>
                         {attr.icon} {attr.label}
-                      </Typography>
-
-                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 56px 1fr', gap: 0.5, alignItems: 'center' }}>
+                      </p>
+                      <div className="grid gap-1 items-center" style={{ gridTemplateColumns: '1fr 28px 1fr' }}>
                         {/* Lado A */}
-                        <Box>
-                          <Typography sx={{ fontWeight: 900, color: winA ? C.SUCCESS : C.ACCENT, fontSize: '0.82rem', textAlign: 'right', fontFamily: '"Nunito", sans-serif', mb: 0.3 }}>
-                            {fmtFull(valA)}
-                          </Typography>
-                          <LinearProgress
-                            variant="determinate"
-                            value={(valA / attr.max) * 100}
-                            sx={{
-                              height: 5, borderRadius: 0, bgcolor: 'rgba(255,255,255,0.04)',
-                              transform: 'scaleX(-1)',
-                              '& .MuiLinearProgress-bar': { bgcolor: winA ? C.SUCCESS : attr.color, borderRadius: 0 },
-                            }}
-                          />
-                        </Box>
-
+                        <div>
+                          <p className="font-nunito font-black text-[0.78rem] text-right m-0 mb-1" style={{ color: winA ? C.SUCCESS : C.ACCENT }}>{fmtFull(valA)}</p>
+                          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(62,47,28,0.07)', transform: 'scaleX(-1)' }}>
+                            <div style={{ height: '100%', width: `${pctA}%`, background: winA ? C.SUCCESS : attr.color, borderRadius: 2 }} />
+                          </div>
+                        </div>
                         {/* Ícone central */}
-                        <Box sx={{ textAlign: 'center' }}>
-                          <Typography sx={{ fontSize: '0.75rem' }}>{attr.icon}</Typography>
-                        </Box>
-
+                        <div className="text-center text-sm">{attr.icon}</div>
                         {/* Lado B */}
-                        <Box>
-                          <Typography sx={{ fontWeight: 900, color: winB ? C.SUCCESS : C.ACCENT, fontSize: '0.82rem', textAlign: 'left', fontFamily: '"Nunito", sans-serif', mb: 0.3 }}>
-                            {fmtFull(valB)}
-                          </Typography>
-                          <LinearProgress
-                            variant="determinate"
-                            value={(valB / attr.max) * 100}
-                            sx={{
-                              height: 5, borderRadius: 0, bgcolor: 'rgba(255,255,255,0.04)',
-                              '& .MuiLinearProgress-bar': { bgcolor: winB ? C.SUCCESS : attr.color, borderRadius: 0 },
-                            }}
-                          />
-                        </Box>
-                      </Box>
-                    </Box>
+                        <div>
+                          <p className="font-nunito font-black text-[0.78rem] text-left m-0 mb-1" style={{ color: winB ? C.SUCCESS : C.ACCENT }}>{fmtFull(valB)}</p>
+                          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(62,47,28,0.07)' }}>
+                            <div style={{ height: '100%', width: `${pctB}%`, background: winB ? C.SUCCESS : attr.color, borderRadius: 2 }} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   );
                 })}
-              </Box>
-            </Card>
+              </div>
+            </div>
           ) : (
-            <Box sx={{ py: 6, textAlign: 'center', border: `1px dashed ${C.BORDER}`, borderRadius: '8px', opacity: 0.5 }}>
-              <Typography sx={{ color: C.TEXT_SECONDARY, fontSize: '0.80rem', fontFamily: '"Nunito", sans-serif', letterSpacing: '1px' }}>
-                Selecione duas unidades para comparar
-              </Typography>
-            </Box>
+            <div className="py-12 text-center rounded-xl opacity-50" style={{ border: `1px dashed ${C.BORDER}` }}>
+              <p className="font-nunito text-[0.78rem] tracking-wide m-0" style={{ color: C.TEXT_SECONDARY }}>Selecione duas unidades para comparar</p>
+            </div>
           )}
-        </Box>
+        </div>
       )}
 
-      {/* ══════════════════════ GAVETA DE SELEÇÃO ═══════════════════════ */}
-      <Dialog
-        fullScreen
-        open={selecionandoPara !== null}
-        onClose={() => setSelecionandoPara(null)}
-        TransitionComponent={TransitionUp}
-        PaperProps={{ sx: { bgcolor: C.BG_MAIN } }}
-      >
-        {/* Header da gaveta */}
-        <Box sx={{
-          px: 2, py: 1.2,
-          bgcolor: C.BG_CARD_TOP,
-          borderBottom: `2px solid ${C.BORDER}`,
-          display: 'flex', alignItems: 'center', gap: 1.5,
-          position: 'sticky', top: 0, zIndex: 10,
-        }}>
-          <IconButton
-            onClick={() => { setSelecionandoPara(null); setBusca(''); }}
-            sx={{ color: C.ACCENT, p: 0.5 }}
-          >
-            <CloseIcon />
-          </IconButton>
-          <Typography sx={{ color: C.ACCENT, fontWeight: 900, fontFamily: '"Nunito", sans-serif', fontSize: '0.85rem', letterSpacing: '1px', flex: 1 }}>
-            Selecionar Unidade
-          </Typography>
-          <Typography sx={{ color: C.TEXT_SECONDARY, fontSize: '0.75rem' }}>
-            {tropasFiltradas.length} un.
-          </Typography>
-        </Box>
-
-        {/* Busca */}
-        <Box sx={{ px: 1.5, pt: 1.2, pb: 0.8, bgcolor: C.BG_CARD, borderBottom: `1px solid ${C.BORDER_SOFT}` }}>
-          <TextField
-            fullWidth placeholder="Buscar unidade..."
-            variant="outlined" size="small"
-            value={busca} onChange={e => setBusca(e.target.value)}
-            autoFocus
-            sx={{ '& .MuiInputBase-input': { fontSize: '0.82rem', py: '7px' } }}
-          />
-        </Box>
-
-        {/* Lista */}
-        <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 0.8, overflowY: 'auto' }}>
-          {tropasFiltradas.map(t => (
-            <SelectRow key={t.nome} tropa={t} onClick={() => handleSelect(t)} />
-          ))}
-        </Box>
-      </Dialog>
-
-    </Box>
+      {/* GAVETA DE SELEÇÃO (full-screen portal) */}
+      {selecionandoPara !== null && createPortal(
+        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: C.BG_MAIN }}>
+          {/* Header */}
+          <div className="flex items-center gap-3 px-3 py-2.5 sticky top-0 z-10"
+            style={{ background: C.BG_CARD_TOP, borderBottom: `2px solid ${C.BORDER}` }}>
+            <button
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-sm border-none cursor-pointer transition-all"
+              style={{ color: C.ACCENT, background: 'transparent', border: `1px solid ${C.BORDER_SOFT}` }}
+              onClick={() => { setSelecionandoPara(null); setBusca(''); }}
+            >
+              ✕
+            </button>
+            <p className="font-nunito font-black text-[0.85rem] tracking-wide flex-1 m-0" style={{ color: C.ACCENT }}>Selecionar Unidade</p>
+            <span className="font-nunito text-xs" style={{ color: C.TEXT_SECONDARY }}>{tropasFiltradas.length} un.</span>
+          </div>
+          {/* Busca */}
+          <div className="px-3 py-2" style={{ background: C.BG_CARD, borderBottom: `1px solid ${C.BORDER_SOFT}` }}>
+            <input
+              className="tw-input"
+              placeholder="Buscar unidade..."
+              value={busca}
+              onChange={e => setBusca(e.target.value)}
+              autoFocus
+            />
+          </div>
+          {/* Lista */}
+          <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+            {tropasFiltradas.map(t => (
+              <SelectRow key={t.nome} tropa={t} onClick={() => handleSelect(t)} />
+            ))}
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
   );
 };
 

@@ -1,19 +1,16 @@
 // ==========================================================
-// db.js — Ponto de entrada único do banco de dados estático.
+// db.js — Ponto de entrada único do banco de dados.
 //
-// Todos os dados foram migrados para módulos dedicados em
-// src/data/. Este arquivo re-exporta tudo para manter
-// compatibilidade total com os imports existentes no projeto.
-//
-// Consumidores continuam usando:
-//   import { dbTropas }    from '../db.js';
-//   import { dbNiveis }    from '../db.js';
-//   import { dbReinos }    from '../db.js';
-//   import { dbEdificios } from '../db.js';
+// Re-exporta dados estáticos e funções async que buscam
+// da API com fallback local.
 // ==========================================================
 
-export { dbTropasRaw, dbTropas }       from './data/tropas.js';
+export { dbTropas }                    from './data/tropas.js';
 export { dbNiveis }                    from './data/niveis.js';
 export { dbReinos }                    from './data/reinos.js';
 export { dbEdificios }                 from './data/edificios.js';
 export { dbDragoes, getDragaoById }    from './data/dragoes.js';
+
+// Funções async com API + fallback
+export { carregarTropas, invalidarCacheTropas }   from './data/tropas.js';
+export { carregarNiveis, invalidarCacheNiveis }   from './data/niveis.js';

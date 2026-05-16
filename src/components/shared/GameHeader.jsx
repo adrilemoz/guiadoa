@@ -1,76 +1,43 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
-import { C } from '../../theme.js';
 
 /**
- * Cabeçalho padrão dos módulos — tema pergaminho medieval.
- * Usado em: Torneios, Tropas, Niveis, Ilhas, Sobre, Backup, etc.
+ * Cabeçalho padrão dos módulos — tema AoE3 colonial.
  */
-const GameHeader = ({ title, fontSize = '1rem', subtitle }) => (
-  <Box sx={{
-    background: `linear-gradient(180deg, ${C.BG_SECONDARY} 0%, ${C.BG_CARD_TOP} 100%)`,
-    border: `1.5px solid ${C.BORDER}`,
-    borderRadius: '10px',
-    p: '12px 16px',
-    textAlign: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-    mb: 1.5,
-    boxShadow: '0 2px 8px rgba(62,47,28,0.1)',
+const GameHeader = ({ title, fontSize = '0.82rem', subtitle }) => (
+  <div
+    className="relative overflow-hidden text-center px-4 py-2.5"
+    style={{
+      background: 'linear-gradient(180deg, #EAE0C8 0%, #E0D4B0 100%)',
+      borderBottom: '1.5px solid #C8A84A',
+    }}
+  >
+    {/* Brilho superior */}
+    <div className="absolute top-0 left-[10%] right-[10%] h-px"
+      style={{ background: 'linear-gradient(90deg, transparent, rgba(255,248,230,0.8), transparent)' }} />
 
-    // Brilho superior
-    '&::before': {
-      content: '""', position: 'absolute',
-      top: 0, left: '10%', right: '10%', height: '1px',
-      background: 'linear-gradient(90deg, transparent, rgba(255,248,230,0.8), transparent)',
-    },
-
-    // Sombra inferior interna
-    '&::after': {
-      content: '""', position: 'absolute',
-      bottom: 0, left: 0, right: 0, height: '2px',
-      background: `linear-gradient(90deg, transparent 5%, ${C.BORDER_SOFT} 30%, ${C.BORDER} 50%, ${C.BORDER_SOFT} 70%, transparent 95%)`,
-    },
-  }}>
+    {/* Sombra inferior */}
+    <div className="absolute bottom-0 left-0 right-0 h-px"
+      style={{ background: 'linear-gradient(90deg, transparent 5%, #D8C888 30%, #C8A84A 50%, #D8C888 70%, transparent 95%)' }} />
 
     {/* Ornamentos de canto */}
-    <Box sx={{
-      position: 'absolute', top: 5, left: 8,
-      color: C.BORDER, fontSize: '0.75rem', opacity: 0.7, lineHeight: 1,
-    }}>◆</Box>
-    <Box sx={{
-      position: 'absolute', top: 5, right: 8,
-      color: C.BORDER, fontSize: '0.75rem', opacity: 0.7, lineHeight: 1,
-    }}>◆</Box>
+    <span className="absolute top-1.5 left-2 text-aoe-gold opacity-70 text-xs">◆</span>
+    <span className="absolute top-1.5 right-2 text-aoe-gold opacity-70 text-xs">◆</span>
 
     {/* Título */}
-    <Typography sx={{
-      color: C.TEXT_PRIMARY,
-      fontFamily: '"Nunito", sans-serif',
-      fontWeight: 700,
-      fontSize,
-      letterSpacing: '2px',
-      textTransform: 'uppercase',
-      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-      lineHeight: 1.3,
-    }}>
+    <p
+      className="font-cinzel font-bold uppercase tracking-widest text-aoe-dark leading-tight m-0 overflow-hidden text-ellipsis whitespace-nowrap"
+      style={{ fontSize }}
+    >
       {title}
-    </Typography>
+    </p>
 
-    {/* Subtítulo opcional */}
+    {/* Subtítulo */}
     {subtitle && (
-      <Typography sx={{
-        color: C.TEXT_MUTED,
-        fontFamily: '"Nunito", sans-serif',
-        fontStyle: 'italic',
-        fontSize: '0.78rem',
-        mt: 0.3,
-        lineHeight: 1,
-      }}>
+      <p className="font-nunito italic text-aoe-muted mt-0.5 m-0 leading-tight" style={{ fontSize: '0.72rem' }}>
         {subtitle}
-      </Typography>
+      </p>
     )}
-  </Box>
+  </div>
 );
 
 export default GameHeader;

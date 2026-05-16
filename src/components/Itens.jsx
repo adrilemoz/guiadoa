@@ -1,33 +1,23 @@
 import React from 'react';
-import { Box, Button, Card, Typography } from '@mui/material';
+import { C } from '../theme.js';
+import GameHeader from './shared/GameHeader.jsx';
 
-
-const Itens = ({ setRoute }) => {
-  return (
-    <Box sx={{ maxWidth: 800, margin: 'auto', pb: 4 }}>
-      
-      <Box sx={{ mb: 3 }}>
-        <Button 
-          variant="outlined" color="primary" size="small" onClick={() => setRoute('home')}
-          sx={{ fontWeight: 900, bgcolor: '#E1CFA3', borderWidth: '2px', borderRadius: '4px' }}
-        >
-          <span className="material-icons" style={{ fontSize: '1.2rem', marginRight: '6px' }}>arrow_back</span>
-          Voltar à Base
-        </Button>
-      </Box>
-
-      <Card sx={{ p: 4, textAlign: 'center', bgcolor: '#E1CFA3', border: '3px dashed #5a4010', borderRadius: '8px' }}>
-        <Typography sx={{ fontSize: '4rem', mb: 2, filter: 'drop-shadow(1px 2px 2px rgba(62,47,28,0.2))' }}>🎒</Typography>
-        <Typography sx={{ color: 'primary.main', fontWeight: 900, fontSize: '1.5rem', textTransform: 'uppercase', mb: 2 }}>
-          Armazém de Itens em Construção
-        </Typography>
-        <Typography sx={{ color: 'text.secondary', fontWeight: 'bold', fontSize: '1rem' }}>
-          Comandante, envie o relatório de inteligência com o banco de dados dos Itens para que eu possa carregar as prateleiras deste armazém!
-        </Typography>
-      </Card>
-
-    </Box>
-  );
-};
+const Itens = () => (
+  <div className="max-w-2xl mx-auto pb-4">
+    <GameHeader title="Armazém de Itens" />
+    <div
+      className="flex flex-col items-center text-center p-8 rounded-xl mt-3"
+      style={{ border: `2px dashed ${C.BORDER}`, background: C.BG_CARD }}
+    >
+      <p className="text-6xl mb-3 m-0" style={{ filter: 'drop-shadow(1px 2px 2px rgba(62,47,28,0.2))' }}>🎒</p>
+      <p className="font-cinzel font-bold text-base uppercase tracking-wider m-0 mb-2" style={{ color: C.TEXT_PRIMARY }}>
+        Armazém em Construção
+      </p>
+      <p className="font-nunito font-semibold text-sm leading-relaxed m-0" style={{ color: C.TEXT_SECONDARY }}>
+        Comandante, envie o relatório de inteligência com o banco de dados dos Itens para que as prateleiras possam ser carregadas!
+      </p>
+    </div>
+  </div>
+);
 
 export default Itens;

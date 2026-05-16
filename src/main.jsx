@@ -1,13 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
-
-// Fontes locais (offline) — pesos usados pelo tema Nunito
-import '@fontsource/nunito/400.css';
-import '@fontsource/nunito/600.css';
-import '@fontsource/nunito/700.css';
-import '@fontsource/nunito/900.css';
-// Nota: ícones agora servidos via @mui/icons-material (tree-shakeable)
+import './index.css';
 
 // Service Worker PWA
 if ('serviceWorker' in navigator) {

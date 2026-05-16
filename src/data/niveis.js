@@ -1,9 +1,13 @@
-// ==========================================================
-// Módulo: Níveis de Experiência
-// Formato: [nivel, xp_necessario | null se desconhecido]
-// ==========================================================
+/**
+ * niveis.js
+ * Tenta buscar da API local. Se offline, usa dados estáticos como fallback.
+ * Formato retornado: [[nivel, xp|null], ...]  (compatível com código existente)
+ */
 
-export const dbNiveis = [
+const API_URL = 'http://localhost:3001';
+
+// ── Dados estáticos (fallback) ────────────────────────────────────────────────
+export const dbNiveisLocal = [
   [1, 62], [2, 76], [3, null], [4, 196], [5, 356], [6, 676], [7, 1316], [8, 2596],
   [9, null], [10, 10276], [11, 16676], [12, 24676], [13, 34676], [14, 47176],
   [15, 62801], [16, 82332], [17, 106690], [18, 137208], [19, 175355], [20, 223039],
@@ -15,3 +19,38 @@ export const dbNiveis = [
   [50, null], [51, null], [52, null], [53, null], [54, null], [55, null], [56, null],
   [57, null], [58, null], [59, null], [60, null],
 ];
+
+// ── Cache em memória ──────────────────────────────────────────────────────────
+let _cache = null;
+
+/** Retorna niveis no formato [[nivel, xp|null], ...] */
+export async function carregarNiveis() {
+  if (_cache) return _cache;
+
+  try {
+    const r = await fetch(`${API_URL}/api/niveis/todas`, {
+      signal: AbortSignal.timeout(3000),
+    });
+    if (r.ok) {
+      const dados = await r.json();
+      if (dados.length > 0) {
+        // Converter [{nivel, xp}, ...] → [[nivel, xp], ...]
+        _cache = dados.map(d => [d.nivel, d.xp ?? null]);
+        console.info(`[DOA] ${dados.length} níveis carregados da API`);
+        return _cache;
+      }
+    }
+  } catch {
+    console.warn('[DOA] API offline — usando dados de níveis locais');
+  }
+
+  _cache = dbNiveisLocal;
+  return dbNiveisLocal;
+}
+
+export function invalidarCacheNiveis() {
+  _cache = null;
+}
+
+// Compatibilidade com imports síncronos existentes
+export const dbNiveis = dbNiveisLocal;

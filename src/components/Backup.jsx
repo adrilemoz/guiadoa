@@ -1,153 +1,115 @@
 import React, { useState } from 'react';
 import GameHeader from './shared/GameHeader.jsx';
-import { Alert, Box, Button, Card, Divider, Snackbar, TextField, Typography } from '@mui/material';
-
+import Toast from '../ui/Toast.jsx';
+import { C } from '../theme.js';
 
 const Backup = () => {
-  const [backupCode, setBackupCode] = useState('');
+  const [backupCode,  setBackupCode]  = useState('');
   const [restoreCode, setRestoreCode] = useState('');
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
-  
-  const showToast = (message, severity = 'success') => setToast({ open: true, message, severity });
-  const closeToast = () => setToast({ ...toast, open: false });
 
-  // ==========================================
-  // LÓGICA DE BACKUP E RESTAURAÇÃO
-  // ==========================================
+  const showToast  = (msg, sev = 'success') => setToast({ open: true, message: msg, severity: sev });
+  const closeToast = () => setToast(t => ({ ...t, open: false }));
+
   const handleGenerateBackup = () => {
     const keys = Object.keys(localStorage).filter(k => k.startsWith('doa_'));
-    const backupObj = {};
-    keys.forEach(k => { backupObj[k] = localStorage.getItem(k); });
-    const encrypted = btoa(unescape(encodeURIComponent(JSON.stringify(backupObj))));
+    const obj  = {};
+    keys.forEach(k => { obj[k] = localStorage.getItem(k); });
+    const encrypted = btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
     setBackupCode(encrypted);
-    showToast("Cópia de segurança gerada com sucesso!", "success");
+    showToast('Cópia de segurança gerada com sucesso!', 'success');
   };
 
   const handleCopyBackup = () => {
-    if(!backupCode) return showToast("Gere o backup primeiro!", "warning");
+    if (!backupCode) return showToast('Gere o backup primeiro!', 'warning');
     navigator.clipboard.writeText(backupCode);
-    showToast("Código de backup copiado para a área de transferência.", "info");
+    showToast('Código de backup copiado para a área de transferência.', 'info');
   };
 
   const handleRestoreBackup = () => {
-    if(!restoreCode) return showToast("Cole o código de backup primeiro!", "warning");
+    if (!restoreCode) return showToast('Cole o código de backup primeiro!', 'warning');
     try {
       const decoded = JSON.parse(decodeURIComponent(escape(atob(restoreCode))));
-      Object.keys(decoded).forEach(k => {
-        localStorage.setItem(k, decoded[k]);
-      });
-      showToast("Sucesso! Dados restaurados. A reiniciar o sistema...", "success");
+      Object.keys(decoded).forEach(k => localStorage.setItem(k, decoded[k]));
+      showToast('Sucesso! Dados restaurados. A reiniciar o sistema...', 'success');
       setTimeout(() => window.location.reload(), 2000);
-    } catch(e) {
-      showToast("Erro! Código de backup inválido ou corrompido.", "error");
+    } catch {
+      showToast('Erro! Código de backup inválido ou corrompido.', 'error');
     }
   };
 
-  // Cabeçalho Padrão do Jogo
-  const GameHeader = ({ title, fontSize = '1.1rem' }) => (
-    <Box sx={{ bgcolor: 'primary.main', borderBottom: '3px solid secondary.main', p: 1, textAlign: 'center', boxShadow: 'inset 0 -2px 4px rgba(62,47,28,0.12)' }}>
-      <Typography sx={{ color: 'primary.contrastText', fontWeight: '900', fontSize: fontSize, textShadow: '1px 2px 2px rgba(62,47,28,0.25)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-        {title}
-      </Typography>
-    </Box>
-  );
-
   return (
-    <Box sx={{ maxWidth: 500, margin: 'auto', pb: 4 }}>
-      
-      {/* ALERTA FLUTUANTE */}
-      <Snackbar open={toast.open} autoHideDuration={3000} onClose={closeToast} anchorOrigin={{ vertical: 'top', horizontal: 'center' }} sx={{ mt: 7 }}>
-        <Alert onClose={closeToast} severity={toast.severity} variant="filled" sx={{ width: '100%', fontWeight: 'bold' }}>
-          {toast.message}
-        </Alert>
-      </Snackbar>
+    <div className="max-w-md mx-auto pb-4">
+      <Toast {...toast} onClose={closeToast} />
 
-      <Card sx={{ mb: 3, p: 0, overflow: 'hidden' }}>
+      <div className="tw-card mb-3">
         <GameHeader title="💾 Backup e Restauração" />
-        
-        <Box sx={{ p: 3, bgcolor: '#F2E6C9' }}>
-          
-          {/* SEÇÃO 1: GERAR BACKUP */}
-          <Box sx={{ mb: 1 }}>
-            <Typography sx={{ color: 'primary.main', fontWeight: 900, fontSize: '1.1rem', mb: 0.5, textTransform: 'uppercase' }}>
-              1. Criar Cópia de Segurança
-            </Typography>
-            <Typography sx={{ color: 'text.secondary', fontWeight: 'bold', fontSize: '0.85rem', mb: 2, lineHeight: 1.4, textAlign: 'justify' }}>
-              Gere um código criptografado contendo todo o seu progresso atual (Perfil, Fuso Horário e Preferências) para guardar num local seguro.
-            </Typography>
-            
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button variant="contained" color="success" onClick={handleGenerateBackup} sx={{ flex: 1, fontSize: '0.9rem' }}>
-                Gerar Backup
-              </Button>
-              <Button variant="contained" color="info" onClick={handleCopyBackup} disabled={!backupCode} sx={{ fontSize: '0.9rem' }}>
-                Copiar
-              </Button>
-            </Box>
 
-            {backupCode && (
-              <TextField 
-                fullWidth size="small" value={backupCode} InputProps={{ readOnly: true }} 
-                sx={{ 
-                  mt: 2, 
-                  bgcolor: '#E1CFA3', 
-                  borderRadius: '4px',
-                  '& .MuiOutlinedInput-root': { 
-                    fontWeight: 'bold',
-                    color: 'primary.main',
-                    '& fieldset': { borderColor: '#C8A96B' },
-                    '&:hover fieldset': { borderColor: 'primary.main' }
-                  } 
-                }} 
-              />
-            )}
-          </Box>
+        <div className="p-4 bg-aoe-card">
 
-          <Divider sx={{ my: 3, borderColor: '#C8A96B', opacity: 0.4 }} />
+          {/* SEÇÃO 1 */}
+          <p className="font-cinzel font-bold text-xs uppercase tracking-widest mb-1 m-0" style={{ color: C.TEXT_PRIMARY }}>
+            1. Criar Cópia de Segurança
+          </p>
+          <p className="font-nunito text-[0.78rem] font-semibold leading-snug text-justify mb-3 m-0" style={{ color: C.TEXT_SECONDARY }}>
+            Gere um código criptografado com todo o seu progresso (perfil, fuso, preferências) para guardar num local seguro.
+          </p>
 
-          {/* SEÇÃO 2: RESTAURAR DADOS */}
-          <Box>
-            <Typography sx={{ color: 'error.main', fontWeight: 900, fontSize: '1.1rem', mb: 0.5, textTransform: 'uppercase' }}>
-              2. Restaurar Dados
-            </Typography>
-            <Typography sx={{ color: 'text.secondary', fontWeight: 'bold', fontSize: '0.85rem', mb: 2, lineHeight: 1.4, textAlign: 'justify' }}>
-              Cole o código de backup abaixo para recuperar os seus dados. <strong style={{ color: '#e05030' }}>Aviso:</strong> Isto irá substituir o progresso atual gravado neste dispositivo.
-            </Typography>
-            
-            <TextField 
-              fullWidth size="small" placeholder="Cole o código aqui..." 
-              value={restoreCode} onChange={(e) => setRestoreCode(e.target.value)} 
-              sx={{ 
-                mb: 2, 
-                bgcolor: '#E1CFA3', 
-                borderRadius: '4px',
-                '& .MuiOutlinedInput-root': { 
-                  fontWeight: 'bold',
-                  '& fieldset': { borderColor: '#C8A96B' },
-                  '&.Mui-focused fieldset': { borderColor: 'error.main', borderWidth: '2px' }
-                } 
-              }} 
+          <div className="flex gap-2 mb-2.5">
+            <button className="btn-success flex-1" onClick={handleGenerateBackup}>
+              🗄️ Gerar Backup
+            </button>
+            <button className="btn-ghost flex-1" onClick={handleCopyBackup}>
+              📋 Copiar Código
+            </button>
+          </div>
+
+          {backupCode && (
+            <textarea
+              readOnly
+              value={backupCode}
+              rows={3}
+              className="tw-input font-mono text-xs resize-none mb-3"
+              style={{ wordBreak: 'break-all', fontSize: '0.62rem', lineHeight: 1.5 }}
             />
-            
-            <Button fullWidth variant="contained" color="error" onClick={handleRestoreBackup} sx={{ fontSize: '0.9rem' }}>
-              Restaurar Backup
-            </Button>
-          </Box>
+          )}
 
-        </Box>
-      </Card>
-      
-      {/* Dica de Segurança */}
-      <Box sx={{ p: 2, bgcolor: 'rgba(17, 138, 139, 0.1)', border: '2px dashed #c8940a', borderRadius: '8px', textAlign: 'center' }}>
-        <Typography sx={{ color: 'primary.main', fontWeight: 900, fontSize: '0.85rem', mb: 0.5 }}>
-          🛡️ Dica do Comandante
-        </Typography>
-        <Typography sx={{ color: 'text.secondary', fontSize: '0.75rem', fontWeight: 'bold' }}>
-          Guarde o código de backup gerado nas suas anotações do telemóvel ou envie para si mesmo por e-mail para não o perder!
-        </Typography>
-      </Box>
+          {/* Divisor */}
+          <div className="gold-stripe mb-3 opacity-40" />
 
-    </Box>
+          {/* SEÇÃO 2 */}
+          <p className="font-cinzel font-bold text-xs uppercase tracking-widest mb-1 m-0" style={{ color: C.TEXT_PRIMARY }}>
+            2. Restaurar Dados
+          </p>
+          <p className="font-nunito text-[0.78rem] font-semibold leading-snug text-justify mb-3 m-0" style={{ color: C.TEXT_SECONDARY }}>
+            Cole o código de backup gerado anteriormente e restaure todos os seus dados.
+          </p>
+
+          <textarea
+            rows={3}
+            className="tw-input font-mono text-xs resize-none mb-2.5"
+            style={{ fontSize: '0.62rem', lineHeight: 1.5 }}
+            placeholder="Cole o código de backup aqui..."
+            value={restoreCode}
+            onChange={e => setRestoreCode(e.target.value)}
+          />
+
+          <button className="btn-danger w-full" onClick={handleRestoreBackup}>
+            🔄 Restaurar Dados
+          </button>
+
+          {/* Aviso */}
+          <div
+            className="mt-3 p-2.5 rounded-lg"
+            style={{ border: `1px dashed ${C.WARNING}`, background: `${C.WARNING}10` }}
+          >
+            <p className="font-nunito font-bold text-[0.7rem] m-0" style={{ color: C.WARNING }}>
+              ⚠️ Atenção: A restauração sobrescreve todos os dados actuais. Esta ação não pode ser desfeita.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

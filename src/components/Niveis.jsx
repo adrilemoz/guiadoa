@@ -1,417 +1,258 @@
-import GameHeader from './shared/GameHeader.jsx';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Box, Button, Card, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Grid, Paper, Snackbar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material';
-import { dbNiveis } from '../db.js';
+import { dbNiveis, carregarNiveis } from '../db.js';
 import { C } from '../theme.js';
+import GameHeader from './shared/GameHeader.jsx';
+import Modal from '../ui/Modal.jsx';
+import Toast from '../ui/Toast.jsx';
 
-
+const unformat = v => Number(String(v).replace(/\D/g, '')) || 0;
+const formatNumber = n =>
+  n === null || n === undefined || n === '' ? '—' : Number(n).toLocaleString('pt-BR');
+const formatarSufixo = num => {
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1).replace('.0', '') + 'M';
+  if (num >= 1_000)     return (num / 1_000).toFixed(1).replace('.0', '') + 'K';
+  return String(num);
+};
 
 const Niveis = () => {
-  // Funções de formatação - Aceitando apenas NÚMEROS
-  const unformat = (v) => Number(String(v).replace(/\D/g, "")) || 0;
-  const formatNumber = (n) => n === null || n === undefined || n === "" ? "—" : Number(n).toLocaleString("pt-BR");
-
-  // Formatar para K (Milhares) ou M (Milhões)
-  const formatarSufixo = (num) => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1).replace('.0', '') + 'M';
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1).replace('.0', '') + 'K';
-    }
-    return num;
-  };
-
-  // Referência para focar no campo de Poder Atual
   const poderAtualRef = useRef(null);
 
-  // Estados dos Pop-ups
-  const [promptAberto, setPromptAberto] = useState(true);
+  const [todosNiveis, setTodosNiveis] = useState(dbNiveis);
+  useEffect(() => {
+    carregarNiveis().then(setTodosNiveis);
+  }, []);
+
+  const [promptAberto,    setPromptAberto]    = useState(true);
   const [resultadoDialog, setResultadoDialog] = useState({ open: false, titulo: '', mensagem: '', tipo: 'success' });
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
 
-  // Carrega os poderes salvos (se existirem)
   const [poderAtualText, setPoderAtualText] = useState(() => {
     const saved = localStorage.getItem('doa_poder_niveis');
-    return saved ? formatNumber(saved) : "";
+    return saved ? formatNumber(saved) : '';
   });
-
   const [poderAntigoText, setPoderAntigoText] = useState(() => {
     const saved = localStorage.getItem('doa_poder_antigo');
-    return saved ? formatNumber(saved) : "";
+    return saved ? formatNumber(saved) : '';
   });
-
   const [isDirty, setIsDirty] = useState(false);
 
-  // Proteção contra saída acidental sem salvar
   useEffect(() => {
     window.temAlteracoesNaoSalvas = isDirty;
-    
-    const handleBeforeUnload = (e) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-    
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.temAlteracoesNaoSalvas = false;
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+    const handler = e => { if (isDirty) { e.preventDefault(); e.returnValue = ''; } };
+    window.addEventListener('beforeunload', handler);
+    return () => { window.temAlteracoesNaoSalvas = false; window.removeEventListener('beforeunload', handler); };
   }, [isDirty]);
 
-  const showToast = (message, severity = 'success') => setToast({ open: true, message, severity });
-  const closeToast = () => setToast({ ...toast, open: false });
+  const showToast  = (msg, sev = 'success') => setToast({ open: true, message: msg, severity: sev });
+  const closeToast = () => setToast(t => ({ ...t, open: false }));
 
-  const handleInputPower = (e) => {
-    const rawValue = e.target.value.replace(/\D/g, "");
-    const num = Number(rawValue);
-    setPoderAtualText(num === 0 ? "" : formatNumber(num));
-    setIsDirty(true);
-  };
+  const handleInputPower  = e => { const n = Number(e.target.value.replace(/\D/g, '')); setPoderAtualText(n === 0 ? '' : formatNumber(n)); setIsDirty(true); };
+  const handleInputAntigo = e => { const n = Number(e.target.value.replace(/\D/g, '')); setPoderAntigoText(n === 0 ? '' : formatNumber(n)); setIsDirty(true); };
 
-  const handleInputAntigo = (e) => {
-    const rawValue = e.target.value.replace(/\D/g, "");
-    const num = Number(rawValue);
-    setPoderAntigoText(num === 0 ? "" : formatNumber(num));
-    setIsDirty(true);
-  };
-
-  // 🚀 NOVA LÓGICA DE SALVAMENTO COM MODAL DE RESULTADO
   const handleSave = () => {
-    const numAtual = unformat(poderAtualText);
+    const numAtual  = unformat(poderAtualText);
     const numAntigo = unformat(poderAntigoText);
-    
     localStorage.setItem('doa_poder_niveis', numAtual);
     localStorage.setItem('doa_poder_antigo', numAntigo);
-    
     setIsDirty(false);
-    
-    const diferenca = numAtual - numAntigo;
-    
-    // Mostra o Modal de Confirmação se houver uma diferença real e se já havia um poder antigo
-    if (diferenca > 0 && numAntigo > 0) {
-      setResultadoDialog({
-        open: true,
-        titulo: '🎖️ RELATÓRIO DE PROGRESSO',
-        mensagem: `Parabéns, Comandante! O seu poder aumentou ${formatarSufixo(diferenca)}!`,
-        tipo: 'success'
-      });
-    } else if (diferenca < 0 && numAntigo > 0) {
-      setResultadoDialog({
-        open: true,
-        titulo: '⚠️ ALERTA DE BAIXAS',
-        mensagem: `Atenção: O seu poder diminuiu ${formatarSufixo(Math.abs(diferenca))}. Reorganize as suas defesas!`,
-        tipo: 'warning'
-      });
+    const diff = numAtual - numAntigo;
+    if (diff > 0 && numAntigo > 0) {
+      setResultadoDialog({ open: true, titulo: '🎖️ Relatório de Progresso', mensagem: `Parabéns, Comandante! O seu poder aumentou ${formatarSufixo(diff)}!`, tipo: 'success' });
+    } else if (diff < 0 && numAntigo > 0) {
+      setResultadoDialog({ open: true, titulo: '⚠️ Alerta de Baixas', mensagem: `Atenção: O seu poder diminuiu ${formatarSufixo(Math.abs(diff))}. Reorganize as suas defesas!`, tipo: 'warning' });
     } else {
-      // Se não houver mudança de poder ou for a primeira vez, apenas um toast discreto
-      showToast("Progresso salvo com sucesso!", "success");
+      showToast('Progresso salvo com sucesso!', 'success');
     }
   };
 
   const handleAtualizarSim = () => {
-    if (poderAtualText) {
-      setPoderAntigoText(poderAtualText);
-      setPoderAtualText(""); 
-      setIsDirty(true);
-    }
-    
+    if (poderAtualText) { setPoderAntigoText(poderAtualText); setPoderAtualText(''); setIsDirty(true); }
     setPromptAberto(false);
-    
-    setTimeout(() => {
-      if (poderAtualRef.current) {
-        poderAtualRef.current.focus();
-      }
-    }, 300);
+    setTimeout(() => poderAtualRef.current?.focus(), 300);
   };
 
   const currentPowerNum = unformat(poderAtualText);
-  const oldPowerNum = unformat(poderAntigoText);
+  const oldPowerNum     = unformat(poderAntigoText);
+  const diferencaPoder  = currentPowerNum - oldPowerNum;
+  const isPositivo      = diferencaPoder > 0;
 
-  // Cálculo da Diferença de Poder
-  const diferencaPoder = currentPowerNum - oldPowerNum;
-  const isPositivo = diferencaPoder > 0;
-
-  // 1. Carrega TODOS os níveis do db.js sem limite
-  const todosNiveis = dbNiveis;
-  const maxNivelDB = todosNiveis.length > 0 ? todosNiveis[todosNiveis.length - 1][0] : "MAX";
-
-  // 2. Calcular o nível EXATO
+  const maxNivelDB  = todosNiveis.length > 0 ? todosNiveis[todosNiveis.length - 1][0] : 'MAX';
   let nivelExato = 0;
-  todosNiveis.forEach(n => {
-    if (n[1] !== null && currentPowerNum >= n[1]) {
-      nivelExato = n[0];
-    }
-  });
-
-  // 3. Descobrir qual é a PRÓXIMA META imediata (ignora níveis com poder null)
-  let proximaMeta = todosNiveis.find(n => n[1] !== null && n[1] > currentPowerNum);
+  todosNiveis.forEach(n => { if (n[1] !== null && currentPowerNum >= n[1]) nivelExato = n[0]; });
+  const proximaMeta  = todosNiveis.find(n => n[1] !== null && n[1] > currentPowerNum);
   const faltamParaMeta = proximaMeta ? proximaMeta[1] - currentPowerNum : 0;
-
-  // 4. Descobrir o PRÓXIMO MARCO (Múltiplos de 5)
-  let proximoMarco = todosNiveis.find(n => n[1] !== null && n[1] > currentPowerNum && n[0] % 5 === 0);
+  const proximoMarco   = todosNiveis.find(n => n[1] !== null && n[1] > currentPowerNum && n[0] % 5 === 0);
   const faltamParaMarco = proximoMarco ? proximoMarco[1] - currentPowerNum : 0;
 
   return (
-    <Box sx={{ maxWidth: 800, margin: 'auto', pb: 4 }}>
-      
-      <Snackbar open={toast.open} autoHideDuration={3000} onClose={closeToast} anchorOrigin={{ vertical: 'top', horizontal: 'center' }} sx={{ mt: 7 }}>
-        <Alert onClose={closeToast} severity={toast.severity} variant="filled" sx={{ width: '100%', fontWeight: 'bold' }}>
-          {toast.message}
-        </Alert>
-      </Snackbar>
+    <div className="max-w-2xl mx-auto pb-4">
+      <Toast {...toast} onClose={closeToast} />
 
-      {/* POP-UP DE ALERTA DE INÍCIO */}
-      <Dialog 
-        open={promptAberto} 
-        onClose={() => setPromptAberto(false)}
-        PaperProps={{ sx: { bgcolor: '#E1CFA3', border: '3px solid #c8940a', borderRadius: '8px' } }}
-      >
-        <DialogTitle sx={{ color: 'primary.main', fontWeight: '900', textAlign: 'center', borderBottom: '2px solid rgba(17, 138, 139, 0.3)' }}>
-          ⚠️ ATUALIZAÇÃO DE INTELIGÊNCIA
-        </DialogTitle>
-        <DialogContent sx={{ textAlign: 'center', mt: 2, p: 3 }}>
-          <Typography sx={{ color: 'text.primary', fontWeight: 'bold', fontSize: '1rem' }}>
-            Comandante, o seu poder ou nível alterou desde o seu último registo? Mantenha os seus dados atualizados!
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, justifyContent: 'center', gap: 2, bgcolor: '#F2E6C9' }}>
-          <Button onClick={() => setPromptAberto(false)} variant="contained" sx={{ bgcolor: '#475569', color: 'white', fontWeight: 900 }}>NÃO</Button>
-          <Button onClick={handleAtualizarSim} variant="contained" color="success" sx={{ fontWeight: 900 }}>SIM, ATUALIZAR</Button>
-        </DialogActions>
-      </Dialog>
+      {/* Modal prompt inicial */}
+      <Modal open={promptAberto} onClose={() => setPromptAberto(false)} maxWidth={320}>
+        <div className="p-4 text-center">
+          <p className="text-3xl mb-2 m-0">⚠️</p>
+          <p className="font-cinzel font-bold text-sm tracking-wide uppercase m-0 mb-2" style={{ color: C.WARNING }}>
+            Atualização de Inteligência
+          </p>
+          <p className="font-nunito font-semibold text-sm leading-relaxed m-0 mb-4" style={{ color: C.TEXT_SECONDARY }}>
+            Comandante, o seu poder ou nível alterou desde o último registo?
+          </p>
+          <div className="flex gap-2">
+            <button className="btn-ghost flex-1" onClick={() => setPromptAberto(false)}>Não</button>
+            <button className="btn-success flex-1" onClick={handleAtualizarSim}>Sim, Atualizar</button>
+          </div>
+        </div>
+      </Modal>
 
-      {/* 🚀 NOVO POP-UP DE RESULTADO (PARABÉNS OU AVISO) */}
-      <Dialog 
-        open={resultadoDialog.open} 
-        onClose={() => setResultadoDialog({ ...resultadoDialog, open: false })}
-        PaperProps={{ 
-          sx: { 
-            bgcolor: '#E1CFA3', 
-            border: `3px solid ${resultadoDialog.tipo === 'success' ? '#2e7d32' : '#B8965A'}`, 
-            borderRadius: '8px' 
-          } 
-        }}
-      >
-        <DialogTitle sx={{ color: resultadoDialog.tipo === 'success' ? '#2e7d32' : '#B8965A', fontWeight: '900', textAlign: 'center', borderBottom: `2px solid ${resultadoDialog.tipo === 'success' ? 'rgba(46, 125, 50, 0.3)' : 'rgba(180, 83, 9, 0.3)'}` }}>
-          {resultadoDialog.titulo}
-        </DialogTitle>
-        <DialogContent sx={{ textAlign: 'center', mt: 2, p: 3 }}>
-          <Typography sx={{ color: 'text.primary', fontWeight: '900', fontSize: '1.2rem', mb: 1 }}>
+      {/* Modal resultado */}
+      <Modal open={resultadoDialog.open} onClose={() => setResultadoDialog(d => ({ ...d, open: false }))} maxWidth={320}>
+        <div className="p-4 text-center">
+          <p className="font-cinzel font-bold text-sm uppercase tracking-wide m-0 mb-1"
+            style={{ color: resultadoDialog.tipo === 'success' ? C.SUCCESS : C.WARNING }}>
+            {resultadoDialog.titulo}
+          </p>
+          <div className="gold-stripe my-2 opacity-40" />
+          <p className="font-nunito font-black text-base m-0 mb-1" style={{ color: C.TEXT_PRIMARY }}>
             {resultadoDialog.mensagem}
-          </Typography>
-          <Typography sx={{ color: 'text.secondary', fontWeight: 'bold', fontSize: '0.85rem' }}>
-            O seu relatório foi atualizado na base de dados com sucesso.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, justifyContent: 'center', bgcolor: '#F2E6C9' }}>
-          <Button 
-            onClick={() => setResultadoDialog({ ...resultadoDialog, open: false })} 
-            variant="contained" 
-            color={resultadoDialog.tipo === 'success' ? 'success' : 'warning'}
-            sx={{ fontWeight: 900, px: 4, py: 1 }}
+          </p>
+          <p className="font-nunito font-semibold text-xs m-0 mb-3" style={{ color: C.TEXT_MUTED }}>
+            O relatório foi actualizado na base de dados.
+          </p>
+          <button
+            className={resultadoDialog.tipo === 'success' ? 'btn-success w-full' : 'btn-gold w-full'}
+            onClick={() => setResultadoDialog(d => ({ ...d, open: false }))}
           >
-            CONTINUAR
-          </Button>
-        </DialogActions>
-      </Dialog>
+            Continuar
+          </button>
+        </div>
+      </Modal>
 
-      <Card sx={{ mb: 3, p: 0, overflow: 'hidden', border: 'none', bgcolor: 'transparent' }}>
+      {/* Cabeçalho */}
+      <div className="tw-card mb-3">
         <GameHeader title="Progresso da Cidade" />
-        <Box sx={{ p: 2, bgcolor: '#F2E6C9', textAlign: 'center', border: '3px solid #5a4010', borderTop: 'none', borderRadius: '0 0 8px 8px' }}>
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', fontWeight: 'bold' }}>
-            Acompanhe a sua evolução em todos os níveis e guarde o seu progresso.
-          </Typography>
-        </Box>
-      </Card>
+        <p className="font-nunito font-semibold text-sm text-center py-2 px-3 m-0 bg-aoe-card" style={{ color: C.TEXT_SECONDARY }}>
+          Acompanhe a sua evolução em todos os níveis e guarde o seu progresso.
+        </p>
+      </div>
 
-      {/* PAINEL DE CONTROLE SUPERIOR */}
-      <Grid container spacing={2} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={5}>
-          <Card elevation={0} sx={{ p: 2, bgcolor: '#E1CFA3', borderRadius: '8px', border: '3px solid #5a4010', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: '0 3px 6px rgba(62,47,28,0.1)' }}>
-            
-            {/* Campo Poder Antigo */}
-            <Typography sx={{ color: 'text.secondary', fontWeight: 900, mb: 0.5, textTransform: 'uppercase', fontSize: '0.75rem' }}>
-              Poder Anterior (Opcional)
-            </Typography>
-            <TextField 
-              fullWidth placeholder="Ex: 50.000" variant="outlined" type="text" size="small"
-              inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-              value={poderAntigoText} onChange={handleInputAntigo}
-              sx={{ 
-                bgcolor: '#F2E6C9', borderRadius: '4px', mb: 2,
-                '& .MuiOutlinedInput-root': {
-                  color: 'text.secondary', fontWeight: 'bold', fontSize: '1rem', fontFamily: 'monospace',
-                  '& fieldset': { borderColor: 'rgba(166,131,77,0.3)' },
-                  '&:hover fieldset': { borderColor: '#C8A96B' },
-                  '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: '2px' },
-                }
-              }}
-            />
-
-            <Divider sx={{ borderColor: 'rgba(166,131,77,0.3)', mb: 2 }} />
-
-            {/* Campo Poder Atual */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography sx={{ color: 'primary.main', fontWeight: 900, textTransform: 'uppercase', fontSize: '0.85rem' }}>
-                Seu Poder Atual
-              </Typography>
-              
-              {/* Badge Dinâmica de Diferença */}
-              {diferencaPoder !== 0 && poderAntigoText && poderAtualText && (
-                 <Typography sx={{ 
-                   fontSize: '0.7rem', fontWeight: 900, 
-                   color: isPositivo ? '#2e7d32' : '#e05030',
-                   bgcolor: isPositivo ? 'rgba(46, 125, 50, 0.1)' : 'rgba(148, 24, 24, 0.1)',
-                   px: 1, py: 0.2, borderRadius: '4px', border: `1px solid ${isPositivo ? '#2e7d32' : '#e05030'}`
-                 }}>
-                   {isPositivo ? '📈 +' : '📉 '}{formatarSufixo(diferencaPoder)}
-                 </Typography>
-              )}
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <TextField 
-                inputRef={poderAtualRef}
-                fullWidth placeholder="Digite..." variant="outlined" type="text" size="small"
-                inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                value={poderAtualText} onChange={handleInputPower}
-                sx={{ 
-                  bgcolor: '#F2E6C9', borderRadius: '4px',
-                  '& .MuiOutlinedInput-root': {
-                    color: 'text.primary', fontWeight: 'bold', fontSize: '1.1rem', fontFamily: 'monospace',
-                    '& fieldset': { borderColor: 'rgba(166,131,77,0.5)' },
-                    '&:hover fieldset': { borderColor: '#C8A96B' },
-                    '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: '2px' },
-                  }
+      {/* Painel de controle */}
+      <div className="flex gap-2 mb-3">
+        {/* Inputs */}
+        <div className="tw-card flex-1 p-3">
+          <label className="font-nunito font-bold text-[0.68rem] tracking-widest uppercase block mb-1" style={{ color: C.TEXT_MUTED }}>
+            Poder Anterior
+          </label>
+          <input
+            className="tw-input text-center font-mono mb-2.5"
+            placeholder="Ex: 50.000"
+            value={poderAntigoText}
+            onChange={handleInputAntigo}
+            inputMode="numeric"
+          />
+          <div className="gold-stripe mb-2.5 opacity-30" />
+          <div className="flex items-center justify-between mb-1">
+            <label className="font-nunito font-bold text-[0.68rem] tracking-widest uppercase" style={{ color: C.ACCENT_DEEP }}>
+              Poder Atual
+            </label>
+            {diferencaPoder !== 0 && poderAntigoText && poderAtualText && (
+              <span
+                className="font-nunito font-black text-[0.65rem] px-1.5 py-0.5 rounded"
+                style={{
+                  color: isPositivo ? C.SUCCESS : C.ERROR,
+                  background: isPositivo ? `${C.SUCCESS}15` : `${C.ERROR}15`,
+                  border: `1px solid ${isPositivo ? C.SUCCESS : C.ERROR}`,
                 }}
-              />
-              <Button 
-                variant="contained" 
-                color={isDirty ? "success" : "info"}
-                onClick={handleSave}
-                disabled={!isDirty}
-                sx={{ fontWeight: 900, minWidth: '80px' }}
               >
-                Salvar
-              </Button>
-            </Box>
-            
-            {isDirty && (
-              <Typography sx={{ color: '#B8965A', fontSize: '0.80rem', fontWeight: 'bold', mt: 0.5 }}>
-                ⚠️ Alterações não salvas!
-              </Typography>
+                {isPositivo ? '📈 +' : '📉 '}{formatarSufixo(diferencaPoder)}
+              </span>
             )}
-          </Card>
-        </Grid>
+          </div>
+          <div className="flex gap-1.5">
+            <input
+              ref={poderAtualRef}
+              className="tw-input text-center font-mono flex-1"
+              placeholder="Digite..."
+              value={poderAtualText}
+              onChange={handleInputPower}
+              inputMode="numeric"
+            />
+            <button
+              className={isDirty ? 'btn-success btn-sm shrink-0' : 'btn-ghost btn-sm shrink-0'}
+              onClick={handleSave}
+              disabled={!isDirty}
+            >
+              Salvar
+            </button>
+          </div>
+          {isDirty && (
+            <p className="font-nunito font-bold text-[0.68rem] mt-1 m-0" style={{ color: C.WARNING }}>
+              ⚠️ Alterações não salvas!
+            </p>
+          )}
+        </div>
 
-        <Grid item xs={12} md={7}>
-          <Box sx={{ display: 'flex', gap: 1, height: '100%' }}>
-            
-            {/* Cartão do Nível Exato */}
-            <Card elevation={0} sx={{ flex: 1, p: 1.5, bgcolor: '#E1CFA3', borderRadius: '8px', border: '3px solid #5a4010', borderBottom: '5px solid #c8940a', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', boxShadow: '0 3px 6px rgba(62,47,28,0.1)' }}>
-              <Typography sx={{ color: 'text.secondary', fontSize: '0.80rem', fontWeight: 900, textTransform: 'uppercase', mb: 1, whiteSpace: 'nowrap' }}>Nível Atual</Typography>
-              <Typography sx={{ color: 'primary.main', fontSize: '1.8rem', fontWeight: 900, lineHeight: 1, fontFamily: 'monospace' }}>
-                {nivelExato || "—"}
-              </Typography>
-            </Card>
+        {/* Stats cards (vertical) */}
+        <div className="flex flex-col gap-1.5" style={{ minWidth: 88 }}>
+          {[
+            { label: 'Nível Atual', value: nivelExato || '—', color: C.ACCENT_DEEP, border: C.BORDER },
+            { label: `Prox Nível ${proximaMeta?.[0] ?? maxNivelDB}`, value: proximaMeta ? formatNumber(faltamParaMeta) : 'MÁXIMO', color: C.ACCENT_DEEP, border: C.BORDER },
+            { label: `Marco Nível ${proximoMarco?.[0] ?? maxNivelDB}`, value: proximoMarco ? formatNumber(faltamParaMarco) : 'MÁXIMO', color: C.POWER, border: C.POWER + '80' },
+          ].map(s => (
+            <div key={s.label} className="tw-card flex-1 flex flex-col items-center justify-center text-center py-2 px-1.5">
+              <p className="font-nunito font-bold text-[0.6rem] uppercase tracking-wide m-0 mb-0.5 leading-tight" style={{ color: C.TEXT_MUTED }}>{s.label}</p>
+              <p className="font-nunito font-black text-sm leading-none m-0" style={{ color: s.color }}>{s.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
-            {/* Cartão da Próxima Meta */}
-            <Card elevation={0} sx={{ flex: 1, p: 1.5, bgcolor: '#E1CFA3', borderRadius: '8px', border: '3px solid #5a4010', borderBottom: '5px solid #c8940a', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', boxShadow: '0 3px 6px rgba(62,47,28,0.1)' }}>
-              <Typography sx={{ color: 'text.secondary', fontSize: '0.80rem', fontWeight: 900, textTransform: 'uppercase', mb: 1, whiteSpace: 'nowrap' }}>
-                Próximo: Lvl {proximaMeta ? proximaMeta[0] : maxNivelDB}
-              </Typography>
-              <Typography sx={{ color: '#B8965A', fontSize: '0.75rem', fontWeight: 900, lineHeight: 1.2, textTransform: 'uppercase' }}>
-                {proximaMeta ? "Faltam:" : "Parabéns:"}
-              </Typography>
-              <Typography sx={{ color: '#B8965A', fontSize: '1.1rem', fontWeight: 900, lineHeight: 1, fontFamily: 'monospace' }}>
-                {proximaMeta ? formatNumber(faltamParaMeta) : "MÁXIMO"}
-              </Typography>
-            </Card>
+      {/* Tabela de níveis */}
+      <div className="tw-card overflow-hidden">
+        <div className="overflow-auto" style={{ maxHeight: 420 }}>
+          <table className="w-full text-left">
+            <thead className="sticky top-0">
+              <tr>
+                <th className="tw-th text-center">Nível</th>
+                <th className="tw-th text-center">Poder Necessário</th>
+                <th className="tw-th text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {todosNiveis.map(([nivel, poderNivel], idx) => {
+                const isUnknown  = poderNivel === null;
+                const concluido  = !isUnknown && currentPowerNum >= poderNivel;
+                const isProxima  = proximaMeta && proximaMeta[0] === nivel;
+                const isMarco    = nivel % 5 === 0;
 
-            {/* Cartão do Próximo Marco (5 em 5) */}
-            <Card elevation={0} sx={{ flex: 1, p: 1.5, bgcolor: '#E1CFA3', borderRadius: '8px', border: '3px solid #5a4010', borderBottom: '5px solid #581c87', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', boxShadow: '0 3px 6px rgba(62,47,28,0.1)' }}>
-              <Typography sx={{ color: 'text.secondary', fontSize: '0.80rem', fontWeight: 900, textTransform: 'uppercase', mb: 1, whiteSpace: 'nowrap' }}>
-                Marco: Lvl {proximoMarco ? proximoMarco[0] : maxNivelDB}
-              </Typography>
-              <Typography sx={{ color: C.POWER, fontSize: '0.75rem', fontWeight: 900, lineHeight: 1.2, textTransform: 'uppercase' }}>
-                {proximoMarco ? "Faltam:" : "Parabéns:"}
-              </Typography>
-              <Typography sx={{ color: C.POWER, fontSize: '1.1rem', fontWeight: 900, lineHeight: 1, fontFamily: 'monospace' }}>
-                {proximoMarco ? formatNumber(faltamParaMarco) : "MÁXIMO"}
-              </Typography>
-            </Card>
+                const rowBg = concluido
+                  ? 'rgba(90,138,92,0.1)'
+                  : isProxima
+                  ? 'rgba(200,122,44,0.12)'
+                  : idx % 2 === 0 ? C.BG_SECONDARY : C.BG_CARD;
 
-          </Box>
-        </Grid>
-      </Grid>
+                const statusText  = concluido ? '✓ Concluído' : isProxima ? '🎯 Próximo Alvo' : isUnknown ? 'Em Breve' : 'Pendente';
+                const statusColor = concluido ? C.SUCCESS : isProxima ? C.WARNING : isUnknown ? C.TEXT_FAINT : C.TEXT_MUTED;
 
-      {/* TABELA COMPLETA (LÊ TODOS OS NÍVEIS DO DB) */}
-      <TableContainer component={Paper} elevation={0} sx={{ bgcolor: '#E1CFA3', borderRadius: '8px', border: '3px solid #5a4010', boxShadow: '0 3px 6px rgba(62,47,28,0.1)', maxHeight: '450px', overflowY: 'auto' }}>
-        <Table size="small" stickyHeader sx={{ tableLayout: 'auto' }}>
-          <TableHead>
-            <TableRow>
-              <TableCell align="center" sx={{ whiteSpace: 'nowrap', bgcolor: '#F2E6C9', color: 'primary.main', fontWeight: 900, borderBottom: '3px solid #5a4010', borderRight: '1px solid rgba(166,131,77,0.3)', px: { xs: 1, sm: 2 }, fontSize: { xs: '0.80rem', sm: '0.85rem' } }}>
-                NÍVEL
-              </TableCell>
-              <TableCell align="center" sx={{ whiteSpace: 'nowrap', bgcolor: '#F2E6C9', color: 'text.primary', fontWeight: 900, borderBottom: '3px solid #5a4010', borderRight: '1px solid rgba(166,131,77,0.3)', px: { xs: 1, sm: 2 }, fontSize: { xs: '0.80rem', sm: '0.85rem' } }}>
-                PODER NECESSÁRIO
-              </TableCell>
-              <TableCell align="center" sx={{ whiteSpace: 'nowrap', bgcolor: '#F2E6C9', color: 'text.primary', fontWeight: 900, borderBottom: '3px solid #5a4010', px: { xs: 1, sm: 2 }, fontSize: { xs: '0.80rem', sm: '0.85rem' } }}>
-                STATUS
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {todosNiveis.map((n, idx) => {
-              const [nivel, poderNivel] = n;
-              
-              const isUnknown = poderNivel === null;
-              const concluido = !isUnknown && currentPowerNum >= poderNivel;
-              const isProxima = proximaMeta && proximaMeta[0] === nivel;
-              
-              let statusText = isUnknown ? "Em Breve" : "Pendente";
-              let statusColor = isUnknown ? "rgba(110, 84, 54, 0.5)" : "text.secondary"; 
-              let rowBg = idx % 2 === 0 ? '#E1CFA3' : '#F2E6C9';
-              let fontWeightNivel = 700;
-              
-              if (concluido) {
-                statusText = "✓ Concluído";
-                statusColor = "#2e7d32"; 
-                rowBg = 'rgba(46, 125, 50, 0.1)'; 
-              } else if (isProxima) {
-                statusText = "Próximo Alvo";
-                statusColor = "#B8965A"; 
-                rowBg = 'rgba(180, 83, 9, 0.15)'; 
-                fontWeightNivel = 900;
-              }
-
-              // Destaque visual para múltiplos de 5 (Marcos principais)
-              const isMarco = nivel % 5 === 0;
-
-              return (
-                <TableRow key={nivel} sx={{ 
-                  bgcolor: rowBg,
-                  '&:last-child td, &:last-child th': { border: 0 } 
-                }}>
-                  <TableCell align="center" component="th" scope="row" sx={{ whiteSpace: 'nowrap', fontWeight: isMarco ? 900 : fontWeightNivel, fontSize: { xs: '0.8rem', sm: '0.95rem' }, color: isMarco ? 'primary.main' : 'text.primary', borderBottom: '1px solid rgba(166,131,77,0.2)', borderRight: '1px solid rgba(166,131,77,0.2)', px: { xs: 1, sm: 2 }, py: 0.8 }}>
-                    {isMarco ? `⭐ Nível ${nivel}` : `Nível ${nivel}`}
-                  </TableCell>
-                  <TableCell align="center" sx={{ whiteSpace: 'nowrap', fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.9rem' }, color: isUnknown ? 'rgba(110, 84, 54, 0.5)' : 'text.secondary', borderBottom: '1px solid rgba(166,131,77,0.2)', borderRight: '1px solid rgba(166,131,77,0.2)', fontFamily: 'monospace', px: { xs: 1, sm: 2 }, py: 0.8 }}>
-                    {formatNumber(poderNivel)}
-                  </TableCell>
-                  <TableCell align="center" sx={{ whiteSpace: 'nowrap', fontWeight: 900, fontSize: { xs: '0.7rem', sm: '0.85rem' }, color: statusColor, borderBottom: '1px solid rgba(166,131,77,0.2)', px: { xs: 1, sm: 2 }, py: 0.8 }}>
-                    {statusText}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-    </Box>
+                return (
+                  <tr key={nivel} style={{ background: rowBg }}>
+                    <td className="tw-td text-center font-bold" style={{ color: isMarco ? C.ACCENT_DEEP : C.TEXT_PRIMARY, fontWeight: isMarco ? 900 : 700 }}>
+                      {isMarco ? `⭐ ${nivel}` : nivel}
+                    </td>
+                    <td className="tw-td text-center font-mono" style={{ color: isUnknown ? C.TEXT_FAINT : C.TEXT_SECONDARY }}>
+                      {formatNumber(poderNivel)}
+                    </td>
+                    <td className="tw-td text-center font-bold text-xs" style={{ color: statusColor }}>
+                      {statusText}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
 };
 

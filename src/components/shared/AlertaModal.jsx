@@ -1,85 +1,38 @@
 import React from 'react';
-import { Box, Button, Dialog, Typography } from '@mui/material';
-import { C } from '../../theme.js';
+import Modal from '../../ui/Modal.jsx';
 
-/**
- * Modal de alerta urgente — estilo pergaminho medieval.
- */
 const AlertaModal = ({ open, message, onClose }) => (
-  <Dialog
-    open={open}
-    onClose={onClose}
-    PaperProps={{
-      sx: {
-        bgcolor: '#FFF3D6',
-        border: `2px solid ${C.BORDER_STRONG}`,
-        borderTop: `4px solid ${C.WARNING}`,
-        borderRadius: '10px',
-        boxShadow: '0 12px 40px rgba(62,47,28,0.35)',
-        overflow: 'hidden',
-        maxWidth: 340,
-      }
-    }}
-  >
+  <Modal open={open} onClose={onClose} maxWidth={320}>
     {/* Faixa ornamental */}
-    <Box sx={{
-      height: '2px',
-      background: `linear-gradient(90deg, transparent, ${C.WARNING}, transparent)`,
-    }} />
+    <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, transparent, #C87A2C, transparent)' }} />
 
-    <Box sx={{ p: 3, textAlign: 'center' }}>
+    <div className="p-4 text-center">
       {/* Ícone */}
-      <Box sx={{
-        width: 64, height: 64, mx: 'auto', mb: 1.5,
-        border: `2px solid ${C.WARNING}`,
-        borderRadius: '50%',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '2rem',
-        bgcolor: 'rgba(200,122,44,0.1)',
-        boxShadow: '0 2px 8px rgba(200,122,44,0.2)',
-      }}>
+      <div
+        className="w-14 h-14 mx-auto mb-3 rounded-full flex items-center justify-center text-3xl"
+        style={{ border: '2px solid #C87A2C', background: 'rgba(200,122,44,0.1)', boxShadow: '0 2px 8px rgba(200,122,44,0.2)' }}
+      >
         ⚠️
-      </Box>
+      </div>
 
-      <Typography sx={{
-        color: C.TEXT_PRIMARY, fontFamily: '"Nunito", sans-serif',
-        fontWeight: 700, fontSize: '1.1rem', mb: 1.5,
-        letterSpacing: '0.5px',
-      }}>
+      <p className="font-nunito font-black text-base text-aoe-dark mb-2 tracking-wide m-0">
         Atenção, Comandante!
-      </Typography>
-
-      <Typography sx={{
-        color: C.TEXT_SECONDARY, fontFamily: '"Nunito", sans-serif',
-        fontWeight: 600, fontSize: '1rem', mb: 2.5, lineHeight: 1.6,
-      }}>
+      </p>
+      <p className="font-nunito font-semibold text-sm text-aoe-mid leading-relaxed mb-4 m-0">
         {message}
-      </Typography>
+      </p>
 
       {/* Divisor */}
-      <Box sx={{
-        height: '1px', mb: 2,
-        background: `linear-gradient(90deg, transparent, ${C.BORDER}, transparent)`,
-      }} />
+      <div className="h-px mb-3" style={{ background: 'linear-gradient(90deg, transparent, #C8A84A, transparent)' }} />
 
-      <Button
-        variant="contained"
-        color="warning"
-        size="large"
+      <button
         onClick={onClose}
-        sx={{
-          fontFamily: '"Nunito", sans-serif',
-          fontWeight: 700, fontSize: '0.85rem',
-          letterSpacing: '1px', px: 4,
-          background: `linear-gradient(180deg, ${C.WARNING} 0%, #A86020 100%)`,
-          color: '#FFF8EE',
-          border: `1px solid #8A4A10`,
-        }}
+        className="btn-gold btn-lg w-full uppercase tracking-widest"
       >
-        ENTENDIDO
-      </Button>
-    </Box>
-  </Dialog>
+        Entendido
+      </button>
+    </div>
+  </Modal>
 );
 
 export default AlertaModal;

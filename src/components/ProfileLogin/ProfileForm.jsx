@@ -1,21 +1,16 @@
 import React, { useState } from 'react';
-import { Alert, Box, Button, Card, MenuItem, Snackbar, TextField, Typography } from '@mui/material';
 import { dbReinos } from '../../db.js';
 import { saveProfile } from '../../utils/storage.js';
 import GameHeader from '../shared/GameHeader.jsx';
+import Toast from '../../ui/Toast.jsx';
 import { useTorneioTimer } from '../../hooks/useTorneioTimer.js';
 
-/**
- * Formulário de criação/edição de perfil do jogador.
- * Desmembrado do Home.jsx para facilitar manutenção e reutilização.
- */
 const ProfileForm = ({ onSave }) => {
   const [nome,  setNome]  = useState('');
   const [reino, setReino] = useState('');
   const [fuso,  setFuso]  = useState('');
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
 
-  // Offset derivado do fuso selecionado
   const match  = fuso ? fuso.match(/UTC([+-]?\d+)/) : null;
   const offset = match ? parseInt(match[1], 10) : 0;
   const { horaLocal } = useTorneioTimer(fuso ? offset : null);
@@ -34,63 +29,61 @@ const ProfileForm = ({ onSave }) => {
   };
 
   return (
-    <Box sx={{ maxWidth: 450, margin: 'auto', mt: 4, px: 2 }}>
-      <Snackbar open={toast.open} autoHideDuration={3000} onClose={closeToast} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-        <Alert severity={toast.severity} variant="filled" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>{toast.message}</Alert>
-      </Snackbar>
+    <div className="max-w-sm mx-auto mt-4 px-3">
+      <Toast {...toast} onClose={closeToast} />
 
-      <Box sx={{ mb: 3, p: 2, bgcolor: '#F2E6C9', border: '2px dashed #5a4010', borderRadius: '8px' }}>
-        <Typography sx={{ color: '#e05030', fontWeight: 900, fontSize: '0.9rem', mb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <span style={{ fontSize: '1.2rem' }}>⚠️</span> Ferramenta Não Oficial
-        </Typography>
-        <Typography sx={{ color: 'text.secondary', fontSize: '0.75rem', fontWeight: 'bold', lineHeight: 1.4, textAlign: 'justify' }}>
+      {/* Banner não oficial */}
+      <div className="mb-3 p-2.5 rounded-lg border-2 border-dashed border-aoe-gold2 bg-aoe-bg2">
+        <p className="font-nunito font-black text-xs text-aoe-red mb-1 flex items-center gap-1.5 m-0">
+          <span className="text-base">⚠️</span> Ferramenta Não Oficial
+        </p>
+        <p className="font-nunito font-bold text-xs text-aoe-mid leading-snug text-justify m-0">
           Os cálculos são aproximações comunitárias, sem ligação com os servidores oficiais da Deca Games.
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
-      <Card sx={{ p: 0, overflow: 'hidden' }}>
+      <div className="tw-card">
         <GameHeader title="Recrutamento" />
-        <Box sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h2" sx={{ mb: 3, filter: 'drop-shadow(1px 2px 3px rgba(62,47,28,0.2))' }}>🛡️</Typography>
 
-          <TextField
-            fullWidth label="Nome do Comandante" variant="outlined"
-            sx={{ mb: 3, bgcolor: '#F2E6C9', borderRadius: '4px' }}
-            value={nome} onChange={(e) => setNome(e.target.value)}
+        <div className="p-4 text-center bg-aoe-card">
+          <p className="text-5xl mb-3 m-0" style={{ filter: 'drop-shadow(1px 2px 3px rgba(62,47,28,0.2))' }}>🛡️</p>
+
+          <input
+            className="tw-input mb-3"
+            placeholder="Nome do Comandante"
+            value={nome}
+            onChange={e => setNome(e.target.value)}
           />
 
-          <TextField
-            select fullWidth label="Reino Atual" variant="outlined"
-            sx={{ mb: 3, bgcolor: '#F2E6C9', borderRadius: '4px' }}
-            value={reino || ''}
-            onChange={(e) => {
+          <select
+            className="tw-select mb-3"
+            value={reino}
+            onChange={e => {
               const rNome = e.target.value;
               setReino(rNome);
               const r = dbReinos.find(x => x.nome === rNome);
               if (r) setFuso(r.fuso);
             }}
           >
+            <option value="">— Selecionar Reino —</option>
             {dbReinos.map(r => (
-              <MenuItem key={r.nome} value={r.nome}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                  <Typography sx={{ fontWeight: 'bold' }}>{r.nome}</Typography>
-                  <Typography sx={{ color: 'text.secondary', fontWeight: 900, fontSize: '0.8rem' }}>({r.fuso})</Typography>
-                </Box>
-              </MenuItem>
+              <option key={r.nome} value={r.nome}>{r.nome} ({r.fuso})</option>
             ))}
-          </TextField>
+          </select>
 
-          <Typography sx={{ color: 'text.secondary', fontWeight: '900', mb: 3, fontSize: '1rem' }}>
-            Relógio: <span style={{ color: '#B8965A' }}>{fuso ? horaLocal : 'Aguardando...'}</span>
-          </Typography>
+          <p className="font-nunito font-black text-sm text-aoe-mid mb-4 m-0">
+            Relógio:{' '}
+            <span className="font-black" style={{ color: '#B8965A' }}>
+              {fuso ? horaLocal : 'Aguardando...'}
+            </span>
+          </p>
 
-          <Button fullWidth variant="contained" color="success" size="large" onClick={handleSave}
-            sx={{ fontSize: '1.1rem', py: 1.5, fontWeight: 900 }}>
+          <button onClick={handleSave} className="btn-navy btn-lg w-full">
             Aceder ao Quartel
-          </Button>
-        </Box>
-      </Card>
-    </Box>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

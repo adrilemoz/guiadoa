@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia DOA — Admin</title>
+<style>
+  :root {
+    --navy:#1C3A5E; --navy2:#2A4C72; --gold:#C8A84A; --gold2:#A88530; --gold3:#8A6818;
+    --bg:#E8E0CC; --bg2:#DDD5BE; --card:#F2EADA; --card2:#EAE0C8;
+    --dark:#3E2F1C; --mid:#6E5A3C; --muted:#9A7D56; --faint:#B8A07A; --cream:#F8F2E0;
+    --red:#A83C2C; --green:#5A8A5C; --blue:#3B5C8C;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--dark);min-height:100vh;}
+
+  /* LOGIN */
+  #tela-login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 0%,rgba(28,58,94,0.12) 0%,transparent 65%),var(--bg);}
+  .login-box{background:var(--card);border:1.5px solid var(--gold);border-radius:16px;padding:28px 24px;width:100%;max-width:320px;box-shadow:0 8px 32px rgba(62,47,28,0.18);}
+  .login-box h1{font-size:1rem;letter-spacing:3px;text-align:center;color:var(--navy);text-transform:uppercase;margin-bottom:4px;}
+  .login-box p{text-align:center;font-size:0.68rem;color:var(--muted);letter-spacing:1px;margin-bottom:20px;}
+  .login-divider{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0.5;margin:0 24px 20px;}
+
+  /* INPUTS */
+  input,select,textarea{width:100%;font-family:inherit;font-size:0.88rem;font-weight:600;background:#F8F4E8;color:var(--dark);border:1.5px solid var(--gold);border-radius:8px;padding:8px 12px;outline:none;transition:border-color 0.2s;}
+  input:focus,select:focus,textarea:focus{border-color:var(--gold3);box-shadow:0 0 0 3px rgba(200,168,74,0.18);}
+  textarea{resize:vertical;min-height:64px;}
+  .badge-nivel{display:inline-block;padding:2px 8px;border-radius:6px;font-size:0.72rem;font-weight:900;background:rgba(28,58,94,0.12);border:1px solid rgba(28,58,94,0.25);color:var(--navy);}
+  .modal-card{background:var(--card);border:1.5px solid var(--gold);border-radius:14px;overflow:hidden;width:100%;box-shadow:0 8px 32px rgba(62,47,28,0.22);}
+  .btn-close{background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1;}
+  .btn-close:hover{color:var(--red);}
+
+  label{display:block;font-size:0.65rem;font-weight:800;letter-spacing:1.5px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;}
+  .field{margin-bottom:14px;}
+
+  /* BUTTONS */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;font-weight:800;font-size:0.82rem;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+  .btn:active{transform:scale(0.97);}
+  .btn-gold{background:linear-gradient(180deg,#C8A84A,#A88530);color:#FFF8EE;border:1px solid #8A6818;box-shadow:0 2px 6px rgba(62,47,28,0.2);}
+  .btn-gold:hover{background:linear-gradient(180deg,#A88530,#8A6818);}
+  .btn-navy{background:linear-gradient(180deg,#4A6FA5,#3B5C8C);color:#FFF8EE;border:1px solid #2A4470;}
+  .btn-navy:hover{background:linear-gradient(180deg,#3B5C8C,#2A4470);}
+  .btn-red{background:linear-gradient(180deg,#C85050,#A83C2C);color:#fff;border:1px solid #6A1C0C;}
+  .btn-red:hover{background:linear-gradient(180deg,#A83C2C,#8A2C1C);}
+  .btn-green{background:linear-gradient(180deg,#78AA7A,#5A8A5C);color:#fff;border:1px solid #3A6A3C;}
+  .btn-ghost{background:var(--bg2);color:var(--mid);border:1px solid rgba(200,168,74,0.35);}
+  .btn-ghost:hover{background:var(--card2);border-color:var(--gold);}
+  .btn-sm{padding:5px 10px;font-size:0.75rem;}
+  .btn-full{width:100%;}
+
+  /* APP SHELL */
+  #app{display:none;flex-direction:column;min-height:100vh;}
+
+  /* TOPBAR */
+  .topbar{background:linear-gradient(135deg,var(--navy),var(--navy2));padding:0 14px;height:50px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--gold3);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.3);}
+  .topbar-brand{display:flex;align-items:center;gap:8px;cursor:pointer;}
+  .topbar-brand span{color:var(--gold);font-weight:800;font-size:0.72rem;letter-spacing:3px;text-transform:uppercase;}
+  .topbar-right{display:flex;align-items:center;gap:8px;}
+  .topbar-user{font-size:0.72rem;color:rgba(248,242,224,0.6);font-weight:700;}
+  .topbar-divider{width:1px;height:18px;background:rgba(248,242,224,0.15);}
+
+  /* BREADCRUMB */
+  .breadcrumb{background:var(--card2);border-bottom:1px solid rgba(200,168,74,0.25);padding:6px 14px;display:flex;align-items:center;gap:6px;font-size:0.72rem;}
+  .breadcrumb-item{color:var(--muted);font-weight:700;cursor:pointer;}
+  .breadcrumb-item:hover{color:var(--gold3);}
+  .breadcrumb-sep{color:var(--faint);opacity:0.5;}
+  .breadcrumb-current{color:var(--gold3);font-weight:800;}
+
+  /* CONTENT */
+  .content{flex:1;padding:16px;max-width:860px;width:100%;margin:0 auto;}
+
+  /* HOME GRID */
+  .modulos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:4px;}
+  .modulo-card{background:var(--card);border:1px solid rgba(200,168,74,0.28);border-radius:12px;padding:18px 10px 14px;text-align:center;cursor:pointer;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;overflow:hidden;}
+  .modulo-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;}
+  .modulo-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 4px 16px rgba(62,47,28,0.15);}
+  .modulo-card:hover::before{opacity:1;}
+  .modulo-card.em-breve{opacity:0.45;cursor:not-allowed;}
+  .modulo-card.em-breve:hover{transform:none;box-shadow:none;border-color:rgba(200,168,74,0.28);}
+  .modulo-icon{font-size:2rem;line-height:1;filter:drop-shadow(0 1px 3px rgba(62,47,28,0.2));}
+  .modulo-label{font-size:0.78rem;font-weight:800;color:var(--mid);line-height:1.2;}
+  .modulo-desc{font-size:0.62rem;color:var(--muted);font-weight:600;line-height:1.3;}
+  .modulo-badge{position:absolute;top:7px;right:7px;font-size:0.52rem;font-weight:900;padding:2px 5px;border-radius:4px;letter-spacing:0.5px;}
+  .badge-novo{background:rgba(90,138,92,0.2);border:1px solid rgba(90,138,92,0.4);color:var(--green);}
+  .badge-breve{background:rgba(200,168,74,0.15);border:1px solid rgba(200,168,74,0.3);color:var(--gold2);}
+
+  /* CARD */
+  .card{background:var(--card);border:1px solid rgba(200,168,74,0.35);border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(62,47,28,0.1);margin-bottom:14px;}
+  .card-header{background:linear-gradient(180deg,var(--card2),var(--card));padding:10px 14px;border-bottom:1.5px solid rgba(200,168,74,0.3);display:flex;align-items:center;justify-content:space-between;}
+  .card-header h2{font-size:0.8rem;letter-spacing:2px;text-transform:uppercase;color:var(--dark);}
+  .card-body{padding:14px;}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+  .stat-box{background:var(--card2);border:1px solid rgba(200,168,74,0.3);border-radius:10px;padding:10px;text-align:center;border-bottom:3px solid var(--gold);}
+  .stat-box .stat-val{font-size:1.4rem;font-weight:900;color:var(--gold3);line-height:1;}
+  .stat-box .stat-lbl{font-size:0.6rem;font-weight:800;letter-spacing:1.5px;color:var(--muted);margin-top:3px;text-transform:uppercase;}
+
+  /* TOOLBAR */
+  .toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+  .toolbar input{flex:1;min-width:160px;}
+  .toolbar select{width:130px;}
+
+  /* TABELA */
+  .tabela-wrap{overflow-x:auto;border-radius:10px;border:1px solid rgba(200,168,74,0.3);}
+  table{width:100%;border-collapse:collapse;min-width:700px;}
+  thead tr{background:var(--bg2);}
+  th{padding:9px 10px;font-size:0.65rem;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-bottom:2px solid rgba(200,168,74,0.4);text-align:left;white-space:nowrap;cursor:pointer;user-select:none;}
+  th:hover{color:var(--gold3);}
+  td{padding:8px 10px;font-size:0.82rem;border-bottom:1px solid rgba(200,168,74,0.18);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(200,168,74,0.06);}
+  .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:0.62rem;font-weight:800;}
+  .badge-especial{background:rgba(139,107,174,0.15);border:1px solid #8B6BAE55;color:#8B6BAE;}
+  .badge-treinavel{background:rgba(90,138,92,0.15);border:1px solid #5A8A5C55;color:#5A8A5C;}
+  /* TABELA NÍVEIS — compacta, sem min-width */
+  table.tabela-niveis{min-width:unset;width:100%;}
+  table.tabela-niveis td{padding:5px 10px;font-size:0.82rem;}
+  table.tabela-niveis th{padding:7px 10px;}
+  .btn-acao{display:inline-flex;align-items:center;gap:4px;font-size:0.72rem;padding:4px 9px;}
+
+
+  /* MODAL */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(2px);z-index:200;align-items:center;justify-content:center;padding:16px;}
+  .modal-bg.aberto{display:flex;}
+  .modal{background:var(--card);border:1.5px solid var(--gold);border-radius:14px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,0.4);animation:modalIn 0.2s ease;}
+  @keyframes modalIn{from{opacity:0;transform:translateY(16px) scale(0.97)}to{opacity:1;transform:none}}
+  .modal-header{padding:12px 16px;border-bottom:1.5px solid rgba(200,168,74,0.35);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,var(--card2),var(--card));}
+  .modal-header h3{font-size:0.85rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--dark);}
+  .modal-close{background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--muted);padding:2px 6px;border-radius:6px;}
+  .modal-close:hover{background:rgba(200,168,74,0.2);}
+  .modal-body{padding:16px;}
+  .modal-footer{padding:12px 16px;border-top:1px solid rgba(200,168,74,0.25);display:flex;gap:8px;justify-content:flex-end;background:rgba(184,150,90,0.04);}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+  /* TOAST */
+  #toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:999;display:none;padding:10px 18px;border-radius:10px;font-weight:800;font-size:0.82rem;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.3);animation:toastIn 0.25s ease;white-space:nowrap;}
+  @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+  /* PAGINAÇÃO */
+  .paginacao{display:flex;gap:5px;align-items:center;justify-content:center;margin-top:12px;flex-wrap:wrap;}
+  .paginacao button{background:var(--card2);border:1px solid rgba(200,168,74,0.3);color:var(--mid);border-radius:6px;padding:5px 10px;font-size:0.75rem;font-weight:800;cursor:pointer;}
+  .paginacao button:hover{border-color:var(--gold);color:var(--gold3);}
+  .paginacao button.ativa{background:var(--gold);color:#1C1008;border-color:var(--gold2);}
+  .paginacao span{font-size:0.72rem;color:var(--muted);}
+
+  /* CONFIRM */
+  .confirm-icon{font-size:2.5rem;text-align:center;margin-bottom:8px;}
+  .confirm-msg{text-align:center;font-size:0.88rem;font-weight:600;color:var(--mid);line-height:1.5;}
+
+  /* LINK PROJETO */
+  .projeto-link{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(28,58,94,0.08);border:1px solid rgba(28,58,94,0.2);border-radius:10px;text-decoration:none;color:var(--navy);font-weight:800;font-size:0.82rem;transition:all 0.18s;}
+  .projeto-link:hover{background:rgba(28,58,94,0.15);border-color:var(--navy);}
+
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(200,168,74,0.3);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading{text-align:center;padding:32px;color:var(--muted);font-size:0.85rem;}
+
+  @media(max-width:500px){.grid2,.grid3{grid-template-columns:1fr;}.modulos-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="tela-login">
+  <div class="login-box">
+    <h1>🛡️ Guia DOA</h1>
+    <p>PAINEL DE ADMINISTRAÇÃO</p>
+    <div class="login-divider"></div>
+    <div class="field"><label>Usuário</label><input type="text" id="login-user" placeholder="adrilemoz" autocomplete="username"></div>
+    <div class="field"><label>Senha</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="btn btn-navy btn-full" onclick="fazerLogin()">Acessar o Quartel</button>
+    <p id="login-erro" style="color:var(--red);font-size:0.75rem;text-align:center;margin-top:10px;display:none;"></p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- TOPBAR -->
+  <nav class="topbar">
+    <div class="topbar-brand" onclick="irHome()">
+      <span>⚔️</span>
+      <span>Guia DOA · Admin</span>
+    </div>
+    <div class="topbar-right">
+      <a href="http://localhost:5173" target="_blank"
+        style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:7px;padding:5px 10px;text-decoration:none;color:rgba(248,242,224,0.8);font-size:0.72rem;font-weight:800;letter-spacing:0.5px;transition:all 0.18s;"
+        onmouseover="this.style.background='rgba(255,255,255,0.15)'"
+        onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+        🌐 Ver Projeto
+      </a>
+      <div class="topbar-divider"></div>
+      <span class="topbar-user" id="topbar-user">—</span>
+      <button class="btn btn-sm btn-ghost" onclick="sair()" style="padding:4px 10px;font-size:0.7rem;">Sair</button>
+    </div>
+  </nav>
+
+  <!-- BREADCRUMB -->
+  <div class="breadcrumb" id="breadcrumb">
+    <span class="breadcrumb-item" onclick="irHome()">🏠 Início</span>
+  </div>
+
+  <!-- CONTENT -->
+  <main class="content" id="content">
+    <div class="loading"><span class="spinner"></span> Carregando...</div>
+  </main>
+</div>
+
+<!-- MODAL TROPA -->
+<div class="modal-bg" id="modal-tropa">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-titulo">Nova Tropa</h3>
+      <button class="modal-close" onclick="fecharModal('modal-tropa')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid2">
+        <div class="field"><label>Nome</label><input id="f-nome" placeholder="Nome da tropa"></div>
+        <div class="field"><label>Tipo</label>
+          <select id="f-tipo">
+            <option value="treinavel">Treinável</option>
+            <option value="especial">Especial</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Poder ⭐</label><input id="f-poder" type="number" min="0" placeholder="0"></div>
+        <div class="field"><label>Vida ❤️</label><input id="f-vida" type="number" min="0" placeholder="0"></div>
+        <div class="field"><label>Defesa 🛡️</label><input id="f-def" type="number" min="0" placeholder="0"></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Atq. Perto ⚔️</label><input id="f-atqPerto" type="number" min="0" placeholder="0"></div>
+        <div class="field"><label>Atq. Dist 🏹</label><input id="f-atqDist" type="number" min="0" placeholder="0"></div>
+        <div class="field"><label>Alcance 📐</label><input id="f-alcance" type="number" min="0" placeholder="0"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Velocidade ⚡</label><input id="f-vel" type="number" min="0" placeholder="0"></div>
+        <div class="field"><label>Carga 📦</label><input id="f-car" type="number" min="0" placeholder="0"></div>
+      </div>
+      <div class="field"><label>Descrição</label><textarea id="f-desc" placeholder="Descrição da tropa..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-tropa')">Cancelar</button>
+      <button class="btn btn-navy" onclick="salvarTropa()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRM -->
+<div class="modal-bg" id="confirm-modal">
+  <div class="modal" style="max-width:300px">
+    <div class="modal-body" style="text-align:center;padding:20px">
+      <div class="confirm-icon">⚠️</div>
+      <p class="confirm-msg" id="confirm-msg">Tem certeza?</p>
+    </div>
+    <div class="modal-footer" style="justify-content:center">
+      <button class="btn btn-ghost" onclick="fecharModal('confirm-modal')">Cancelar</button>
+      <button class="btn btn-red" id="confirm-ok">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'http://localhost:3001/api';
+let TOKEN = localStorage.getItem('doa_admin_token') || '';
+let PAGINA = 1, TOTAL_PAG = 1, ORDENAR = 'nome', DIR = '1', BUSCA = '', TIPO = '';
+let EDITANDO_ID = null;
+// niveis
+let PAGINAN = 1, TOTAL_PAG_N = 1, EDITANDO_NIVEL_ID = null;
+
+// ── Módulos da home ──────────────────────────────────────────────────────────
+const MODULOS = [
+  { id:'tropas',    icon:'⚔️',  label:'Tropas',     desc:'Criar, editar e remover unidades', ativo:true,  badge:'novo'  },
+  { id:'dragoes',   icon:'🐉',  label:'Dragões',    desc:'Habilidades e estatísticas',       ativo:false, badge:'breve' },
+  { id:'edificios', icon:'🏗️',  label:'Edifícios',  desc:'Níveis e efeitos',                 ativo:false, badge:'breve' },
+  { id:'niveis',    icon:'🏰',  label:'Níveis',     desc:'Tabela de XP por nível',           ativo:true,  badge:'novo'  },
+  { id:'torneios',  icon:'🏆',  label:'Torneios',   desc:'Metas e configurações',            ativo:false, badge:'breve' },
+  { id:'ilhas',     icon:'🏝️',  label:'Ilhas',      desc:'Produção e territórios',           ativo:false, badge:'breve' },
+];
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+async function fazerLogin() {
+  const usuario = document.getElementById('login-user').value.trim();
+  const senha   = document.getElementById('login-pass').value;
+  if (!usuario || !senha) return erroLogin('Preencha todos os campos');
+  try {
+    const r = await fetch(`${API}/auth/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({usuario,senha}) });
+    const d = await r.json();
+    if (!r.ok) return erroLogin(d.erro || 'Credenciais inválidas');
+    TOKEN = d.token;
+    localStorage.setItem('doa_admin_token', TOKEN);
+    document.getElementById('topbar-user').textContent = d.usuario;
+    document.getElementById('tela-login').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    irHome();
+  } catch { erroLogin('Servidor offline. Inicie a API primeiro.'); }
+}
+
+function erroLogin(msg) {
+  const el = document.getElementById('login-erro');
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(()=>el.style.display='none', 3500);
+}
+
+async function verificarToken() {
+  if (!TOKEN) return;
+  try {
+    const r = await fetch(`${API}/auth/verificar`, { headers:{Authorization:`Bearer ${TOKEN}`} });
+    if (r.ok) {
+      const d = await r.json();
+      document.getElementById('topbar-user').textContent = d.usuario;
+      document.getElementById('tela-login').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      irHome();
+    } else { TOKEN=''; localStorage.removeItem('doa_admin_token'); }
+  } catch {}
+}
+
+function sair() {
+  TOKEN=''; localStorage.removeItem('doa_admin_token');
+  document.getElementById('app').style.display='none';
+  document.getElementById('tela-login').style.display='flex';
+}
+
+// ── Navegação ────────────────────────────────────────────────────────────────
+function irHome() {
+  setBreadcrumb([]);
+  renderHome();
+}
+
+function irModulo(id) {
+  const mod = MODULOS.find(m=>m.id===id);
+  if (!mod || !mod.ativo) return;
+  setBreadcrumb([{ label: `${mod.icon} ${mod.label}`, action: ()=>irModulo(id) }]);
+  if (id === 'tropas') { PAGINA=1; carregarTropas(); }
+  if (id === 'niveis') { PAGINAN=1; carregarNiveis(); }
+}
+
+function setBreadcrumb(items) {
+  const bc = document.getElementById('breadcrumb');
+  let html = `<span class="breadcrumb-item" onclick="irHome()">🏠 Início</span>`;
+  items.forEach((item, i) => {
+    html += `<span class="breadcrumb-sep">›</span>`;
+    if (i === items.length - 1) {
+      html += `<span class="breadcrumb-current">${item.label}</span>`;
+    } else {
+      html += `<span class="breadcrumb-item" onclick="(${item.action})()">${item.label}</span>`;
+    }
+  });
+  bc.innerHTML = html;
+}
+
+// ── HOME ─────────────────────────────────────────────────────────────────────
+function renderHome() {
+  document.getElementById('content').innerHTML = `
+    <div style="margin-bottom:16px">
+      <p style="font-size:0.65rem;font-weight:900;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Bem-vindo ao painel</p>
+      <p style="font-size:1rem;font-weight:900;color:var(--dark)">O que deseja gerir hoje?</p>
+    </div>
+
+    <div style="height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0.3;margin-bottom:16px"></div>
+
+    <div class="modulos-grid">
+      ${MODULOS.map(m => `
+        <div class="modulo-card ${m.ativo?'':'em-breve'}" onclick="${m.ativo ? `irModulo('${m.id}')` : ''}">
+          ${m.badge ? `<span class="modulo-badge badge-${m.badge}">${m.badge==='novo'?'NOVO':'EM BREVE'}</span>` : ''}
+          <div class="modulo-icon">${m.icon}</div>
+          <div class="modulo-label">${m.label}</div>
+          <div class="modulo-desc">${m.desc}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div style="margin-top:20px">
+      <div style="height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0.2;margin-bottom:12px"></div>
+      <p style="font-size:0.62rem;font-weight:800;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Acesso rápido</p>
+      <a href="http://localhost:5173" target="_blank" class="projeto-link">
+        <span style="font-size:1.2rem">🌐</span>
+        <div>
+          <div>Ver o Projeto</div>
+          <div style="font-size:0.62rem;font-weight:600;color:var(--muted)">Abre o Guia DOA numa nova aba</div>
+        </div>
+        <span style="margin-left:auto;color:var(--muted);font-size:0.8rem">↗</span>
+      </a>
+    </div>
+  `;
+}
+
+// ── TROPAS ───────────────────────────────────────────────────────────────────
+async function carregarTropas() {
+  document.getElementById('content').innerHTML = '<div class="loading"><span class="spinner"></span> Carregando tropas...</div>';
+  try {
+    const qs = new URLSearchParams({pagina:PAGINA,limite:15,busca:BUSCA,ordenar:ORDENAR,dir:DIR,tipo:TIPO});
+    const r  = await fetch(`${API}/tropas?${qs}`, {headers:{Authorization:`Bearer ${TOKEN}`}});
+    if (r.status===401) { sair(); return; }
+    const d  = await r.json();
+    TOTAL_PAG = d.paginas;
+    renderTropas(d);
+  } catch (err) {
+    document.getElementById('content').innerHTML = `<div class="loading" style="color:var(--red)">❌ Erro: ${err.message}</div>`;
+  }
+}
+
+function renderTropas(d) {
+  const especiais  = d.tropas.filter(t=>t.tipo==='especial').length;
+  const treinaveis = d.tropas.filter(t=>t.tipo==='treinavel').length;
+
+  document.getElementById('content').innerHTML = `
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val">${d.total}</div><div class="stat-lbl">Total</div></div>
+      <div class="stat-box"><div class="stat-val">${treinaveis}</div><div class="stat-lbl">Treináveis</div></div>
+      <div class="stat-box"><div class="stat-val">${especiais}</div><div class="stat-lbl">Especiais</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>⚔️ Tropas</h2>
+        <button class="btn btn-gold btn-sm" onclick="abrirModalNova()">＋ Nova Tropa</button>
+      </div>
+      <div class="card-body">
+        <div class="toolbar">
+          <input type="text" placeholder="🔍  Buscar por nome..." value="${BUSCA}" oninput="debouceBusca(this.value)">
+          <select onchange="filtrarTipo(this.value)">
+            <option value="" ${!TIPO?'selected':''}>Todos os tipos</option>
+            <option value="treinavel" ${TIPO==='treinavel'?'selected':''}>Treináveis</option>
+            <option value="especial"  ${TIPO==='especial'?'selected':''}>Especiais</option>
+          </select>
+        </div>
+        <div class="tabela-wrap">
+          <table>
+            <thead><tr>
+              <th onclick="ordenarPor('nome')">NOME ${ORDENAR==='nome'?(DIR==='1'?'▲':'▼'):''}</th>
+              <th onclick="ordenarPor('tipo')">TIPO</th>
+              <th onclick="ordenarPor('poder')">PODER ${ORDENAR==='poder'?(DIR==='1'?'▲':'▼'):''}</th>
+              <th onclick="ordenarPor('vida')">VIDA</th>
+              <th onclick="ordenarPor('def')">DEF</th>
+              <th onclick="ordenarPor('atqPerto')">ATQ P.</th>
+              <th onclick="ordenarPor('atqDist')">ATQ D.</th>
+              <th onclick="ordenarPor('vel')">VEL</th>
+              <th>AÇÕES</th>
+            </tr></thead>
+            <tbody>
+              ${d.tropas.map(t=>`
+                <tr>
+                  <td><strong>${t.nome}</strong></td>
+                  <td><span class="badge badge-${t.tipo}">${t.tipo==='especial'?'✦ Especial':'⚔ Treinável'}</span></td>
+                  <td style="font-weight:900;color:var(--gold3)">⭐ ${t.poder}</td>
+                  <td>${fmt(t.vida)}</td><td>${fmt(t.def)}</td>
+                  <td>${fmt(t.atqPerto)}</td><td>${fmt(t.atqDist)}</td><td>${fmt(t.vel)}</td>
+                  <td style="white-space:nowrap">
+                    <button class="btn btn-navy btn-sm" onclick='editarTropa(${JSON.stringify(t).replace(/'/g,"&#39;")})'>✏</button>
+                    <button class="btn btn-red btn-sm" onclick="confirmarRemover('${t._id}','${t.nome.replace(/'/g,"&#39;")}')">🗑</button>
+                  </td>
+                </tr>
+              `).join('')}
+              ${d.tropas.length===0?'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted)">Nenhuma tropa encontrada</td></tr>':''}
+            </tbody>
+          </table>
+        </div>
+        ${renderPaginacao(d.pagina, TOTAL_PAG)}
+      </div>
+    </div>
+  `;
+}
+
+function renderPaginacao(atual, total) {
+  if (total<=1) return '';
+  let h = '<div class="paginacao">';
+  h += `<button onclick="irPagina(${atual-1})" ${atual===1?'disabled style="opacity:0.4"':''}>‹</button>`;
+  for (let i=1;i<=total;i++) {
+    if (i===1||i===total||Math.abs(i-atual)<=2) h+=`<button class="${i===atual?'ativa':''}" onclick="irPagina(${i})">${i}</button>`;
+    else if (Math.abs(i-atual)===3) h+='<span>…</span>';
+  }
+  h += `<button onclick="irPagina(${atual+1})" ${atual===total?'disabled style="opacity:0.4"':''}>›</button>`;
+  return h+'</div>';
+}
+
+const fmt = n => (n||0).toLocaleString('pt-BR');
+let _bt; function debouceBusca(v){clearTimeout(_bt);_bt=setTimeout(()=>{BUSCA=v;PAGINA=1;carregarTropas();},350);}
+function filtrarTipo(v){TIPO=v;PAGINA=1;carregarTropas();}
+function ordenarPor(c){if(ORDENAR===c)DIR=DIR==='1'?'-1':'1';else{ORDENAR=c;DIR='1';}carregarTropas();}
+function irPagina(n){if(n<1||n>TOTAL_PAG)return;PAGINA=n;carregarTropas();}
+
+// ── Modal CRUD ────────────────────────────────────────────────────────────────
+function abrirModalNova(){
+  EDITANDO_ID=null;
+  document.getElementById('modal-titulo').textContent='✦ Nova Tropa';
+  ['nome','poder','vida','def','atqPerto','atqDist','alcance','vel','car','desc'].forEach(id=>document.getElementById(`f-${id}`).value='');
+  document.getElementById('f-tipo').value='treinavel';
+  abrirModal('modal-tropa');
+}
+
+function editarTropa(t){
+  EDITANDO_ID=t._id;
+  document.getElementById('modal-titulo').textContent=`✏ Editar: ${t.nome}`;
+  document.getElementById('f-nome').value=t.nome||'';
+  document.getElementById('f-tipo').value=t.tipo||'treinavel';
+  document.getElementById('f-poder').value=t.poder||0;
+  document.getElementById('f-vida').value=t.vida||0;
+  document.getElementById('f-def').value=t.def||0;
+  document.getElementById('f-atqPerto').value=t.atqPerto||0;
+  document.getElementById('f-atqDist').value=t.atqDist||0;
+  document.getElementById('f-alcance').value=t.alcance||0;
+  document.getElementById('f-vel').value=t.vel||0;
+  document.getElementById('f-car').value=t.car||0;
+  document.getElementById('f-desc').value=t.desc||'';
+  abrirModal('modal-tropa');
+}
+
+async function salvarTropa(){
+  const body={nome:document.getElementById('f-nome').value.trim(),tipo:document.getElementById('f-tipo').value,poder:+document.getElementById('f-poder').value||0,vida:+document.getElementById('f-vida').value||0,def:+document.getElementById('f-def').value||0,atqPerto:+document.getElementById('f-atqPerto').value||0,atqDist:+document.getElementById('f-atqDist').value||0,alcance:+document.getElementById('f-alcance').value||0,vel:+document.getElementById('f-vel').value||0,car:+document.getElementById('f-car').value||0,desc:document.getElementById('f-desc').value.trim()};
+  if(!body.nome) return toast('Preencha o nome da tropa!','warn');
+  try {
+    const r=await fetch(EDITANDO_ID?`${API}/tropas/${EDITANDO_ID}`:`${API}/tropas`,{method:EDITANDO_ID?'PUT':'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok) return toast(d.erro||'Erro ao salvar','erro');
+    fecharModal('modal-tropa');
+    toast(EDITANDO_ID?`"${d.nome}" atualizada!`:`"${d.nome}" criada!`,'ok');
+    carregarTropas();
+  } catch(e){toast('Erro de rede: '+e.message,'erro');}
+}
+
+function confirmarRemover(id,nome){
+  document.getElementById('confirm-msg').textContent=`Remover "${nome}" permanentemente?`;
+  document.getElementById('confirm-ok').onclick=async()=>{
+    const r=await fetch(`${API}/tropas/${id}`,{method:'DELETE',headers:{Authorization:`Bearer ${TOKEN}`}});
+    const d=await r.json();
+    fecharModal('confirm-modal');
+    if(!r.ok) return toast(d.erro||'Erro','erro');
+    toast(d.mensagem,'ok'); carregarTropas();
+  };
+  abrirModal('confirm-modal');
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MÓDULO: NÍVEIS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const NIVEIS_ESTATICOS = [
+  [1,62],[2,76],[3,null],[4,196],[5,356],[6,676],[7,1316],[8,2596],
+  [9,null],[10,10276],[11,16676],[12,24676],[13,34676],[14,47176],
+  [15,62801],[16,82332],[17,106690],[18,137208],[19,175355],[20,223039],
+  [21,null],[22,357149],[23,null],[24,566697],[25,712216],[26,894115],
+  [27,1121488],[28,1405705],[29,1760977],[30,2205066],[31,2760178],
+  [32,3454067],[33,null],[34,null],[35,6760884],[36,8454949],[37,10572332],
+  [38,16528232],[39,null],[40,null],[41,null],[42,null],[43,null],
+  [44,50471718],[45,null],[46,null],[47,null],[48,null],[49,159059016],
+  [50,null],[51,null],[52,null],[53,null],[54,null],[55,null],[56,null],
+  [57,null],[58,null],[59,null],[60,null],
+];
+
+const fmtXP = n => n != null ? Number(n).toLocaleString('pt-BR') : '—';
+
+async function carregarNiveis() {
+  document.getElementById('content').innerHTML = '<div class="loading"><span class="spinner"></span> Carregando níveis...</div>';
+  try {
+    const qs = new URLSearchParams({ pagina: PAGINAN, limite: 60 });
+    const r  = await fetch(`${API}/niveis?${qs}`, { headers: { Authorization: `Bearer ${TOKEN}` } });
+    const d  = await r.json();
+    if (!r.ok) throw new Error(d.erro);
+    TOTAL_PAG_N = d.paginas || 1;
+    renderNiveis(d);
+  } catch (err) {
+    document.getElementById('content').innerHTML = `<div class="alert-erro">Erro: ${err.message}</div>`;
+  }
+}
+
+function renderNiveis(d) {
+  const total     = d.total || 0;
+  const conhecidos = d.niveis.filter(n => n.xp != null).length;
+  const desconhecidos = total - conhecidos;
+
+  setBreadcrumb([
+    { label:'Início', fn:'irHome()' },
+    { label:'🏰 Níveis', atual: true },
+  ]);
+
+  document.getElementById('content').innerHTML = `
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val">${total}</div><div class="stat-lbl">Total</div></div>
+      <div class="stat-box"><div class="stat-val">${conhecidos}</div><div class="stat-lbl">Com XP</div></div>
+      <div class="stat-box"><div class="stat-val">${desconhecidos}</div><div class="stat-lbl">Desconhecidos</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>🏰 Níveis</h2>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="importarNiveis()">📥 Importar padrão</button>
+          <button class="btn btn-gold btn-sm" onclick="abrirModalNovoNivel()">＋ Novo Nível</button>
+        </div>
+      </div>
+      <div class="card-body" style="padding:0">
+        <div class="tabela-wrap">
+          <table class="tabela tabela-niveis">
+            <thead>
+              <tr>
+                <th style="width:80px">NÍVEL</th>
+                <th>XP NECESSÁRIO</th>
+                <th style="width:160px;text-align:center">AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${d.niveis.map(n => `
+                <tr style="${n.xp == null ? 'opacity:0.65' : ''}">
+                  <td><span class="badge-nivel">Nv ${n.nivel}</span></td>
+                  <td style="font-family:monospace;font-weight:700;color:${n.xp != null ? 'var(--gold3)' : 'var(--muted)'}">
+                    ${n.xp != null ? fmtXP(n.xp) : '<em>desconhecido</em>'}
+                  </td>
+                  <td style="text-align:center;white-space:nowrap">
+                    <button class="btn btn-navy btn-sm btn-acao" onclick='editarNivel(${JSON.stringify(n).replace(/'/g,"&#39;")})'>✏ Editar</button>
+                    <button class="btn btn-red btn-sm btn-acao" onclick="confirmarRemoverNivel('${n._id}',${n.nivel})">🗑 Excluir</button>
+                  </td>
+                </tr>`).join('')}
+              ${d.niveis.length === 0 ? '<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--muted)">Nenhum nível cadastrado. Clique em "Importar padrão" para começar.</td></tr>' : ''}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    ${renderPaginacaoN(d.pagina, TOTAL_PAG_N)}
+  `;
+}
+
+function renderPaginacaoN(atual, total) {
+  if (total <= 1) return '';
+  let html = '<div class="paginacao">';
+  html += `<button class="btn btn-ghost btn-sm" onclick="irPaginaN(${atual-1})" ${atual<=1?'disabled':''}>‹ Ant</button>`;
+  for (let i = Math.max(1, atual-2); i <= Math.min(total, atual+2); i++) {
+    html += `<button class="btn btn-sm ${i===atual?'btn-gold':'btn-ghost'}" onclick="irPaginaN(${i})">${i}</button>`;
+  }
+  html += `<button class="btn btn-ghost btn-sm" onclick="irPaginaN(${atual+1})" ${atual>=total?'disabled':''}>Próx ›</button>`;
+  html += '</div>';
+  return html;
+}
+function irPaginaN(n) { if (n < 1 || n > TOTAL_PAG_N) return; PAGINAN = n; carregarNiveis(); }
+
+// ── Modal Criar / Editar ──────────────────────────────────────────────────────
+function abrirModalNovoNivel() {
+  EDITANDO_NIVEL_ID = null;
+  document.getElementById('modal-nivel-titulo').textContent = '✦ Novo Nível';
+  document.getElementById('fn-nivel').value = '';
+  document.getElementById('fn-xp').value   = '';
+  abrirModal('modal-nivel');
+}
+
+function editarNivel(n) {
+  EDITANDO_NIVEL_ID = n._id;
+  document.getElementById('modal-nivel-titulo').textContent = `✏ Editar: Nível ${n.nivel}`;
+  document.getElementById('fn-nivel').value = n.nivel;
+  document.getElementById('fn-xp').value   = n.xp != null ? n.xp : '';
+  abrirModal('modal-nivel');
+}
+
+async function salvarNivel() {
+  const nivel = parseInt(document.getElementById('fn-nivel').value);
+  const xpVal  = document.getElementById('fn-xp').value.trim();
+  const xp     = xpVal !== '' ? parseInt(xpVal) : null;
+
+  if (!nivel || nivel < 1) return toast('Preencha o número do nível!', 'warn');
+
+  const body = { nivel, xp };
+  try {
+    const url    = EDITANDO_NIVEL_ID ? `${API}/niveis/${EDITANDO_NIVEL_ID}` : `${API}/niveis`;
+    const method = EDITANDO_NIVEL_ID ? 'PUT' : 'POST';
+    const r = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${TOKEN}` },
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    if (!r.ok) return toast(d.erro || 'Erro ao salvar', 'erro');
+    fecharModal('modal-nivel');
+    toast(EDITANDO_NIVEL_ID ? `Nível ${d.nivel} atualizado!` : `Nível ${d.nivel} criado!`, 'ok');
+    carregarNiveis();
+  } catch (e) { toast('Erro de rede: ' + e.message, 'erro'); }
+}
+
+function confirmarRemoverNivel(id, num) {
+  document.getElementById('confirm-msg').textContent = `Remover Nível ${num} permanentemente?`;
+  document.getElementById('confirm-ok').onclick = async () => {
+    const r = await fetch(`${API}/niveis/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${TOKEN}` } });
+    const d = await r.json();
+    fecharModal('confirm-modal');
+    if (!r.ok) return toast(d.erro || 'Erro', 'erro');
+    toast(d.mensagem, 'ok');
+    carregarNiveis();
+  };
+  abrirModal('confirm-modal');
+}
+
+// ── Importar dados padrão ─────────────────────────────────────────────────────
+async function importarNiveis() {
+  if (!confirm(`Importar ${NIVEIS_ESTATICOS.length} níveis padrão? Dados já existentes serão atualizados.`)) return;
+  try {
+    const r = await fetch(`${API}/niveis/importar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${TOKEN}` },
+      body: JSON.stringify({ niveis: NIVEIS_ESTATICOS }),
+    });
+    const d = await r.json();
+    if (!r.ok) return toast(d.erro || 'Erro na importação', 'erro');
+    toast(`✅ ${d.inseridos} inseridos, ${d.atualizados} atualizados`, 'ok');
+    carregarNiveis();
+  } catch (e) { toast('Erro de rede: ' + e.message, 'erro'); }
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function abrirModal(id){document.getElementById(id).classList.add('aberto');}
+function fecharModal(id){document.getElementById(id).classList.remove('aberto');}
+document.querySelectorAll('.modal-bg').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('aberto');}));
+document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')fazerLogin();});
+
+let _tt;
+function toast(msg,tipo='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.background=tipo==='ok'?'#5A8A5C':tipo==='warn'?'#C87A2C':'#A83C2C';
+  el.style.display='block';
+  clearTimeout(_tt);_tt=setTimeout(()=>el.style.display='none',3000);
+}
+
+verificarToken();
+</script>
+
+  <!-- Modal Nível -->
+  <div id="modal-nivel" class="modal-bg">
+    <div class="modal-card" style="max-width:340px">
+      <div class="modal-header">
+        <h3 id="modal-nivel-titulo">Novo Nível</h3>
+        <button class="btn-close" onclick="fecharModal('modal-nivel')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>Nível *</label>
+          <input id="fn-nivel" type="number" min="1" max="999" placeholder="Ex: 30">
+        </div>
+        <div class="field">
+          <label>XP Necessário <span style="color:var(--muted);font-weight:600">(deixe vazio se desconhecido)</span></label>
+          <input id="fn-xp" type="number" min="0" placeholder="Ex: 2205066">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="fecharModal('modal-nivel')">Cancelar</button>
+        <button class="btn btn-gold" onclick="salvarNivel()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

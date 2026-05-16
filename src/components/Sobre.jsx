@@ -1,15 +1,37 @@
 import React, { useState } from 'react';
-import { Alert, Box, Button, Card, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Grid, List, ListItem, ListItemIcon, ListItemText, Snackbar, Typography } from '@mui/material';
 import GameHeader from './shared/GameHeader.jsx';
+import Modal from '../ui/Modal.jsx';
+import Toast from '../ui/Toast.jsx';
 import { C } from '../theme.js';
 
-const Sobre = () => {
-  const [openApoio, setOpenApoio] = useState(false);
-  const [openContato, setOpenContato] = useState(false);
-  const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
+const CHANGELOG = [
+  {
+    ver: 'v2.3.0', icon: '📊', nome: 'Tracker Dracônico', cor: '#8B6BAE',
+    items: ['Novo Tracker de Progresso para cada Dragão', 'Cálculo automático de Essência por sessão de treino', 'Histórico detalhado de evolução por fase'],
+  },
+  {
+    ver: 'v2.2.0', icon: '🐉', nome: 'Módulo dos Dragões', cor: '#C87A2C',
+    items: ['Enciclopédia completa com 12 dragões', 'Estatísticas de ataque, defesa e habilidades', 'Guia de evolução por raridade'],
+  },
+  {
+    ver: 'v2.1.0', icon: '⚔️', nome: 'Simulador de Batalha', cor: '#5C7FA3',
+    items: ['Cálculo de poder total do exército', 'Filtros por tipo de ataque e estatísticas', 'Comparação entre unidades'],
+  },
+];
 
-  const showToast = (message, severity = 'success') => setToast({ open: true, message, severity });
-  const closeToast = () => setToast({ ...toast, open: false });
+const INFO_CARDS = [
+  { icon: '🏰', title: 'Ferramenta Não Oficial', text: 'Criada pela comunidade, sem vínculo com a Deca Games. Resultados são aproximações baseadas em análises de jogadores.' },
+  { icon: '⚔️', title: 'Cálculos Táticos', text: 'As fórmulas foram estudadas e validadas por jogadores experientes. Pequenas variações podem ocorrer.' },
+  { icon: '🐉', title: 'Dados Dinâmicos', text: 'Base de dados actualizada regularmente pela comunidade. Contribuições são bem-vindas.' },
+];
+
+const Sobre = () => {
+  const [openApoio,   setOpenApoio]   = useState(false);
+  const [openContato, setOpenContato] = useState(false);
+  const [toast,       setToast]       = useState({ open: false, message: '', severity: 'success' });
+
+  const showToast  = (msg, sev = 'success') => setToast({ open: true, message: msg, severity: sev });
+  const closeToast = () => setToast(t => ({ ...t, open: false }));
 
   const handleCopy = (text, type) => {
     navigator.clipboard.writeText(text);
@@ -17,278 +39,125 @@ const Sobre = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 600, margin: 'auto', pb: 4 }}>
+    <div className="max-w-md mx-auto pb-6">
+      <Toast {...toast} onClose={closeToast} />
 
-      {/* Toast */}
-      <Snackbar open={toast.open} autoHideDuration={3000} onClose={closeToast} anchorOrigin={{ vertical: 'top', horizontal: 'center' }} sx={{ mt: 7 }}>
-        <Alert onClose={closeToast} severity={toast.severity} variant="filled" sx={{ width: '100%', fontWeight: 'bold' }}>
-          {toast.message}
-        </Alert>
-      </Snackbar>
-
-      {/* Pop-up: Apoiar Projeto (PIX) */}
-      <Dialog open={openApoio} onClose={() => setOpenApoio(false)} PaperProps={{ sx: { bgcolor: C.BG_CARD, borderRadius: '8px', border: '3px solid #c8940a', p: 1, textAlign: 'center' } }}>
-        <DialogTitle sx={{ color: '#B8965A', fontWeight: 900, fontSize: '1.3rem', pb: 0 }}>💎 Apoiar o Projeto</DialogTitle>
-        <DialogContent sx={{ mt: 1 }}>
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem', fontWeight: 'bold', mb: 2 }}>
+      {/* ── Modal PIX ─────────────────────────────────────────────────────── */}
+      <Modal open={openApoio} onClose={() => setOpenApoio(false)} maxWidth={320}>
+        <div className="p-4 text-center">
+          <p className="text-4xl m-0 mb-2">💎</p>
+          <p className="font-cinzel font-bold text-base tracking-wide m-0 mb-1" style={{ color: C.ACCENT_DEEP }}>Apoiar o Projeto</p>
+          <div className="gold-stripe mb-3 opacity-40" />
+          <p className="font-nunito font-semibold text-sm leading-relaxed text-justify m-0 mb-3" style={{ color: C.TEXT_SECONDARY }}>
             Este Quartel-General é mantido com esforço e dedicação. Se este guia ajudou nas suas batalhas, considere pagar um café ao desenvolvedor!
-          </Typography>
-          <Box sx={{ p: 2, bgcolor: C.BG_CARD, borderRadius: '6px', border: `2px dashed ${C.BORDER}` }}>
-            <Typography sx={{ color: 'text.primary', fontSize: '0.8rem', fontWeight: 900, textTransform: 'uppercase', mb: 0.5 }}>Chave PIX:</Typography>
-            <Typography sx={{ color: 'primary.main', fontSize: '1.3rem', fontWeight: 900, fontFamily: 'monospace', letterSpacing: '1px' }}>
-              37991260524
-            </Typography>
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
-          <Button onClick={() => setOpenApoio(false)} sx={{ color: 'text.secondary', fontWeight: 900 }}>Fechar</Button>
-          <Button variant="contained" color="success" onClick={() => handleCopy('37991260524', 'Chave PIX')} sx={{ fontWeight: 900 }}>Copiar PIX</Button>
-        </DialogActions>
-      </Dialog>
+          </p>
+          <div className="py-2.5 px-3 rounded-lg mb-3" style={{ background: C.BG_SECONDARY, border: `2px dashed ${C.BORDER}` }}>
+            <p className="font-nunito font-black text-[0.7rem] uppercase tracking-wider m-0 mb-0.5" style={{ color: C.TEXT_MUTED }}>Chave PIX:</p>
+            <p className="font-mono font-black text-xl tracking-wide m-0" style={{ color: C.BLUE }}>37991260524</p>
+          </div>
+          <div className="flex gap-2">
+            <button className="btn-ghost flex-1" onClick={() => setOpenApoio(false)}>Fechar</button>
+            <button className="btn-success flex-1" onClick={() => handleCopy('37991260524', 'Chave PIX')}>Copiar PIX</button>
+          </div>
+        </div>
+      </Modal>
 
-      {/* Pop-up: Contato */}
-      <Dialog open={openContato} onClose={() => setOpenContato(false)} PaperProps={{ sx: { bgcolor: C.BG_CARD, borderRadius: '8px', border: '3px solid #c8940a', p: 1, textAlign: 'center' } }}>
-        <DialogTitle sx={{ color: 'primary.main', fontWeight: 900, fontSize: '1.3rem', pb: 0 }}>📬 Linha Direta</DialogTitle>
-        <DialogContent sx={{ mt: 1 }}>
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem', fontWeight: 'bold', mb: 2 }}>
-            Encontrou algum erro nos cálculos? Tem uma sugestão tática? Envie uma mensagem diretamente para a engenharia central.
-          </Typography>
-          <Box sx={{ p: 2, bgcolor: C.BG_CARD, borderRadius: '6px', border: '2px dashed #c8940a' }}>
-            <Typography sx={{ color: 'text.primary', fontSize: '0.8rem', fontWeight: 900, textTransform: 'uppercase', mb: 0.5 }}>E-mail de Suporte:</Typography>
-            <Typography sx={{ color: 'primary.main', fontSize: '1.1rem', fontWeight: 900, fontFamily: 'monospace' }}>
-              suporte@guiadoa.com
-            </Typography>
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
-          <Button onClick={() => setOpenContato(false)} sx={{ color: 'text.secondary', fontWeight: 900 }}>Fechar</Button>
-          <Button variant="contained" color="info" onClick={() => handleCopy('suporte@guiadoa.com', 'E-mail')} sx={{ fontWeight: 900 }}>Copiar E-mail</Button>
-        </DialogActions>
-      </Dialog>
+      {/* ── Modal Contato ─────────────────────────────────────────────────── */}
+      <Modal open={openContato} onClose={() => setOpenContato(false)} maxWidth={320}>
+        <div className="p-4 text-center">
+          <p className="text-4xl m-0 mb-2">📬</p>
+          <p className="font-cinzel font-bold text-base tracking-wide m-0 mb-1" style={{ color: C.BLUE }}>Linha Direta</p>
+          <div className="gold-stripe mb-3 opacity-40" />
+          <p className="font-nunito font-semibold text-sm leading-relaxed text-justify m-0 mb-3" style={{ color: C.TEXT_SECONDARY }}>
+            Encontrou algum erro nos cálculos? Tem uma sugestão tática? Envie uma mensagem directamente para a engenharia central.
+          </p>
+          <div className="py-2.5 px-3 rounded-lg mb-3" style={{ background: C.BG_SECONDARY, border: `2px dashed ${C.BORDER}` }}>
+            <p className="font-nunito font-black text-[0.7rem] uppercase tracking-wider m-0 mb-0.5" style={{ color: C.TEXT_MUTED }}>E-mail de Suporte:</p>
+            <p className="font-mono font-black text-sm tracking-wide m-0" style={{ color: C.BLUE }}>suporte@guiadoa.com</p>
+          </div>
+          <div className="flex gap-2">
+            <button className="btn-ghost flex-1" onClick={() => setOpenContato(false)}>Fechar</button>
+            <button className="btn-navy flex-1" onClick={() => handleCopy('suporte@guiadoa.com', 'E-mail')}>Copiar E-mail</button>
+          </div>
+        </div>
+      </Modal>
 
-      {/* 1. INFORMAÇÕES GERAIS */}
-      <Card sx={{ mb: 3, p: 0, overflow: 'hidden' }}>
+      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      <div className="tw-card mb-3">
         <GameHeader title="Guia Tático DOA" />
-        <Box sx={{ p: 3, bgcolor: C.BG_CARD, textAlign: 'center' }}>
-          <Typography sx={{ fontSize: '4rem', filter: 'drop-shadow(1px 2px 3px rgba(62,47,28,0.2))', lineHeight: 1, mb: 1 }}>
-            🛡️
-          </Typography>
-          <Typography sx={{ fontWeight: 900, color: 'primary.main', fontSize: '1.5rem', textTransform: 'uppercase' }}>
-            Versão 2.3.0
-          </Typography>
-          <Typography sx={{ fontWeight: 'bold', color: 'text.secondary', fontSize: '0.9rem', mb: 2 }}>
-            Codinome: "Tracker Dracônico"
-          </Typography>
-          <Divider sx={{ borderColor: '#C8A96B', opacity: 0.5, mb: 2 }} />
-          <Typography sx={{ fontSize: '0.85rem', color: 'text.primary', textAlign: 'justify', fontWeight: 'bold' }}>
-            Este aplicativo foi forjado para auxiliar os Comandantes a otimizarem os seus recursos, planearem os seus ataques e dominarem os torneios com precisão matemática.
-          </Typography>
-        </Box>
-      </Card>
+        <div className="p-4 text-center bg-aoe-card">
+          <p className="text-5xl leading-none mb-2 m-0" style={{ filter: 'drop-shadow(1px 2px 3px rgba(62,47,28,0.2))' }}>🛡️</p>
+          <p className="font-cinzel font-bold text-lg uppercase tracking-widest m-0" style={{ color: C.ACCENT_DEEP }}>Versão 2.3.0</p>
+          <p className="font-nunito font-semibold text-xs italic m-0 mb-2" style={{ color: C.TEXT_MUTED }}>"Tracker Dracônico"</p>
+          <div className="gold-stripe mb-3 opacity-50" />
+          <p className="font-nunito font-semibold text-sm leading-relaxed text-justify m-0" style={{ color: C.TEXT_PRIMARY }}>
+            Este aplicativo foi forjado para auxiliar os Comandantes a optimizarem os seus recursos, planearem os seus ataques e dominarem os torneios com precisão matemática.
+          </p>
+        </div>
+      </div>
 
-      {/* 2. CHANGELOG */}
-      <Card sx={{ mb: 3, p: 0, overflow: 'hidden' }}>
-        <GameHeader title="Últimas Atualizações" />
-        <Box sx={{ p: 2, bgcolor: C.BG_CARD }}>
-          <List disablePadding>
+      {/* ── Info cards ────────────────────────────────────────────────────── */}
+      <div className="tw-card mb-3">
+        <GameHeader title="Sobre o Projeto" fontSize="0.78rem" />
+        <div className="p-3 bg-aoe-card space-y-2">
+          {INFO_CARDS.map(c => (
+            <div key={c.title} className="flex gap-2.5 items-start p-2.5 rounded-lg" style={{ background: C.BG_SECONDARY, border: `1px solid ${C.BORDER_SOFT}` }}>
+              <span className="text-2xl leading-none shrink-0 mt-0.5">{c.icon}</span>
+              <div>
+                <p className="font-nunito font-black text-xs m-0 mb-0.5" style={{ color: C.TEXT_PRIMARY }}>{c.title}</p>
+                <p className="font-nunito text-[0.72rem] leading-snug m-0" style={{ color: C.TEXT_SECONDARY }}>{c.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
-            {/* v2.3 — TRACKER DRACÔNICO */}
-            <ListItem sx={{ alignItems: 'flex-start', px: 0, pb: 2 }}>
-              <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}><Typography sx={{ fontSize: '1.5rem' }}>📊</Typography></ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                    <Chip label="v2.3.0" size="small" sx={{ bgcolor: '#1a3a1a', color: '#80ff80', fontWeight: 'bold', border: '1px solid #2e7d32' }} />
-                    <Typography sx={{ fontWeight: 900, color: 'primary.main' }}>Tracker Dracônico — Progresso Pessoal</Typography>
-                  </Box>
-                }
-                secondary={<Typography component="span" sx={{ fontSize: '0.8rem', color: 'text.secondary', fontWeight: 'bold' }}>Novo sistema de tracker pessoal para acompanhar o progresso de cada habilidade do dragão. Registra nível atual, XP atual e XP total (preenchido automaticamente quando os dados são conhecidos, ou manualmente para níveis ainda não mapeados). Salvo automaticamente no localStorage. Painel "Meu Progresso" acessível direto da página de detalhe do dragão. Barra de XP visual, progresso geral em % e botão de reset.</Typography>}
-              />
-            </ListItem>
-            <Divider sx={{ borderColor: '#C8A96B', opacity: 0.3, mb: 2 }} />
+      {/* ── Changelog ─────────────────────────────────────────────────────── */}
+      <div className="tw-card mb-3">
+        <GameHeader title="Últimas Atualizações" fontSize="0.78rem" />
+        <div className="p-3 bg-aoe-card space-y-2.5">
+          {CHANGELOG.map((entry, i) => (
+            <div key={entry.ver}
+              className="rounded-lg overflow-hidden"
+              style={{ border: `1.5px solid ${entry.cor}40`, borderLeft: `4px solid ${entry.cor}` }}
+            >
+              <div className="flex items-center gap-2 px-3 py-2" style={{ background: `${entry.cor}12` }}>
+                <span className="text-xl leading-none">{entry.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-nunito font-black text-[0.8rem] m-0 leading-tight" style={{ color: C.TEXT_PRIMARY }}>
+                    {entry.nome}
+                  </p>
+                  <p className="font-nunito font-bold text-[0.65rem] m-0" style={{ color: entry.cor }}>{entry.ver}</p>
+                </div>
+                {i === 0 && (
+                  <span className="font-nunito font-black text-[0.58rem] px-1.5 py-0.5 rounded-full text-white" style={{ background: entry.cor }}>
+                    NOVO
+                  </span>
+                )}
+              </div>
+              <div className="px-3 py-2 space-y-1">
+                {entry.items.map(item => (
+                  <p key={item} className="font-nunito text-[0.72rem] flex items-start gap-1.5 m-0" style={{ color: C.TEXT_SECONDARY }}>
+                    <span style={{ color: entry.cor }} className="shrink-0 mt-0.5">▸</span>
+                    {item}
+                  </p>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
-            {/* v2.2 — TORRE DO GRANDE DRAGÃO */}
-            <ListItem sx={{ alignItems: 'flex-start', px: 0, pb: 2 }}>
-              <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}><Typography sx={{ fontSize: '1.5rem' }}>🏰</Typography></ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                    <Chip label="v2.2.0" size="small" sx={{ bgcolor: '#5a1a0a', color: '#ffb080', fontWeight: 'bold', border: '1px solid #c84020' }} />
-                    <Typography sx={{ fontWeight: 900, color: 'primary.main' }}>Torre do Grande Dragão — Dados Completos</Typography>
-                  </Box>
-                }
-                secondary={<Typography component="span" sx={{ fontSize: '0.8rem', color: 'text.secondary', fontWeight: 'bold' }}>Página do Grande Dragão expandida com dados reais do jogo: Atributos Base (Vida, Defesa, Ataque, Alcance, Velocidade), 5 Habilidades reais (Disparo de Fogo, Fortaleza Inexpugnável, Grande Inferno, Proteção, Orbe de Proteção) com painel Nível atual vs Nível máx. interativo (toque para expandir), XP bar, badges de Efeito de Batalha e Efeito em Campo. Itens de Alimentação (Touro Vermelho, Ossos Roxos, Chamado do Dragão, Transformar). DragaoDetalhe.jsx agora é totalmente modular e suporta dragões com dados parciais.</Typography>}
-              />
-            </ListItem>
-            <Divider sx={{ borderColor: '#C8A96B', opacity: 0.3, mb: 2 }} />
-
-            {/* v2.1 — BESTIÁRIO DRACÔNICO */}
-            <ListItem sx={{ alignItems: 'flex-start', px: 0, pb: 2 }}>
-              <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}><Typography sx={{ fontSize: '1.5rem' }}>🐉</Typography></ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                    <Chip label="v2.1.0" size="small" sx={{ bgcolor: '#3a1a5c', color: '#d4a0ff', fontWeight: 'bold', border: '1px solid #7b35c0' }} />
-                    <Typography sx={{ fontWeight: 900, color: 'primary.main' }}>Bestiário Dracônico — Módulo Dragões</Typography>
-                  </Box>
-                }
-                secondary={<Typography component="span" sx={{ fontSize: '0.8rem', color: 'text.secondary', fontWeight: 'bold' }}>Novo módulo de Dragões adicionado ao Arsenal. Tela de listagem com todos os dragões disponíveis, página de detalhe individual com Lore, Habilidades e Dicas Táticas. Novo banco de dados modular src/data/dragoes.js para fácil manutenção futura. Correção do caminho do favicon para path absoluto. Novos dragões serão adicionados progressivamente.</Typography>}
-              />
-            </ListItem>
-            <Divider sx={{ borderColor: '#C8A96B', opacity: 0.3, mb: 2 }} />
-
-            {/* v2.0 — ARSENAL MODULAR */}
-            <ListItem sx={{ alignItems: 'flex-start', px: 0, pb: 2 }}>
-              <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}><Typography sx={{ fontSize: '1.5rem' }}>🗂️</Typography></ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                    <Chip label="v2.0.0" size="small" sx={{ bgcolor: '#1a3a5c', color: '#90caf9', fontWeight: 'bold', border: '1px solid #1565c0' }} />
-                    <Typography sx={{ fontWeight: 900, color: 'primary.main' }}>Arsenal Modular — Refatoração do Core</Typography>
-                  </Box>
-                }
-                secondary={<Typography component="span" sx={{ fontSize: '0.8rem', color: 'text.secondary', fontWeight: 'bold' }}>Banco de dados dividido em módulos especializados (tropas, níveis, reinos, edifícios) dentro de src/data/. O db.js virou barrel re-export — todos os imports existentes continuam funcionando sem alteração. Correção crítica no workflow de build do APK: ícones não eram copiados por checagem de arquivo inexistente (ic_launcher_round.png). Agora todos os PNGs e o XML adaptativo são aplicados corretamente para Android legacy e Android 8+.</Typography>}
-              />
-            </ListItem>
-            <Divider sx={{ borderColor: '#C8A96B', opacity: 0.3, mb: 2 }} />
-
-            {/* v1.9 */}
-            <ListItem sx={{ alignItems: 'flex-start', px: 0, pb: 2 }}>
-              <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}><Typography sx={{ fontSize: '1.5rem' }}>🏗️</Typography></ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                    <Chip label="v1.9.0" size="small" sx={{ bgcolor: '#5a3a0a', color: '#FFF8EE', fontWeight: 'bold', border: '1px solid #8C6830' }} />
-                    <Typography sx={{ fontWeight: 900, color: 'primary.main' }}>Grimório em Abas — Construções</Typography>
-                  </Box>
-                }
-                secondary={<Typography component="span" sx={{ fontSize: '0.8rem', color: 'text.secondary', fontWeight: 'bold' }}>Página de Construções reformulada com o layout Grimório em Abas: banner escuro imersivo, seleção por ícones grandes em scroll horizontal e painel dividido entre Tabela de Evolução e Calculadora de Efeitos. Edifícios descritivos ocultam a calculadora automaticamente.</Typography>}
-              />
-            </ListItem>
-            <Divider sx={{ borderColor: '#C8A96B', opacity: 0.3, mb: 2 }} />
-
-            {/* v1.8 */}
-            <ListItem sx={{ alignItems: 'flex-start', px: 0, pb: 2 }}>
-              <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}><Typography sx={{ fontSize: '1.5rem' }}>🎨</Typography></ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                    <Chip label="v1.8.0" size="small" sx={{ bgcolor: '#7a5a18', color: '#f0c030', fontWeight: 'bold', border: '1px solid #c8940a' }} />
-                    <Typography sx={{ fontWeight: 900, color: 'primary.main' }}>Forja das Sombras Douradas</Typography>
-                  </Box>
-                }
-                secondary={<Typography component="span" sx={{ fontSize: '0.8rem', color: 'text.secondary', fontWeight: 'bold' }}>Renovação visual completa: tema escuro/dourado medieval unificado em todas as telas. Novo AppBar com identidade GUIA DOA, ícone do app, fonte Cinzel. Cronômetro hero aplicado também na tela de Torneios. Tela inicial simplificada com informações de hora e fase numa linha compacta. Bordas afinadas e fundo mais quente.</Typography>}
-              />
-            </ListItem>
-            <Divider sx={{ borderColor: '#C8A96B', opacity: 0.3, mb: 2 }} />
-
-            {/* v1.7 */}
-            <ListItem sx={{ alignItems: 'flex-start', px: 0, pb: 2 }}>
-              <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}><Typography sx={{ fontSize: '1.5rem' }}>⚔️</Typography></ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                    <Chip label="v1.7.0" size="small" sx={{ bgcolor: 'error.main', color: C.TEXT_PRIMARY, fontWeight: 'bold' }} />
-                    <Typography sx={{ fontWeight: 900, color: 'primary.main' }}>Simulador de Guerra Completo</Typography>
-                  </Box>
-                }
-                secondary={<Typography component="span" sx={{ fontSize: '0.8rem', color: 'text.secondary', fontWeight: 'bold' }}>Expansão da base de dados para 53 tropas com 10 atributos detalhados. Criação do Dossiê Militar, Duelos 1v1 visuais e do novo Construtor de Marchas.</Typography>}
-              />
-            </ListItem>
-            <Divider sx={{ borderColor: '#C8A96B', opacity: 0.3, mb: 2 }} />
-
-            {/* v1.6 */}
-            <ListItem sx={{ alignItems: 'flex-start', px: 0, pb: 2 }}>
-              <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}><Typography sx={{ fontSize: '1.5rem' }}>📈</Typography></ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                    <Chip label="v1.6.0" size="small" sx={{ bgcolor: 'success.main', color: C.TEXT_PRIMARY, fontWeight: 'bold' }} />
-                    <Typography sx={{ fontWeight: 900, color: 'primary.main' }}>Níveis & Ilhas Pro</Typography>
-                  </Box>
-                }
-                secondary={<Typography component="span" sx={{ fontSize: '0.8rem', color: 'text.secondary', fontWeight: 'bold' }}>Módulos reformulados com tabelas inteligentes, colorimetria de recursos e sistema de salvamento contínuo com avisos de segurança.</Typography>}
-              />
-            </ListItem>
-            <Divider sx={{ borderColor: '#C8A96B', opacity: 0.3, mb: 2 }} />
-
-            {/* v1.5 */}
-            <ListItem sx={{ alignItems: 'flex-start', px: 0 }}>
-              <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}><Typography sx={{ fontSize: '1.5rem' }}>⏰</Typography></ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                    <Chip label="v1.5.0" size="small" sx={{ bgcolor: 'info.main', color: C.TEXT_PRIMARY, fontWeight: 'bold' }} />
-                    <Typography sx={{ fontWeight: 900, color: 'primary.main' }}>Cronômetro Sincronizado</Typography>
-                  </Box>
-                }
-                secondary={<Typography component="span" sx={{ fontSize: '0.8rem', color: 'text.secondary', fontWeight: 'bold' }}>Sincronização automática com a Data e Hora Universal (UTC) baseada no fuso do Reino.</Typography>}
-              />
-            </ListItem>
-
-          </List>
-        </Box>
-      </Card>
-
-      {/* 3. ENGENHARIA DO SISTEMA */}
-      <Card sx={{ mb: 3, p: 0, overflow: 'hidden' }}>
-        <GameHeader title="Engenharia do Sistema" />
-        <Box sx={{ p: 2, bgcolor: C.BG_CARD }}>
-          <Typography sx={{ fontSize: '0.85rem', color: 'text.primary', mb: 2, fontWeight: 'bold', textAlign: 'center' }}>
-            Construído para ser rápido, portátil e funcionar offline após o primeiro carregamento.
-          </Typography>
-          <Grid container spacing={1}>
-            {[
-              { t: "React JS",       d: "Motor de Interface UI" },
-              { t: "Material UI v5", d: "Design Visual Tático" },
-              { t: "Vite",           d: "Build & Dev Server" },
-              { t: "Capacitor",      d: "Empacotamento Android" },
-              { t: "LocalStorage",   d: "Persistência de Perfil" },
-              { t: "Módulos ES",     d: "Dados em src/data/" },
-              { t: "src/data/dragoes.js", d: "BD Modular de Dragões" },
-            ].map((tech, i) => (
-              <Grid item xs={6} key={i}>
-                <Box sx={{ p: 1.5, bgcolor: C.BG_CARD, borderRadius: '6px', border: '1px solid #5a4010', textAlign: 'center', height: '100%', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.4)' }}>
-                  <Typography sx={{ fontWeight: 900, color: 'primary.main', fontSize: '0.9rem' }}>{tech.t}</Typography>
-                  <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', fontWeight: 'bold' }}>{tech.d}</Typography>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-      </Card>
-
-      {/* 4. BOTÕES DE SUPORTE E CONTATO */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={6}>
-          <Card elevation={0} sx={{ height: '100%', bgcolor: C.BG_CARD, border: '2px solid #c8940a', borderRadius: '8px', cursor: 'pointer', transition: 'transform 0.1s', '&:active': { transform: 'scale(0.95)' } }} onClick={() => setOpenApoio(true)}>
-            <Box sx={{ p: 2, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Typography sx={{ fontSize: '2rem', mb: 0.5, lineHeight: 1 }}>💎</Typography>
-              <Typography sx={{ color: '#B8965A', fontWeight: 900, fontSize: '0.9rem', textTransform: 'uppercase' }}>Apoiar Projeto</Typography>
-            </Box>
-          </Card>
-        </Grid>
-        <Grid item xs={6}>
-          <Card elevation={0} sx={{ height: '100%', bgcolor: C.BG_CARD, border: '2px solid #c8940a', borderRadius: '8px', cursor: 'pointer', transition: 'transform 0.1s', '&:active': { transform: 'scale(0.95)' } }} onClick={() => setOpenContato(true)}>
-            <Box sx={{ p: 2, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Typography sx={{ fontSize: '2rem', mb: 0.5, lineHeight: 1 }}>📬</Typography>
-              <Typography sx={{ color: '#B8965A', fontWeight: 900, fontSize: '0.9rem', textTransform: 'uppercase' }}>Fale Conosco</Typography>
-            </Box>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* 5. AVISO LEGAL */}
-      <Box sx={{ p: 2, bgcolor: C.BG_CARD, border: '2px dashed #A83C2C', borderRadius: '8px', textAlign: 'center', boxShadow: '0 3px 6px rgba(62,47,28,0.1)' }}>
-        <Typography sx={{ color: '#e05030', fontWeight: 900, fontSize: '1rem', mb: 1, textTransform: 'uppercase' }}>
-          ⚠️ Aviso Legal Oficial
-        </Typography>
-        <Typography sx={{ color: 'text.secondary', fontSize: '0.75rem', fontWeight: 'bold', lineHeight: 1.5 }}>
-          Este aplicativo é uma ferramenta <b>não oficial</b> desenvolvida por e para a comunidade de jogadores. Não tem qualquer afiliação, patrocínio ou aprovação da <b>Deca Games</b>. Todas as imagens, nomes e lógicas matemáticas são interpretações da comunidade destinadas apenas a auxílio estratégico.
-        </Typography>
-      </Box>
-
-    </Box>
+      {/* ── Acções ────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-2">
+        <button className="btn-gold btn-lg w-full" onClick={() => setOpenApoio(true)}>
+          💎 Apoiar o Projeto
+        </button>
+        <button className="btn-navy btn-lg w-full" onClick={() => setOpenContato(true)}>
+          📬 Linha Direta de Suporte
+        </button>
+      </div>
+    </div>
   );
 };
 
