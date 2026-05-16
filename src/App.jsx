@@ -256,12 +256,42 @@ const App = () => {
       {/* ── FOOTER ───────────────────────────────────────────────────────── */}
       <footer style={{ backgroundColor: C.BG_HEADER, borderTop: `2px solid ${C.BORDER_STRONG}` }}>
         <OrnamentStripe opacity={0.4} />
-        <div className="py-2 text-center flex items-center justify-center gap-2">
+        <div className="py-2 text-center flex items-center justify-center gap-2 relative">
           <span style={{ color: C.ACCENT, fontSize: '0.7rem', opacity: 0.6 }}>◆</span>
           <span className="font-nunito text-[0.72rem] tracking-widest font-semibold" style={{ color: '#9A9080', letterSpacing: '2.5px' }}>
-            GUIA DOA · COMANDO TÁTICO
+            GUIA DOA · BETA 1
           </span>
           <span style={{ color: C.ACCENT, fontSize: '0.7rem', opacity: 0.6 }}>◆</span>
+
+          {/* Engrenagem — link para o Admin */}
+          <a
+            href={`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/admin`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Painel Admin"
+            style={{
+              position: 'absolute',
+              right: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '26px',
+              height: '26px',
+              borderRadius: '6px',
+              background: 'rgba(200,168,74,0.08)',
+              border: '1px solid rgba(200,168,74,0.2)',
+              fontSize: '0.85rem',
+              textDecoration: 'none',
+              opacity: 0.5,
+              transition: 'opacity 0.2s, border-color 0.2s',
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.borderColor = 'rgba(200,168,74,0.5)'; }}
+            onMouseOut={(e)  => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.borderColor = 'rgba(200,168,74,0.2)'; }}
+          >
+            ⚙️
+          </a>
         </div>
       </footer>
     </>

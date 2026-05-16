@@ -6,6 +6,7 @@ const NivelSchema = new mongoose.Schema({
   atualizadoEm: { type: Date,   default: Date.now },
 }, { collection: 'doa_niveis' });
 
-NivelSchema.index({ nivel: 1 });
+// Nota: unique:true no campo já cria o índice automaticamente.
+// NivelSchema.index({ nivel: 1 }) removido para evitar índice duplicado.
 
 export default mongoose.model('Nivel', NivelSchema);

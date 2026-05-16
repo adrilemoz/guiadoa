@@ -6,23 +6,45 @@ import { C } from '../theme.js';
 
 const CHANGELOG = [
   {
+    ver: 'Beta 1', icon: '🚀', nome: 'Lançamento Beta', cor: '#5A8A5C',
+    items: [
+      'Módulo de Itens: cadastro com ícone, descrição e onde conseguir',
+      'Painel Admin web completo (tropas, níveis, itens, setup)',
+      'Importação de dados via interface web — sem terminal',
+      'Sistema de usuários com bloqueio por tentativas e reset de senha',
+      'Auditoria de ações e log de acesso no backend',
+    ],
+  },
+  {
     ver: 'v2.3.0', icon: '📊', nome: 'Tracker Dracônico', cor: '#8B6BAE',
-    items: ['Novo Tracker de Progresso para cada Dragão', 'Cálculo automático de Essência por sessão de treino', 'Histórico detalhado de evolução por fase'],
+    items: [
+      'Novo Tracker de Progresso para cada Dragão',
+      'Cálculo automático de Essência por sessão de treino',
+      'Histórico detalhado de evolução por fase',
+    ],
   },
   {
     ver: 'v2.2.0', icon: '🐉', nome: 'Módulo dos Dragões', cor: '#C87A2C',
-    items: ['Enciclopédia completa com 12 dragões', 'Estatísticas de ataque, defesa e habilidades', 'Guia de evolução por raridade'],
+    items: [
+      'Enciclopédia completa com 12 dragões',
+      'Estatísticas de ataque, defesa e habilidades',
+      'Guia de evolução por raridade',
+    ],
   },
   {
     ver: 'v2.1.0', icon: '⚔️', nome: 'Simulador de Batalha', cor: '#5C7FA3',
-    items: ['Cálculo de poder total do exército', 'Filtros por tipo de ataque e estatísticas', 'Comparação entre unidades'],
+    items: [
+      'Cálculo de poder total do exército',
+      'Filtros por tipo de ataque e estatísticas',
+      'Comparação entre unidades',
+    ],
   },
 ];
 
 const INFO_CARDS = [
   { icon: '🏰', title: 'Ferramenta Não Oficial', text: 'Criada pela comunidade, sem vínculo com a Deca Games. Resultados são aproximações baseadas em análises de jogadores.' },
-  { icon: '⚔️', title: 'Cálculos Táticos', text: 'As fórmulas foram estudadas e validadas por jogadores experientes. Pequenas variações podem ocorrer.' },
-  { icon: '🐉', title: 'Dados Dinâmicos', text: 'Base de dados actualizada regularmente pela comunidade. Contribuições são bem-vindas.' },
+  { icon: '⚔️', title: 'Cálculos Táticos',       text: 'As fórmulas foram estudadas e validadas por jogadores experientes. Pequenas variações podem ocorrer.' },
+  { icon: '🐉', title: 'Dados Dinâmicos',         text: 'Base de dados actualizada regularmente pela comunidade. Contribuições são bem-vindas.' },
 ];
 
 const Sobre = () => {
@@ -87,8 +109,23 @@ const Sobre = () => {
         <GameHeader title="Guia Tático DOA" />
         <div className="p-4 text-center bg-aoe-card">
           <p className="text-5xl leading-none mb-2 m-0" style={{ filter: 'drop-shadow(1px 2px 3px rgba(62,47,28,0.2))' }}>🛡️</p>
-          <p className="font-cinzel font-bold text-lg uppercase tracking-widest m-0" style={{ color: C.ACCENT_DEEP }}>Versão 2.3.0</p>
-          <p className="font-nunito font-semibold text-xs italic m-0 mb-2" style={{ color: C.TEXT_MUTED }}>"Tracker Dracônico"</p>
+
+          {/* Badge Beta */}
+          <div className="inline-flex items-center gap-2 mb-1">
+            <p className="font-cinzel font-bold text-lg uppercase tracking-widest m-0" style={{ color: C.ACCENT_DEEP }}>
+              Beta 1
+            </p>
+            <span
+              className="font-nunito font-black text-[0.58rem] px-2 py-0.5 rounded-full text-white"
+              style={{ background: C.SUCCESS, letterSpacing: '0.5px' }}
+            >
+              BETA
+            </span>
+          </div>
+
+          <p className="font-nunito font-semibold text-xs italic m-0 mb-2" style={{ color: C.TEXT_MUTED }}>
+            "Lançamento Beta — Painel Admin + Módulo de Itens"
+          </p>
           <div className="gold-stripe mb-3 opacity-50" />
           <p className="font-nunito font-semibold text-sm leading-relaxed text-justify m-0" style={{ color: C.TEXT_PRIMARY }}>
             Este aplicativo foi forjado para auxiliar os Comandantes a optimizarem os seus recursos, planearem os seus ataques e dominarem os torneios com precisão matemática.
