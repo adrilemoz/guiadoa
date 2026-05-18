@@ -224,7 +224,7 @@ const Itens = () => {
       }
     } catch {
       // Se já mostrou cache, não mostra erro — usuário vê os dados normalmente
-      if (filtrado.length === 0) setErro('Sem conexão e sem dados em cache. Abra o app com internet uma vez.');
+      if (filtrado.length === 0) setErro('📶 Offline — sem dados de itens em cache. Conecte-se à internet e reabra o módulo.');
     } finally {
       setLoading(false);
     }

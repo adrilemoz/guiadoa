@@ -120,7 +120,7 @@ const Pesquisas = ({ setRoute }) => {
         setPesquisas(arr);
       }
     } catch {
-      if (cache.length === 0) setErro('Sem conexão e sem dados em cache. Abra o app com internet uma vez.');
+      if (cache.length === 0) setErro('📶 Offline — sem dados de pesquisas em cache. Conecte-se à internet e reabra o módulo.');
     } finally {
       setLoading(false);
     }

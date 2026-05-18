@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { C } from '../theme.js';
 import GameHeader from './shared/GameHeader.jsx';
 
-import { getCachedEdificios, SYNC_KEYS } from '../data/syncService.js';
+import { getCachedEdificios, SYNC_KEYS, getStaticEdificios } from '../data/syncService.js';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -28,15 +28,24 @@ const Edificios = () => {
   const carregar = useCallback(async () => {
     setLoading(true); setErro(null);
 
-    // 1. Cache imediato
-    const cache = getCachedEdificios();
+    // 1. Cache imediato (sincronizado anteriormente)
+    let cache = getCachedEdificios();
+
+    // 2. Se cache vazio, usa dados estáticos embutidos como base
+    if (cache.length === 0) {
+      cache = getStaticEdificios();
+      if (cache.length > 0) {
+        localStorage.setItem(SYNC_KEYS.EDIFICIOS, JSON.stringify(cache));
+      }
+    }
+
     if (cache.length > 0) {
       setEdificios(cache);
       setSel(s => s || cache[0].slug);
       setLoading(false);
     }
 
-    // 2. Atualiza da API em background
+    // 3. Tenta atualizar da API (MongoDB) em background
     try {
       const ctrl = new AbortController();
       const tid  = setTimeout(() => ctrl.abort(), 8000);
@@ -51,7 +60,7 @@ const Edificios = () => {
         setSel(s => s || lista[0].slug);
       }
     } catch {
-      if (cache.length === 0) setErro('Sem conexão e sem dados em cache. Abra o app com internet uma vez.');
+      // Cache ou dados estáticos já cobriram — nada a fazer
     } finally {
       setLoading(false);
     }

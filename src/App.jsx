@@ -131,27 +131,51 @@ const App = () => {
     return () => { delete window.__setRoute; };
   }, [setRoute]);
 
-  const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | 'ok' | 'parcial' | 'erro'
+  // null | 'syncing' | 'ok' | 'parcial' | 'estatico' | 'erro'
+  const [syncStatus,   setSyncStatus]   = useState(null);
+  const [syncProgress, setSyncProgress] = useState({ step: 0, total: 3, label: 'Iniciando…' });
+  const [isOffline,    setIsOffline]    = useState(() =>
+    typeof navigator !== 'undefined' ? !navigator.onLine : false
+  );
+
+  // Detecta mudanças de conectividade em tempo real
+  useEffect(() => {
+    const onOnline  = () => setIsOffline(false);
+    const onOffline = () => setIsOffline(true);
+    window.addEventListener('online',  onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online',  onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const rodarSync = async () => {
-      // Força re-sync se versão mudou OU se nunca sincronizou
-      const forcar = precisaSincronizar();
+      const forcar   = precisaSincronizar();
       const temCache = temAlgumCache();
 
-      // Se já tem cache e não forçou, sync em background silencioso
+      // Já tem cache e não forçou → sync silencioso em background
       if (temCache && !forcar) {
-        syncTodos().then(({ status }) => {
-          // Atualiza status sem mostrar nada ao usuário
-          setSyncStatus(status || 'ok');
+        syncTodos().then(r => {
+          setSyncStatus(r.usouEstatico ? 'estatico' : r.sucesso ? 'ok' : 'parcial');
         }).catch(() => {});
         return;
       }
 
-      // Se não tem cache OU versão nova: mostra indicador e espera
+      // Sem cache OU versão nova → mostra barra de progresso e aguarda
       setSyncStatus('syncing');
-      const resultado = await syncTodos().catch(() => ({ ok: 0, total: 3, sucesso: false }));
-      setSyncStatus(resultado.sucesso ? 'ok' : 'erro');
+      setSyncProgress({ step: 0, total: 3, label: 'Iniciando…' });
+
+      const resultado = await syncTodos((prog) => {
+        setSyncProgress(prog);
+      }).catch(() => ({ ok: 0, total: 3, sucesso: false, usouEstatico: false }));
+
+      if (resultado.usouEstatico && resultado.ok === 0) {
+        setSyncStatus('estatico');
+      } else {
+        setSyncStatus(resultado.sucesso ? 'ok' : 'erro');
+      }
     };
 
     rodarSync();
@@ -225,47 +249,140 @@ const App = () => {
   return (
     <>
       {/* ── SYNC BANNER ─────────────────────────────────────────────────── */}
-      {syncStatus === 'syncing' && (
+
+      {/* Barra de progresso — aparece apenas quando não há cache (1ª vez ou nova versão) */}
+      {syncStatus === 'syncing' && (() => {
+        const pct = syncProgress.total > 0
+          ? Math.round((syncProgress.step / syncProgress.total) * 100)
+          : 0;
+        return (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+            background: 'linear-gradient(90deg,#1C3A5E,#2A4C72)',
+            borderBottom: '1px solid rgba(200,168,74,0.4)',
+            padding: '7px 16px 0',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 6 }}>
+              <span style={{
+                fontSize: '0.75rem', animation: 'spin 1.2s linear infinite',
+                display: 'inline-block', lineHeight: 1,
+              }}>⚙️</span>
+              <span style={{
+                fontFamily: '"Nunito",sans-serif', fontWeight: 800,
+                fontSize: '0.72rem', letterSpacing: '0.5px', color: '#F8F2E0', flex: 1,
+              }}>
+                {syncProgress.step < syncProgress.total
+                  ? `Sincronizando: ${syncProgress.label}…`
+                  : 'Finalizando…'}
+              </span>
+              <span style={{
+                fontFamily: '"Nunito",sans-serif', fontWeight: 900,
+                fontSize: '0.65rem', color: 'rgba(200,168,74,0.85)',
+              }}>
+                {pct}%
+              </span>
+            </div>
+            {/* Barra de progresso */}
+            <div style={{
+              height: 3, background: 'rgba(255,255,255,0.12)',
+              borderRadius: '0 0 0 0', overflow: 'hidden',
+            }}>
+              <div style={{
+                height: '100%', width: `${pct}%`,
+                background: 'linear-gradient(90deg,rgba(200,168,74,0.7),rgba(200,168,74,1))',
+                transition: 'width 0.4s ease',
+                borderRadius: 2,
+              }} />
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Offline com dados locais (edifícios embutidos, sem API) */}
+      {syncStatus === 'estatico' && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
-          background: 'linear-gradient(90deg,#1C3A5E,#2A4C72)',
-          borderBottom: '1px solid rgba(200,168,74,0.4)',
-          padding: '8px 16px',
-          display: 'flex', alignItems: 'center', gap: 8,
+          background: 'linear-gradient(90deg,#4A3A10,#6A5218)',
+          borderBottom: '1px solid rgba(200,168,74,0.5)',
+          padding: '6px 16px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
         }}>
-          <span style={{ fontSize: '0.9rem', animation: 'spin 1.2s linear infinite', display: 'inline-block' }}>⚙️</span>
           <span style={{
             fontFamily: '"Nunito",sans-serif', fontWeight: 800,
-            fontSize: '0.75rem', letterSpacing: '1px', color: '#F8F2E0',
+            fontSize: '0.71rem', color: '#FFE580',
           }}>
-            Sincronizando dados…
+            📦 Offline — usando dados locais embutidos
           </span>
+          <button
+            onClick={() => {
+              setSyncStatus('syncing');
+              setSyncProgress({ step: 0, total: 3, label: 'Iniciando…' });
+              syncTodos(p => setSyncProgress(p))
+                .then(r => setSyncStatus(r.usouEstatico && r.ok === 0 ? 'estatico' : r.sucesso ? 'ok' : 'erro'))
+                .catch(() => setSyncStatus('erro'));
+            }}
+            style={{
+              fontFamily: '"Nunito",sans-serif', fontWeight: 800, fontSize: '0.64rem',
+              background: 'rgba(255,229,128,0.18)', border: '1px solid rgba(255,229,128,0.4)',
+              color: '#FFE580', borderRadius: 6, padding: '3px 10px', cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}>
+            Tentar online
+          </button>
         </div>
       )}
+
+      {/* Sem dados — offline e sem nenhum fallback disponível */}
       {syncStatus === 'erro' && !temAlgumCache() && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
           background: 'linear-gradient(90deg,#5A1A1A,#7A2020)',
           borderBottom: '1px solid rgba(200,80,80,0.5)',
-          padding: '8px 16px',
+          padding: '6px 16px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
         }}>
           <span style={{
             fontFamily: '"Nunito",sans-serif', fontWeight: 800,
-            fontSize: '0.72rem', color: '#FFD0D0',
+            fontSize: '0.71rem', color: '#FFD0D0',
           }}>
-            ⚠️ Sem conexão com o servidor. Alguns módulos estarão indisponíveis.
+            📶 Sem conexão. Itens e Pesquisas indisponíveis.
           </span>
           <button
-            onClick={() => { setSyncStatus('syncing'); syncTodos().then(r => setSyncStatus(r.sucesso ? 'ok' : 'erro')); }}
+            onClick={() => {
+              setSyncStatus('syncing');
+              setSyncProgress({ step: 0, total: 3, label: 'Iniciando…' });
+              syncTodos(p => setSyncProgress(p))
+                .then(r => setSyncStatus(r.usouEstatico && r.ok === 0 ? 'estatico' : r.sucesso ? 'ok' : 'erro'))
+                .catch(() => setSyncStatus('erro'));
+            }}
             style={{
-              fontFamily: '"Nunito",sans-serif', fontWeight: 800, fontSize: '0.65rem',
+              fontFamily: '"Nunito",sans-serif', fontWeight: 800, fontSize: '0.64rem',
               background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
               color: '#FFD0D0', borderRadius: 6, padding: '3px 10px', cursor: 'pointer',
               whiteSpace: 'nowrap',
             }}>
             Tentar novamente
           </button>
+        </div>
+      )}
+
+      {/* Badge de offline persistente (fora do sync inicial) */}
+      {isOffline && syncStatus !== 'syncing' && (
+        <div style={{
+          position: 'fixed', top: 0, right: 0, zIndex: 9998,
+          background: 'rgba(60,40,10,0.92)',
+          border: '1px solid rgba(200,168,74,0.35)',
+          borderTop: 'none', borderRight: 'none',
+          borderRadius: '0 0 0 8px',
+          padding: '3px 10px',
+          pointerEvents: 'none',
+        }}>
+          <span style={{
+            fontFamily: '"Nunito",sans-serif', fontWeight: 800,
+            fontSize: '0.6rem', color: 'rgba(255,229,128,0.8)', letterSpacing: '0.5px',
+          }}>
+            📶 offline
+          </span>
         </div>
       )}
 
