@@ -19,6 +19,12 @@ export const saveProfile = (p) => {
   const offset = match ? parseInt(match[1], 10) : 0;
   localStorage.setItem(STORAGE_KEYS.FUSO_OFFSET, offset);
 };
+
+/** Retorna o ID real do jogador guardado no perfil, ou null */
+export const getPlayerId = () => {
+  const p = getProfile();
+  return p?.playerId || null;
+};
 export const clearProfile  = ()  => localStorage.removeItem(STORAGE_KEYS.PROFILE);
 export const getFusoOffset = ()  => parseInt(localStorage.getItem(STORAGE_KEYS.FUSO_OFFSET) || '0', 10);
 export const getTermoAceito= ()  => localStorage.getItem(STORAGE_KEYS.TERMO_ACEITO) === 'true';

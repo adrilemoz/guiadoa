@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { C } from '../theme.js';
 import GameHeader from './shared/GameHeader.jsx';
 
+import { getCachedItens, SYNC_KEYS } from '../data/syncService.js';
+
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 // ── Popup de detalhe ──────────────────────────────────────────────────────────
@@ -191,14 +193,38 @@ const Itens = () => {
   const carregar = useCallback(async (q = '') => {
     setLoading(true);
     setErro(null);
+
+    // 1. Carrega cache imediatamente (sem piscar)
+    const cache = getCachedItens();
+    const filtrado = q
+      ? cache.filter(i =>
+          i.nome?.toLowerCase().includes(q.toLowerCase()) ||
+          i.categoria?.toLowerCase().includes(q.toLowerCase())
+        )
+      : cache;
+    if (filtrado.length > 0) {
+      setItens(filtrado);
+      setLoading(false);
+    }
+
+    // 2. Tenta atualizar da API em background
     try {
-      const url = `${API}/api/itens?limite=200${q ? `&busca=${encodeURIComponent(q)}` : ''}`;
-      const r   = await fetch(url);
-      if (!r.ok) throw new Error('Falha ao carregar itens');
+      const ctrl = new AbortController();
+      const tid  = setTimeout(() => ctrl.abort(), 8000);
+      const url  = `${API}/api/itens?limite=500${q ? `&busca=${encodeURIComponent(q)}` : ''}`;
+      const r    = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (!r.ok) throw new Error('falha');
       const d   = await r.json();
-      setItens(d.itens || []);
-    } catch (e) {
-      setErro(e.message);
+      const arr  = d.itens || [];
+      if (arr.length > 0) {
+        // Atualiza cache global (sem busca ativa, salva tudo)
+        if (!q) localStorage.setItem(SYNC_KEYS.ITENS, JSON.stringify(arr));
+        setItens(arr);
+      }
+    } catch {
+      // Se já mostrou cache, não mostra erro — usuário vê os dados normalmente
+      if (filtrado.length === 0) setErro('Sem conexão e sem dados em cache. Abra o app com internet uma vez.');
     } finally {
       setLoading(false);
     }

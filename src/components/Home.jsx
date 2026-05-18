@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getProfile, clearProfile, getTermoAceito } from '../utils/storage.js';
 import { useToast } from '../hooks/useToast.js';
 import TermosDialog from './ProfileLogin/TermosDialog.jsx';
@@ -25,44 +25,56 @@ const useServerClock = () => {
 };
 
 const FERRAMENTAS = [
-  { id: 'torneios',  icon: '🏆', title: 'Torneios'    },
-  { id: 'tropas',    icon: '⚔️',  title: 'Tropas'      },
-  { id: 'dragoes',   icon: '🐉',  title: 'Dragões'     },
-  { id: 'edificios', icon: '🏗️',  title: 'Construções' },
-  { id: 'itens',     icon: '🎒',  title: 'Itens'       },
-  { id: 'niveis',    icon: '🏰',  title: 'Níveis'      },
-  { id: 'ilhas',     icon: '🏝️',  title: 'Cidade'      },
-  { id: 'backup',    icon: '📜',  title: 'Nuvem'       },
-  { id: 'sobre',     icon: 'ℹ️',  title: 'Info'        },
+  { id: 'torneios',  icon: '🏆', title: 'Torneios',    sub: 'Metas & rankings',   cor: '#C87A2C' },
+  { id: 'tropas',    icon: '⚔️',  title: 'Tropas',      sub: 'Enciclopédia',       cor: '#5C7FA3' },
+  { id: 'dragoes',   icon: '🐉',  title: 'Dragões',     sub: 'Evolução & poder',   cor: '#5A8A5C' },
+  { id: 'edificios', icon: '🏗️',  title: 'Construções', sub: 'Níveis & efeitos',   cor: '#8B6BAE' },
+  { id: 'itens',     icon: '🎒',  title: 'Itens',       sub: 'Armazém',            cor: '#A07040' },
+  { id: 'niveis',    icon: '🏰',  title: 'Níveis',      sub: 'Tabela de XP',       cor: '#3B7A8C' },
+  { id: 'ilhas',     icon: '🏝️',  title: 'Cidade',      sub: 'Sua ilha',           cor: '#4A8A6A' },
+  { id: 'pesquisas', icon: '🔬',  title: 'Pesquisas',   sub: 'Centro de Ciência',  cor: '#5A8A7A' },
+  { id: 'backup',    icon: '☁️',  title: 'Nuvem',       sub: 'Sincronização',      cor: '#5A6FAA' },
+  { id: 'sobre',     icon: 'ℹ️',  title: 'Info',        sub: 'Sobre o app',        cor: '#7A6A5A' },
 ];
 
 const Divider = ({ label }) => (
-  <div style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 0 3px' }}>
-    <div style={{ flex:1, height:1, background:`linear-gradient(90deg,transparent,${C.BORDER})`, opacity:0.3 }} />
-    <span style={{ color:C.ACCENT, fontSize:'0.65rem' }}>◆</span>
-    <span style={{ fontFamily:'"Nunito",sans-serif', fontWeight:900, fontSize:'0.56rem', letterSpacing:'2.5px', color:C.TEXT_MUTED }}>
+  <div className="flex items-center gap-1.5" style={{ padding: '8px 0 5px' }}>
+    <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg,transparent,${C.BORDER})`, opacity: 0.3 }} />
+    <span style={{ color: C.ACCENT, fontSize: '0.72rem' }}>◆</span>
+    <span className="font-nunito font-black uppercase tracking-widest" style={{ fontSize: '0.62rem', color: C.TEXT_MUTED }}>
       {label}
     </span>
-    <span style={{ color:C.ACCENT, fontSize:'0.65rem' }}>◆</span>
-    <div style={{ flex:1, height:1, background:`linear-gradient(270deg,transparent,${C.BORDER})`, opacity:0.3 }} />
+    <span style={{ color: C.ACCENT, fontSize: '0.72rem' }}>◆</span>
+    <div style={{ flex: 1, height: 1, background: `linear-gradient(270deg,transparent,${C.BORDER})`, opacity: 0.3 }} />
   </div>
 );
 
 const Home = ({ setRoute }) => {
   const [profile,     setProfile]     = useState(() => getProfile());
   const [termoAceito, setTermoAceito] = useState(() => getTermoAceito());
-  const [alertaModal, setAlertaModal] = useState({ open:false, msg:'' });
+  const [alertaModal, setAlertaModal] = useState({ open: false, msg: '' });
   const { toast, closeToast }         = useToast();
   const horaServidor                  = useServerClock();
 
-  const userId = useMemo(() => {
-    if (!profile) return '00000';
-    let hash = 0;
-    for (let i = 0; i < profile.nome.length; i++) {
-      hash = profile.nome.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return Math.abs(hash).toString().substring(0, 5).padEnd(5, '0');
-  }, [profile]);
+  const playerId = profile?.playerId || null;
+  const [idCopiado, setIdCopiado] = useState(false);
+
+  const copiarId = () => {
+    if (!playerId) return;
+    const texto = `ID: ${playerId} | Reino: ${profile.reino}`;
+    navigator.clipboard?.writeText(texto).catch(() => {
+      // fallback para APK sem clipboard API
+      const el = document.createElement('textarea');
+      el.value = texto;
+      el.style.position = 'fixed'; el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    });
+    setIdCopiado(true);
+    setTimeout(() => setIdCopiado(false), 2000);
+  };
 
   if (!profile) {
     return (
@@ -74,121 +86,220 @@ const Home = ({ setRoute }) => {
   }
 
   return (
-    <div style={{ maxWidth:480, margin:'0 auto', paddingBottom:12 }}>
+    <div style={{ maxWidth: 480, margin: '0 auto', paddingBottom: 16 }}>
       <Toast {...toast} onClose={closeToast} />
       <AlertaModal open={alertaModal.open} message={alertaModal.msg}
-        onClose={() => setAlertaModal({ open:false, msg:'' })} />
+        onClose={() => setAlertaModal({ open: false, msg: '' })} />
 
-      {/* ── FAIXA: PERFIL + HORA DO SERVIDOR ─────────────────────── */}
-      <div style={{
-        background: C.BG_CARD_TOP,
-        borderBottom: `1px solid rgba(200,168,74,0.28)`,
-        padding: '6px 10px',
-        display: 'flex', alignItems: 'center', gap: 8,
-        animation: 'reveal-up 0.4s 0.08s ease both',
-      }}>
-        {/* Avatar */}
-        <div style={{
-          width:32, height:32, borderRadius:7, flexShrink:0,
-          background: C.BG_SECONDARY,
-          border: `1px solid rgba(200,168,74,0.38)`,
-          display:'flex', alignItems:'center', justifyContent:'center',
-          fontSize:16, position:'relative',
-        }}>
-          🎖️
-          <span style={{
-            position:'absolute', bottom:-2, right:-2,
-            width:8, height:8, borderRadius:'50%',
-            background: C.ENERGY,
-            border: `1.5px solid ${C.BG_MAIN}`,
-            animation:'online-pulse 3s ease-in-out infinite',
-          }} />
-        </div>
+      {/* ── CARD PERFIL + RELÓGIO ─────────────────────────────────────────── */}
+      <div className="tw-card mb-3" style={{ animation: 'reveal-up 0.4s 0.08s ease both' }}>
 
-        {/* Nome + tags */}
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontFamily:'"Nunito",sans-serif', fontWeight:900, fontSize:'0.84rem', color:C.TEXT_PRIMARY, lineHeight:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-            {profile.nome}
-          </div>
-          <div style={{ display:'flex', gap:4, marginTop:3 }}>
-            {[`Reino: ${profile.reino}`, `ID: ${userId}`].map(tag => (
-              <span key={tag} style={{
-                fontFamily:'"Nunito",sans-serif', fontWeight:700, fontSize:'0.6rem',
-                padding:'1px 5px', borderRadius:4,
-                border:`1px solid rgba(200,168,74,0.3)`,
-                color:C.TEXT_SECONDARY, background:'rgba(184,150,90,0.08)',
-              }}>
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Divisor vertical */}
-        <div style={{ width:1, height:28, background:`linear-gradient(180deg,transparent,${C.BORDER},transparent)`, opacity:0.4, flexShrink:0 }} />
-
-        {/* Hora do servidor */}
-        <div style={{ textAlign:'right', flexShrink:0 }}>
-          <div style={{
-            fontFamily:'"Nunito",sans-serif', fontWeight:900,
-            fontSize:'0.98rem', letterSpacing:'0.06em',
-            fontVariantNumeric:'tabular-nums',
-            color:C.TEXT_PRIMARY, lineHeight:1,
-          }}>
-            {horaServidor}
-          </div>
-          <div style={{ fontFamily:'"Nunito",sans-serif', fontWeight:800, fontSize:'0.5rem', letterSpacing:'1.5px', color:C.TEXT_MUTED, marginTop:2 }}>
-            SERVIDOR UTC+0
-          </div>
-        </div>
-
-        {/* Logout */}
-        <button
-          onClick={() => { clearProfile(); setProfile(null); }}
+        {/* Faixa de topo azul (como GameHeader do Sobre) */}
+        <div
+          className="flex items-center justify-between px-4"
           style={{
-            width:28, height:28, borderRadius:6, flexShrink:0,
-            background:'transparent', cursor:'pointer',
-            border:`1px solid rgba(200,168,74,0.28)`,
-            color:C.TEXT_FAINT, fontSize:'0.8rem',
-            display:'flex', alignItems:'center', justifyContent:'center',
+            background: 'linear-gradient(135deg,#1C3A5E,#2A4C72)',
+            borderBottom: '1px solid rgba(200,168,74,0.3)',
+            minHeight: 36,
           }}
         >
-          ⎋
-        </button>
+          <span
+            className="font-cinzel font-bold uppercase"
+            style={{ fontSize: '0.58rem', color: 'rgba(200,168,74,0.7)', letterSpacing: '3px' }}
+          >
+            ◆ Quartel-General ◆
+          </span>
+          <button
+            onClick={() => { clearProfile(); setProfile(null); }}
+            className="flex items-center justify-center rounded-md"
+            style={{
+              width: 28, height: 28,
+              background: 'transparent', cursor: 'pointer',
+              border: '1px solid rgba(200,168,74,0.28)',
+              color: 'rgba(248,242,224,0.45)', fontSize: '0.9rem',
+            }}
+            title="Sair"
+          >
+            ⎋
+          </button>
+        </div>
+
+        {/* Corpo: avatar + nome/tags + divider + relógio */}
+        <div
+          className="flex items-center gap-4"
+          style={{ background: C.BG_CARD_TOP, padding: '14px 16px' }}
+        >
+          {/* Avatar */}
+          <div
+            className="flex items-center justify-center shrink-0"
+            style={{
+              width: 54, height: 54, borderRadius: 12,
+              background: C.BG_SECONDARY,
+              border: `1.5px solid rgba(200,168,74,0.4)`,
+              fontSize: '1.75rem',
+              position: 'relative',
+              boxShadow: '0 2px 10px rgba(62,47,28,0.15)',
+            }}
+          >
+            🎖️
+            <span style={{
+              position: 'absolute', bottom: -3, right: -3,
+              width: 11, height: 11, borderRadius: '50%',
+              background: C.ENERGY,
+              border: `2px solid ${C.BG_MAIN}`,
+              animation: 'online-pulse 3s ease-in-out infinite',
+            }} />
+          </div>
+
+          {/* Nome + tags */}
+          <div className="flex-1 min-w-0">
+            <p
+              className="font-nunito font-black m-0 leading-tight truncate"
+              style={{ fontSize: '1.15rem', color: C.TEXT_PRIMARY }}
+            >
+              {profile.nome}
+            </p>
+            <div className="flex gap-1.5 mt-1.5 flex-wrap">
+              {/* Tag Reino — estática */}
+              <span
+                className="font-nunito font-bold"
+                style={{
+                  fontSize: '0.68rem',
+                  padding: '2px 8px', borderRadius: 5,
+                  border: '1px solid rgba(200,168,74,0.35)',
+                  color: C.TEXT_SECONDARY,
+                  background: 'rgba(184,150,90,0.1)',
+                }}
+              >
+                Reino: {profile.reino}
+              </span>
+
+              {/* Tag ID — clicável, só aparece se tiver ID */}
+              {playerId && (
+                <button
+                  onClick={copiarId}
+                  className="font-nunito font-bold"
+                  style={{
+                    fontSize: '0.68rem',
+                    padding: '2px 8px', borderRadius: 5,
+                    border: `1px solid ${idCopiado ? 'rgba(90,180,90,0.6)' : 'rgba(200,168,74,0.35)'}`,
+                    color: idCopiado ? '#5AB45A' : C.TEXT_SECONDARY,
+                    background: idCopiado ? 'rgba(90,180,90,0.12)' : 'rgba(184,150,90,0.1)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    lineHeight: 1,
+                    display: 'flex', alignItems: 'center', gap: 4,
+                  }}
+                  title="Clique para copiar ID e Reino"
+                >
+                  {idCopiado ? (
+                    <>✓ ID copiado</>
+                  ) : (
+                    <>📋 ID: {playerId}</>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Divisor vertical */}
+          <div style={{
+            width: 1, height: 44, flexShrink: 0,
+            background: `linear-gradient(180deg,transparent,${C.BORDER},transparent)`,
+            opacity: 0.4,
+          }} />
+
+          {/* Relógio — fonte grande como o Beta 1 no Sobre */}
+          <div className="text-right shrink-0">
+            <p
+              className="font-nunito font-black m-0 leading-none"
+              style={{
+                fontSize: '1.55rem',
+                fontVariantNumeric: 'tabular-nums',
+                letterSpacing: '0.04em',
+                color: C.TEXT_PRIMARY,
+              }}
+            >
+              {horaServidor}
+            </p>
+            <p
+              className="font-nunito font-black uppercase tracking-widest m-0"
+              style={{ fontSize: '0.52rem', color: C.TEXT_MUTED, marginTop: 5 }}
+            >
+              SERVIDOR UTC+0
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Fio dourado */}
-      <div style={{ height:1, background:`linear-gradient(90deg,transparent,${C.BORDER},transparent)`, opacity:0.22, margin:'0 10px' }} />
+      {/* ── ARSENAL ──────────────────────────────────────────────────────── */}
+      <div style={{ padding: '0 8px', animation: 'reveal-up 0.4s 0.14s ease both' }}>
+        <Divider label="Arsenal do Quartel" />
 
-      {/* ── ARSENAL ───────────────────────────────────────────── */}
-      <div style={{ padding:'0 8px', animation:'reveal-up 0.4s 0.14s ease both' }}>
-        <Divider label="ARSENAL DO QUARTEL" />
-
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:5 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
           {FERRAMENTAS.map((tool, i) => (
             <button
               key={tool.id}
               onClick={() => setRoute(tool.id)}
               style={{
                 background: C.BG_CARD,
-                border:`1px solid rgba(200,168,74,0.26)`,
-                borderRadius:10,
-                padding:'14px 4px 11px',
-                textAlign:'center', cursor:'pointer',
-                display:'flex', flexDirection:'column', alignItems:'center',
-                animation:`tool-in 0.3s ${0.16 + i*0.04}s ease both`,
-                transition:'transform 0.12s',
+                border: '1.5px solid rgba(200,168,74,0.22)',
+                borderRadius: 13,
+                padding: 0,
+                textAlign: 'center', cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                aspectRatio: '1 / 1',
+                overflow: 'hidden',
+                position: 'relative',
+                animation: `tool-in 0.3s ${0.16 + i * 0.04}s ease both`,
+                transition: 'transform 0.12s, box-shadow 0.12s',
               }}
-              onMouseDown={e=>e.currentTarget.style.transform='scale(0.95)'}
-              onMouseUp={e=>e.currentTarget.style.transform='scale(1)'}
-              onTouchStart={e=>e.currentTarget.style.transform='scale(0.95)'}
-              onTouchEnd={e=>e.currentTarget.style.transform='scale(1)'}
+              onMouseDown={e  => { e.currentTarget.style.transform = 'scale(0.95)'; e.currentTarget.style.boxShadow = 'none'; }}
+              onMouseUp={e    => { e.currentTarget.style.transform = 'scale(1)';    e.currentTarget.style.boxShadow = `0 4px 18px ${tool.cor}30`; }}
+              onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.95)'; e.currentTarget.style.boxShadow = 'none'; }}
+              onTouchEnd={e   => { e.currentTarget.style.transform = 'scale(1)';    e.currentTarget.style.boxShadow = `0 4px 18px ${tool.cor}30`; }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow = `0 4px 18px ${tool.cor}30`}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
             >
-              <span style={{ fontSize:'2.2rem', lineHeight:1, marginBottom:4, filter:'drop-shadow(0 1px 2px rgba(62,47,28,0.18))' }}>
-                {tool.icon}
-              </span>
-              <span style={{ fontFamily:'"Nunito",sans-serif', fontWeight:700, fontSize:'0.8rem', color:C.TEXT_SECONDARY, lineHeight:1.15 }}>
+              {/* Borda colorida no topo */}
+              <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: 3,
+                background: `linear-gradient(90deg,transparent,${tool.cor},transparent)`,
+                opacity: 0.75,
+              }} />
+
+              {/* Círculo do ícone */}
+              <div style={{
+                width: 56, height: 56,
+                borderRadius: '50%',
+                background: `${tool.cor}16`,
+                border: `2px solid ${tool.cor}35`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: 8,
+                boxShadow: `0 2px 10px ${tool.cor}25`,
+              }}>
+                <span style={{
+                  fontSize: '2rem', lineHeight: 1,
+                  filter: `drop-shadow(0 1px 4px ${tool.cor}55)`,
+                }}>
+                  {tool.icon}
+                </span>
+              </div>
+
+              {/* Título — Cinzel (igual ao Sobre) */}
+              <span
+                className="font-cinzel font-bold"
+                style={{ fontSize: '0.75rem', color: C.TEXT_PRIMARY, lineHeight: 1.2, letterSpacing: '0.3px' }}
+              >
                 {tool.title}
+              </span>
+
+              {/* Subtítulo — Nunito (igual ao Sobre) */}
+              <span
+                className="font-nunito font-semibold"
+                style={{ fontSize: '0.62rem', color: C.TEXT_MUTED, marginTop: 3 }}
+              >
+                {tool.sub}
               </span>
             </button>
           ))}

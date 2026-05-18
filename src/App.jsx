@@ -4,6 +4,8 @@ import { C } from './theme.js';
 import Home                    from './components/Home.jsx';
 import Torneios                from './components/Torneios.jsx';
 import Tropas                  from './components/Tropas.jsx';
+import TropaLista              from './components/tropas/TropaLista.jsx';
+import TropaComparar           from './components/tropas/TropaComparar.jsx';
 import CalculosTropas          from './components/CalculosTropas.jsx';
 import Edificios               from './components/Edificios.jsx';
 import Itens                   from './components/Itens.jsx';
@@ -26,8 +28,19 @@ import TreinamentoDoDragao     from './components/torneios/TreinamentoDoDragao.j
 import Dragoes                 from './components/dragoes/Dragoes.jsx';
 import DragaoDetalhe           from './components/dragoes/DragaoDetalhe.jsx';
 import DragaoTracker           from './components/dragoes/DragaoTracker.jsx';
+import Pesquisas              from './components/pesquisas/Pesquisas.jsx';
+import PesquisaDetalhe        from './components/pesquisas/PesquisaDetalhe.jsx';
+import TorneioPocoes          from './components/torneios/TorneioPocoes.jsx';
 import Modal                   from './ui/Modal.jsx';
 import { dbDragoes }           from './data/dragoes.js';
+import {
+  syncTodos,
+  precisaSincronizar,
+  temAlgumCache,
+  getSyncInfo,
+  APP_VERSION,
+  formatarUltimaSyncPt,
+} from './data/syncService.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ORNAMENT STRIPE
@@ -80,6 +93,8 @@ class ErrorBoundary extends Component {
 const BASE_LABELS = {
   torneios:             { label: 'Torneios',               icon: '🏆' },
   tropas:               { label: 'Tropas',                  icon: '⚔️' },
+  tropas_lista:         { label: 'Enciclopédia',             icon: '📖' },
+  tropas_comparar:      { label: 'Comparar Tropas',          icon: '⚖️' },
   calculostropas:       { label: 'Cálculo de Tropas',       icon: '🧮' },
   edificios:            { label: 'Edifícios',               icon: '🏰' },
   itens:                { label: 'Itens',                   icon: '🎒' },
@@ -100,6 +115,8 @@ const BASE_LABELS = {
   conhecimento:         { label: 'Conhecimento',            icon: '📚' },
   treinamento_dragao:   { label: 'Treinamento do Dragão',   icon: '🔥' },
   dragoes:              { label: 'Dragões',                  icon: '🐉' },
+  pesquisas:            { label: 'Pesquisas',                icon: '🔬' },
+  pocoes_antigas:       { label: 'Poções Antigas',           icon: '🧪' },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -114,11 +131,39 @@ const App = () => {
     return () => { delete window.__setRoute; };
   }, [setRoute]);
 
+  const [syncStatus, setSyncStatus] = useState(null); // null | 'syncing' | 'ok' | 'parcial' | 'erro'
+
+  useEffect(() => {
+    const rodarSync = async () => {
+      // Força re-sync se versão mudou OU se nunca sincronizou
+      const forcar = precisaSincronizar();
+      const temCache = temAlgumCache();
+
+      // Se já tem cache e não forçou, sync em background silencioso
+      if (temCache && !forcar) {
+        syncTodos().then(({ status }) => {
+          // Atualiza status sem mostrar nada ao usuário
+          setSyncStatus(status || 'ok');
+        }).catch(() => {});
+        return;
+      }
+
+      // Se não tem cache OU versão nova: mostra indicador e espera
+      setSyncStatus('syncing');
+      const resultado = await syncTodos().catch(() => ({ ok: 0, total: 3, sucesso: false }));
+      setSyncStatus(resultado.sucesso ? 'ok' : 'erro');
+    };
+
+    rodarSync();
+  }, []); // roda uma vez na abertura
+
   const renderComponent = () => {
     switch (route) {
       case 'home':               return <Home setRoute={setRoute} />;
       case 'torneios':           return <Torneios setRoute={setRoute} />;
       case 'tropas':             return <Tropas setRoute={setRoute} />;
+      case 'tropas_lista':       return <TropaLista />;
+      case 'tropas_comparar':    return <TropaComparar />;
       case 'calculostropas':     return <CalculosTropas setRoute={setRoute} />;
       case 'edificios':          return <Edificios setRoute={setRoute} />;
       case 'itens':              return <Itens setRoute={setRoute} />;
@@ -139,7 +184,12 @@ const App = () => {
       case 'conhecimento':       return <TorneioConhecimento />;
       case 'treinamento_dragao': return <TreinamentoDoDragao />;
       case 'dragoes':            return <Dragoes setRoute={setRoute} />;
+      case 'pesquisas':          return <Pesquisas setRoute={setRoute} />;
+      case 'pocoes_antigas':     return <TorneioPocoes />;
       default: {
+        if (route.startsWith('pesquisa_')) {
+          return <PesquisaDetalhe slug={route.replace('pesquisa_', '')} />;
+        }
         if (route.startsWith('dragao_tracker_')) {
           return <DragaoTracker dragaoId={route.replace('dragao_tracker_', '')} />;
         }
@@ -162,6 +212,8 @@ const App = () => {
     const id = route.replace('dragao_tracker_', '');
     const d = dbDragoes.find(x => x.id === id);
     if (d) ROUTE_LABELS[route] = { label: `${d.nome} — Progresso`, icon: '📊' };
+  } else if (route.startsWith('pesquisa_')) {
+    ROUTE_LABELS[route] = { label: route.replace('pesquisa_', '').replace(/-/g, ' '), icon: '🔬' };
   } else if (route.startsWith('dragao_')) {
     const id = route.replace('dragao_', '');
     const d = dbDragoes.find(x => x.id === id);
@@ -172,6 +224,51 @@ const App = () => {
 
   return (
     <>
+      {/* ── SYNC BANNER ─────────────────────────────────────────────────── */}
+      {syncStatus === 'syncing' && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'linear-gradient(90deg,#1C3A5E,#2A4C72)',
+          borderBottom: '1px solid rgba(200,168,74,0.4)',
+          padding: '8px 16px',
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <span style={{ fontSize: '0.9rem', animation: 'spin 1.2s linear infinite', display: 'inline-block' }}>⚙️</span>
+          <span style={{
+            fontFamily: '"Nunito",sans-serif', fontWeight: 800,
+            fontSize: '0.75rem', letterSpacing: '1px', color: '#F8F2E0',
+          }}>
+            Sincronizando dados…
+          </span>
+        </div>
+      )}
+      {syncStatus === 'erro' && !temAlgumCache() && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'linear-gradient(90deg,#5A1A1A,#7A2020)',
+          borderBottom: '1px solid rgba(200,80,80,0.5)',
+          padding: '8px 16px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+        }}>
+          <span style={{
+            fontFamily: '"Nunito",sans-serif', fontWeight: 800,
+            fontSize: '0.72rem', color: '#FFD0D0',
+          }}>
+            ⚠️ Sem conexão com o servidor. Alguns módulos estarão indisponíveis.
+          </span>
+          <button
+            onClick={() => { setSyncStatus('syncing'); syncTodos().then(r => setSyncStatus(r.sucesso ? 'ok' : 'erro')); }}
+            style={{
+              fontFamily: '"Nunito",sans-serif', fontWeight: 800, fontSize: '0.65rem',
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+              color: '#FFD0D0', borderRadius: 6, padding: '3px 10px', cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}>
+            Tentar novamente
+          </button>
+        </div>
+      )}
+
       {/* ── EXIT DIALOG ──────────────────────────────────────────────────── */}
       <Modal open={exitDialogOpen} onClose={() => setExitDialogOpen(false)} maxWidth={320}>
         <div className="p-4 text-center">

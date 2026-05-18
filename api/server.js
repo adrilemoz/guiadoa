@@ -8,7 +8,10 @@ import authRoutes  from './routes/auth.js';
 import tropaRoutes from './routes/tropas.js';
 import nivelRoutes from './routes/niveis.js';
 import setupRoutes from './routes/setup.js';
-import itemRoutes  from './routes/itens.js';
+import itemRoutes      from './routes/itens.js';
+import edificioRoutes  from './routes/edificios.js';
+import dragaoRoutes    from './routes/dragoes.js';
+import pesquisaRoutes  from './routes/pesquisas.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -22,7 +25,10 @@ app.use('/api/auth',   authRoutes);
 app.use('/api/tropas', tropaRoutes);
 app.use('/api/niveis', nivelRoutes);
 app.use('/api/setup',  setupRoutes);
-app.use('/api/itens',  itemRoutes);
+app.use('/api/itens',     itemRoutes);
+app.use('/api/edificios', edificioRoutes);
+app.use('/api/dragoes',  dragaoRoutes);
+app.use('/api/pesquisas', pesquisaRoutes);
 
 // ── Painel Admin (HTML estático) ─────────────────────────────────────────────
 app.use('/admin', express.static(join(__dirname, 'admin')));

@@ -15,6 +15,7 @@ import TorneioAprimoramentoTropa from './torneios/TorneioAprimoramentoTropa.jsx'
 import TorneioConhecimento      from './torneios/TorneioConhecimento.jsx';
 import TreinamentoDoDragao      from './torneios/TreinamentoDoDragao.jsx';
 import TorneioAceleracoes      from './torneios/TorneioAceleracoes.jsx';
+import TorneioPocoes           from './torneios/TorneioPocoes.jsx';
 
 const LISTA_TORNEIOS = [
   { id: 'general',             icon: '🎖️', title: 'Aprimoramento de General',      desc: 'Evolução de Comandante',  cat: 'Poder',   cor: '#A83C2C' },
@@ -29,6 +30,7 @@ const LISTA_TORNEIOS = [
   { id: 'treino_tropa',        icon: '⚔️', title: 'Treino de Tropa',                desc: 'Recrutamento',            cat: 'Tropas',  cor: '#A83C2C' },
   { id: 'treinamento_dragao',  icon: '🍖', title: 'Treinamento do Dragão',          desc: 'Alimentação e Poder',     cat: 'Dragão',  cor: '#8B6BAE' },
   { id: 'aceleracoes',          icon: '⚡', title: 'Torneio de Acelerações',          desc: 'Minutos de aceleração',   cat: 'Poder',   cor: '#3B5C8C' },
+  { id: 'pocoes_antigas',       icon: '🧪', title: 'Poções Antigas',                 desc: 'Superior, Interm., Primária', cat: 'Poder',   cor: '#8B3A9A' },
 ].sort((a, b) => a.title.localeCompare(b.title));
 
 const MODULOS = {
@@ -44,6 +46,7 @@ const MODULOS = {
   conhecimento:         <TorneioConhecimento />,
   treinamento_dragao:   <TreinamentoDoDragao />,
   aceleracoes:          <TorneioAceleracoes />,
+  pocoes_antigas:       <TorneioPocoes />,
 };
 
 // ── Sub-componentes ─────────────────────────────────────────────────────────

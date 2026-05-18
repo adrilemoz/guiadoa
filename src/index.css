@@ -188,3 +188,13 @@
   0%, 100% { color: #A83C2C; text-shadow: 0 0 20px rgba(220,60,30,0.7); }
   50%      { color: #ff7050;  text-shadow: 0 0 40px rgba(255,80,40,0.9); }
 }
+
+/* ── Animações do modal de tropas ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
