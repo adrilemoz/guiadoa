@@ -172,12 +172,22 @@
     <div class="field"><label>Usuário</label><input type="text" id="login-user" placeholder="adrilemoz" autocomplete="username"></div>
     <div class="field"><label>Senha</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"></div>
     <button class="btn btn-navy btn-full" id="btn-login" onclick="fazerLogin()">Acessar o Quartel</button>
+    <button onclick="rodarDiagnostico()" style="width:100%;margin-top:6px;background:transparent;border:1px solid rgba(200,168,74,0.3);border-radius:8px;padding:7px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.72rem;color:rgba(200,168,74,0.75);cursor:pointer;letter-spacing:0.5px;">🔍 Diagnosticar conexão</button>
+
     <p id="login-erro" style="color:var(--red);font-size:0.75rem;text-align:center;margin-top:10px;display:none;"></p>
 
     <!-- Painel de debug -->
-    <div id="debug-box" style="display:none;margin-top:14px;background:#0A0F1A;border:1px solid rgba(200,168,74,0.3);border-radius:8px;padding:10px;font-family:monospace;font-size:0.68rem;max-height:200px;overflow-y:auto;"></div>
+    <div id="debug-box" style="display:none;margin-top:14px;background:#0A0F1A;border:1px solid rgba(200,168,74,0.3);border-radius:8px;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(200,168,74,0.08);border-bottom:1px solid rgba(200,168,74,0.2);">
+        <span style="font-family:monospace;font-size:0.62rem;color:rgba(200,168,74,0.7);letter-spacing:1px;">▸ LOG DE DIAGNÓSTICO</span>
+        <div style="display:flex;gap:5px;">
+          <button onclick="limparLog()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);border-radius:4px;padding:2px 8px;font-size:0.6rem;cursor:pointer;font-family:monospace;">✕ Limpar</button>
+          <button onclick="copiarLog()" id="btn-copiar-log" style="background:rgba(200,168,74,0.15);border:1px solid rgba(200,168,74,0.4);color:rgba(200,168,74,0.9);border-radius:4px;padding:2px 8px;font-size:0.6rem;cursor:pointer;font-family:monospace;">📋 Copiar</button>
+        </div>
+      </div>
+      <div id="debug-lines" style="padding:8px 10px;font-family:monospace;font-size:0.67rem;max-height:220px;overflow-y:auto;line-height:1.75;"></div>
+    </div>
 
-    <!-- Info de status -->
     <div id="api-status" style="margin-top:12px;font-size:0.65rem;text-align:center;color:var(--muted)"></div>
   </div>
 </div>
@@ -297,97 +307,254 @@ const MODULOS = [
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 // ── Debug helpers ─────────────────────────────────────────────────────────────
-function dbg(msg, cor) {
-  const box = document.getElementById('debug-box');
-  if (!box) return;
+// ── LOG ───────────────────────────────────────────────────────────────────────
+const LOG_BUFFER = [];
+
+function dbg(msg, cor, icone) {
+  const box   = document.getElementById('debug-box');
+  const lines = document.getElementById('debug-lines');
+  if (!box || !lines) return;
   box.style.display = 'block';
+
+  const ts   = new Date().toLocaleTimeString('pt-BR');
+  const full = `[${ts}] ${icone ? icone + ' ' : ''}${msg}`;
+  LOG_BUFFER.push(full);
+
   const line = document.createElement('div');
-  line.style.color = cor || '#C8A84A';
-  line.style.marginBottom = '3px';
-  line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-  box.appendChild(line);
-  box.scrollTop = box.scrollHeight;
+  line.style.color        = cor || '#C8C8C8';
+  line.style.paddingLeft  = '4px';
+  line.style.borderLeft   = `2px solid ${cor || '#444'}`;
+  line.style.marginBottom = '4px';
+  line.textContent        = full;
+  lines.appendChild(line);
+  lines.scrollTop = lines.scrollHeight;
 }
 
+function dbgOk(msg)   { dbg(msg, '#78DD7A', '✓'); }
+function dbgErr(msg)  { dbg(msg, '#EE6666', '✕'); }
+function dbgInfo(msg) { dbg(msg, '#78AAEE', '→'); }
+function dbgWarn(msg) { dbg(msg, '#F0C040', '⚠'); }
+
+function limparLog() {
+  const lines = document.getElementById('debug-lines');
+  if (lines) lines.innerHTML = '';
+  LOG_BUFFER.length = 0;
+}
+
+function copiarLog() {
+  const texto = LOG_BUFFER.join('\n');
+  if (!texto) return;
+  navigator.clipboard.writeText(texto).then(() => {
+    const btn = document.getElementById('btn-copiar-log');
+    if (!btn) return;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copiado!';
+    btn.style.color = '#78DD7A';
+    btn.style.borderColor = 'rgba(120,221,122,0.5)';
+    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; btn.style.borderColor = ''; }, 1800);
+  }).catch(() => {
+    // fallback para navegadores sem clipboard API
+    const ta = document.createElement('textarea');
+    ta.value = texto;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+}
+
+// ── DIAGNÓSTICO ───────────────────────────────────────────────────────────────
+async function rodarDiagnostico() {
+  const box = document.getElementById('debug-box');
+  if (box) box.style.display = 'block';
+  limparLog();
+  dbgInfo('Iniciando diagnóstico de conexão…');
+  dbgInfo(`API base: ${API}`);
+  dbgInfo(`Origem: ${location.origin}`);
+
+  // 1. Health check (/)
+  dbgInfo('Testando health check → GET /');
+  try {
+    const r = await fetch('/', { signal: AbortSignal.timeout(6000) });
+    if (r.ok) {
+      const d = await r.json().catch(() => ({}));
+      dbgOk(`Servidor respondeu (${r.status}) — versão: ${d.version || '?'}`);
+    } else {
+      dbgWarn(`Servidor respondeu com status ${r.status}`);
+    }
+  } catch(e) {
+    dbgErr(`Servidor inacessível: ${e.message}`);
+    dbgErr('Verifique se o serviço está online no Render.');
+    return;
+  }
+
+  // 2. Endpoint /api
+  dbgInfo(`Testando endpoint → GET ${API}`);
+  try {
+    const r = await fetch(API, { signal: AbortSignal.timeout(6000) });
+    if (r.status === 404) {
+      dbgWarn(`${API} retornou 404 — rota raiz da API não existe (normal).`);
+    } else {
+      dbgOk(`API respondeu (${r.status})`);
+    }
+  } catch(e) {
+    dbgErr(`Falha no endpoint da API: ${e.message}`);
+  }
+
+  // 3. MongoDB — testa rota pública /api/reinos
+  dbgInfo(`Testando MongoDB → GET ${API}/reinos`);
+  try {
+    const r  = await fetch(`${API}/reinos`, { signal: AbortSignal.timeout(8000) });
+    if (r.ok) {
+      const d = await r.json().catch(()=>({}));
+      dbgOk(`MongoDB conectado — ${d.total ?? '?'} reinos na base.`);
+    } else if (r.status === 500) {
+      dbgErr('MongoDB retornou 500 — verifique MONGO_URI nas variáveis de ambiente do Render.');
+    } else {
+      dbgWarn(`Reinos respondeu ${r.status} — pode ser normal.`);
+    }
+  } catch(e) {
+    dbgErr(`Timeout ou erro ao testar MongoDB: ${e.message}`);
+    dbgWarn('Confirme que MONGO_URI está definida no Render.');
+  }
+
+  // 4. Auth endpoint
+  dbgInfo(`Testando autenticação → POST ${API}/auth/login (credenciais vazias)`);
+  try {
+    const r = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario: '', senha: '' }),
+      signal: AbortSignal.timeout(6000),
+    });
+    const ct = r.headers.get('content-type') || '';
+    if (ct.includes('application/json')) {
+      const d = await r.json().catch(()=>({}));
+      if (r.status === 400 || r.status === 401) {
+        dbgOk(`Auth endpoint funciona — respondeu ${r.status} JSON correctamente.`);
+        dbgInfo('Próximo passo: verifique se o utilizador foi criado em /admin/setup');
+      } else if (r.status === 500) {
+        dbgErr(`Auth retornou 500: ${d.erro || 'erro interno'}`);
+        dbgWarn('Provável causa: utilizador não existe na base. Aceda a /admin/setup para criar.');
+      }
+    } else {
+      dbgErr(`Auth respondeu ${r.status} mas não é JSON (recebeu HTML).`);
+      dbgWarn('O servidor pode estar a devolver uma página de erro. Verifique os logs do Render.');
+    }
+  } catch(e) {
+    dbgErr(`Falha no endpoint auth: ${e.message}`);
+  }
+
+  dbgInfo('─── Diagnóstico concluído. Usa 📋 Copiar para partilhar o log. ───');
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
 async function fazerLogin() {
-  const debugBox = document.getElementById('debug-box');
-  if (debugBox) { debugBox.innerHTML = ''; debugBox.style.display = 'block'; }
+  limparLog();
+  const box = document.getElementById('debug-box');
+  if (box) box.style.display = 'block';
 
   const usuario = document.getElementById('login-user').value.trim();
   const senha   = document.getElementById('login-pass').value;
   const btn     = document.getElementById('btn-login');
 
-  dbg('Botão clicado.', '#78AAEE');
+  dbgInfo('Tentativa de login iniciada.');
   dbg(`Usuário: "${usuario}" | Senha: ${senha.length} chars`, '#C8A84A');
 
   if (!usuario || !senha) {
-    dbg('ERRO: campos vazios.', '#EE6666');
+    dbgErr('Campos obrigatórios em falta.');
     return erroLogin('Preencha todos os campos');
   }
 
   if (btn) { btn.disabled = true; btn.textContent = 'Aguarde…'; }
 
   const url = `${API}/auth/login`;
-  dbg(`POST → ${url}`, '#C8A84A');
+  dbgInfo(`POST → ${url}`);
 
   try {
-    dbg('Iniciando fetch…', '#78AAEE');
     const r = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ usuario, senha }),
+      signal: AbortSignal.timeout(12000),
     });
 
     dbg(`Resposta HTTP: ${r.status} ${r.statusText}`, r.ok ? '#78DD7A' : '#EE6666');
 
+    const ct = r.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      dbgErr(`Servidor devolveu ${r.status} mas o corpo não é JSON (content-type: ${ct}).`);
+      dbgWarn('Causa provável: erro não tratado no servidor (MongoDB desligado ou MONGO_URI errada).');
+      dbgInfo('Usa o botão "Diagnosticar conexão" para mais detalhes.');
+      if (btn) { btn.disabled = false; btn.textContent = 'Acessar o Quartel'; }
+      return erroLogin('Erro interno no servidor — veja o log.');
+    }
+
     let d;
     try {
       d = await r.json();
-      dbg('JSON: ' + JSON.stringify(d).substring(0, 120), '#C8A84A');
+      dbg('Resposta JSON: ' + JSON.stringify(d).substring(0, 120), '#C8A84A');
     } catch(jsonErr) {
-      dbg('ERRO ao parsear JSON: ' + jsonErr.message, '#EE6666');
+      dbgErr('Falha a ler JSON: ' + jsonErr.message);
       if (btn) { btn.disabled = false; btn.textContent = 'Acessar o Quartel'; }
-      return erroLogin('Resposta inválida do servidor');
+      return erroLogin('Resposta inválida do servidor.');
     }
 
-    if (!r.ok) {
-      dbg('Login negado: ' + (d.erro || 'sem mensagem'), '#EE6666');
+    if (r.status === 401) {
+      dbgErr('Credenciais rejeitadas: ' + (d.erro || 'sem mensagem'));
+      dbgWarn('Se o utilizador ainda não existe, aceda a /admin/setup para o criar.');
       if (btn) { btn.disabled = false; btn.textContent = 'Acessar o Quartel'; }
       return erroLogin(d.erro || 'Credenciais inválidas');
     }
 
+    if (r.status === 500) {
+      dbgErr('Erro 500: ' + (d.erro || 'erro interno do servidor'));
+      dbgWarn('Verifique MONGO_URI e JWT_SECRET nas variáveis de ambiente do Render.');
+      if (btn) { btn.disabled = false; btn.textContent = 'Acessar o Quartel'; }
+      return erroLogin('Erro no servidor — veja o log.');
+    }
+
+    if (!r.ok) {
+      dbgErr(`Status inesperado ${r.status}: ` + (d.erro || ''));
+      if (btn) { btn.disabled = false; btn.textContent = 'Acessar o Quartel'; }
+      return erroLogin(d.erro || `Erro ${r.status}`);
+    }
+
     TOKEN = d.token;
     localStorage.setItem('doa_admin_token', TOKEN);
-    dbg('Token recebido e salvo.', '#78DD7A');
+    dbgOk('Token recebido e guardado.');
 
     const topUser = document.getElementById('topbar-user');
     if (topUser) topUser.textContent = d.usuario;
 
     const telaLogin = document.getElementById('tela-login');
     const appEl     = document.getElementById('app');
-
-    dbg(`tela-login: ${telaLogin ? 'OK' : 'NÃO ENCONTRADO'}`, telaLogin ? '#78DD7A' : '#EE6666');
-    dbg(`#app: ${appEl ? 'OK' : 'NÃO ENCONTRADO'}`, appEl ? '#78DD7A' : '#EE6666');
-
     if (telaLogin) telaLogin.style.display = 'none';
     if (appEl)     appEl.style.display = 'flex';
 
-    dbg('Chamando irHome()…', '#78AAEE');
     irHome();
-    dbg('✓ Login completo.', '#78DD7A');
+    dbgOk('Login completo.');
 
   } catch (err) {
-    dbg('ERRO de rede/JS: ' + err.message, '#EE6666');
-    dbg('Stack: ' + (err.stack || '').substring(0, 200), '#EE4444');
+    if (err.name === 'TimeoutError' || err.name === 'AbortError') {
+      dbgErr('Timeout — o servidor não respondeu em 12 segundos.');
+      dbgWarn('No plano gratuito do Render o servidor pode estar a "acordar" (cold start). Aguarde 30s e tente novamente.');
+    } else {
+      dbgErr('Erro de rede: ' + err.message);
+      dbgWarn('Causas comuns: servidor offline, CORS bloqueado, sem internet.');
+    }
     if (btn) { btn.disabled = false; btn.textContent = 'Acessar o Quartel'; }
-    erroLogin('Servidor offline ou erro de rede. Veja o log abaixo.');
+    erroLogin('Sem resposta do servidor — veja o log.');
   }
 }
 
 function erroLogin(msg) {
   const el = document.getElementById('login-erro');
-  el.textContent = msg; el.style.display = 'block';
-  setTimeout(()=>el.style.display='none', 3500);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4500);
 }
 
 async function verificarToken() {

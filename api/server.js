@@ -55,10 +55,21 @@ app.get('/admin/setup', (_, res) => res.sendFile(join(__dirname, 'admin', 'setup
 // ── Health check ─────────────────────────────────────────────────────────────
 app.get('/', (_, res) => res.json({ status: 'ok', app: 'Guia DOA API', version: '1.0.0' }));
 
+// ── Erro global — sempre retorna JSON, nunca HTML ─────────────────────────────
+app.use((err, req, res, _next) => {
+  console.error('Erro global:', err.message);
+  res.status(err.status || 500).json({ erro: err.message || 'Erro interno do servidor' });
+});
+
 // ── MongoDB ──────────────────────────────────────────────────────────────────
+if (!process.env.MONGO_URI) {
+  console.error('❌  MONGO_URI não definida. Configure a variável de ambiente no Render.');
+  process.exit(1);
+}
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('\n✅  MongoDB conectado — iguanews (prefixo doa_)');
+    console.log('\n✅  MongoDB conectado');
     const PORT = process.env.PORT || 3001;
     app.listen(PORT, () => {
       console.log(`🛡️  API rodando em http://localhost:${PORT}`);
