@@ -18,7 +18,22 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 // ── Middlewares ──────────────────────────────────────────────────────────────
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:3001', 'http://127.0.0.1:5173'] }));
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:3001',
+  'http://127.0.0.1:5173',
+  'https://guiadoa.vercel.app',
+  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : []),
+];
+
+app.use(cors({
+  origin: (origin, cb) => {
+    // Permite requests sem origin (ex: Capacitor/APK, curl)
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error(`CORS bloqueado: ${origin}`));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
 // ── Rotas de API ─────────────────────────────────────────────────────────────

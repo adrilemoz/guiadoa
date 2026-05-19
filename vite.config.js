@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  base: './',
+  base: '/',
   plugins: [
     react(),
     VitePWA({
@@ -15,7 +15,7 @@ export default defineConfig({
       manifest: {
         name: 'Guia Tático DOA',
         short_name: 'Guia DOA',
-        start_url: './',
+        start_url: '/',
         display: 'standalone',
         background_color: '#E8D8B5',
         theme_color: '#B8965A',
