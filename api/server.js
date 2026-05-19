@@ -23,6 +23,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:3001',
   'http://127.0.0.1:5173',
   'https://guiadoa.vercel.app',
+  'https://guiadoa.onrender.com',
   ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : []),
 ];
 
