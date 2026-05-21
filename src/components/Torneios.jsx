@@ -2,33 +2,33 @@ import React, { useState } from 'react';
 import { getFusoOffset, getProfile } from '../utils/storage.js';
 import { useTorneioTimer } from '../hooks/useTorneioTimer.js';
 import { C } from '../theme.js';
-import TorneioStatusCard        from './shared/TorneioStatusCard.jsx';
-import EvolucaoTropas           from './torneios/EvolucaoTropas.jsx';
-import PontosTalisma            from './torneios/PontosTalisma.jsx';
-import TorneioPoder             from './torneios/TorneioPoder.jsx';
-import TorneioAlianca           from './torneios/TorneioAlianca.jsx';
-import TorneioMatarTropas       from './torneios/TorneioMatarTropas.jsx';
-import TorneioTreinoTropa       from './torneios/TorneioTreinoTropa.jsx';
-import TorneioHabilidadeDragao  from './torneios/TorneioHabilidadeDragao.jsx';
-import TorneioGeneral           from './torneios/TorneioGeneral.jsx';
+import TorneioStatusCard         from './shared/TorneioStatusCard.jsx';
+import EvolucaoTropas            from './torneios/EvolucaoTropas.jsx';
+import PontosTalisma             from './torneios/PontosTalisma.jsx';
+import TorneioPoder              from './torneios/TorneioPoder.jsx';
+import TorneioAlianca            from './torneios/TorneioAlianca.jsx';
+import TorneioMatarTropas        from './torneios/TorneioMatarTropas.jsx';
+import TorneioTreinoTropa        from './torneios/TorneioTreinoTropa.jsx';
+import TorneioHabilidadeDragao   from './torneios/TorneioHabilidadeDragao.jsx';
+import TorneioGeneral            from './torneios/TorneioGeneral.jsx';
 import TorneioAprimoramentoTropa from './torneios/TorneioAprimoramentoTropa.jsx';
-import TreinamentoDoDragao      from './torneios/TreinamentoDoDragao.jsx';
-import TorneioAceleracoes      from './torneios/TorneioAceleracoes.jsx';
-import TorneioPocoes           from './torneios/TorneioPocoes.jsx';
+import TreinamentoDoDragao       from './torneios/TreinamentoDoDragao.jsx';
+import TorneioAceleracoes        from './torneios/TorneioAceleracoes.jsx';
+import TorneioPocoes             from './torneios/TorneioPocoes.jsx';
 
 const LISTA_TORNEIOS = [
-  { id: 'general',             icon: '🎖️', title: 'Aprimoramento de General',      desc: 'Evolução de Comandante',  cat: 'Poder',   cor: '#A83C2C' },
-  { id: 'aprimoramento_tropa', icon: '🛡️', title: 'Aprimoramento de Tropa',         desc: 'Upgrade de Unidades',     cat: 'Tropas',  cor: '#5C7FA3' },
-  { id: 'evolucao_tropas',     icon: '⭐', title: 'Evolução de Tropas',             desc: 'Raridade e Poder',        cat: 'Tropas',  cor: '#C87A2C' },
-  { id: 'habilidade_dragao',   icon: '🐉', title: 'Habilidade dos Grandes Dragões', desc: 'Essência de Fúria',       cat: 'Dragão',  cor: '#8B6BAE' },
-  { id: 'matar_tropas',        icon: '☠️', title: 'Matar Tropas',                   desc: 'Combate e trocas',        cat: 'Combate', cor: '#A83C2C', infoOnly: true },
-  { id: 'alianca',             icon: '🤝', title: 'Torneios de Aliança',             desc: 'Como funcionam',          cat: 'Aliança', cor: '#5A8A5C', infoOnly: true },
-  { id: 'pocoes_antigas',       icon: '📚', title: 'Torneio de Conhecimento',        desc: 'Poções Antigas',              cat: 'Poder',   cor: '#8B3A9A' },
-  { id: 'talisma',             icon: '🧿', title: 'Pontos de Talismã',              desc: 'Magia e Objetos',         cat: 'Magia',   cor: '#8B6BAE' },
-  { id: 'poder',               icon: '⚡', title: 'Torneio de Poder',               desc: 'Ganhe poder de todas as formas', cat: 'Poder',   cor: '#C87A2C', infoOnly: true },
-  { id: 'treino_tropa',        icon: '⚔️', title: 'Treino de Tropa',                desc: 'Recrutamento',            cat: 'Tropas',  cor: '#A83C2C' },
-  { id: 'treinamento_dragao',  icon: '🍖', title: 'Treinamento do Dragão',          desc: 'Alimentação e Poder',     cat: 'Dragão',  cor: '#8B6BAE' },
-  { id: 'aceleracoes',          icon: '⚡', title: 'Torneio de Acelerações',          desc: 'Minutos de aceleração',   cat: 'Poder',   cor: '#3B5C8C' },
+  { id: 'general',             icon: '🎖️', title: 'Aprimoramento de General',       desc: 'XP pelo Quartel do General',    cat: 'Poder',   cor: '#A83C2C', infoOnly: true  },
+  { id: 'aprimoramento_tropa', icon: '🛡️', title: 'Aprimoramento de Tropa',          desc: 'Upgrade de Unidades',           cat: 'Tropas',  cor: '#5C7FA3'                  },
+  { id: 'evolucao_tropas',     icon: '⭐', title: 'Evolução de Tropas',              desc: 'Raridade e Poder',              cat: 'Tropas',  cor: '#C87A2C'                  },
+  { id: 'habilidade_dragao',   icon: '🐉', title: 'Habilidade dos Grandes Dragões',  desc: 'Essência de Fúria',             cat: 'Dragão',  cor: '#8B6BAE'                  },
+  { id: 'matar_tropas',        icon: '☠️', title: 'Matar Tropas',                    desc: 'Combate e trocas',              cat: 'Combate', cor: '#A83C2C', infoOnly: true  },
+  { id: 'alianca',             icon: '🤝', title: 'Torneios de Aliança',              desc: 'Como funcionam',                cat: 'Aliança', cor: '#5A8A5C', infoOnly: true  },
+  { id: 'pocoes_antigas',      icon: '📚', title: 'Torneio de Conhecimento',          desc: 'Poções Antigas',                cat: 'Poder',   cor: '#8B3A9A'                  },
+  { id: 'talisma',             icon: '🧿', title: 'Pontos de Talismã',               desc: 'Torre de Oração',               cat: 'Magia',   cor: '#8B6BAE'                  },
+  { id: 'poder',               icon: '⚡', title: 'Torneio de Poder',                desc: 'Ganhe poder de todas as formas', cat: 'Poder',   cor: '#C87A2C', infoOnly: true  },
+  { id: 'treino_tropa',        icon: '⚔️', title: 'Treino de Tropa',                 desc: 'Recrutamento com bônus',        cat: 'Tropas',  cor: '#A83C2C'                  },
+  { id: 'treinamento_dragao',  icon: '🍖', title: 'Treinamento do Dragão',           desc: 'Carnes e XP do Dragão',         cat: 'Dragão',  cor: '#8B6BAE'                  },
+  { id: 'aceleracoes',         icon: '⏩', title: 'Torneio de Acelerações',           desc: 'Minutos de aceleração',         cat: 'Poder',   cor: '#3B5C8C'                  },
 ].sort((a, b) => a.title.localeCompare(b.title));
 
 const MODULOS = {
@@ -121,7 +121,7 @@ const Torneios = () => {
         </div>
       ) : (
         <div>
-          <PHeader title="Codex de Batalha" sub="Selecione o módulo de cálculo" />
+          <PHeader title="Codex de Batalha" sub="Selecione o módulo do torneio" />
 
           {cats.map(cat => (
             <div key={cat}>
@@ -141,19 +141,16 @@ const Torneios = () => {
                       boxShadow: isHigh ? `0 2px 10px ${t.cor}25` : '0 1px 4px rgba(62,47,28,0.06)',
                     }}
                   >
-                    {/* Ícone */}
                     <div
                       className="w-9 h-9 shrink-0 flex items-center justify-center text-lg rounded-lg"
                       style={{ background: `${t.cor}15`, border: `1.5px solid ${t.cor}45` }}
                     >
                       {t.icon}
                     </div>
-                    {/* Texto */}
                     <div className="flex-1 min-w-0">
                       <p className="font-nunito font-black text-[0.82rem] m-0 leading-tight" style={{ color: C.TEXT_PRIMARY }}>{t.title}</p>
                       <p className="font-nunito font-semibold text-[0.68rem] m-0 mt-0.5" style={{ color: C.TEXT_MUTED }}>{t.desc}</p>
                     </div>
-                    {/* CTA pill */}
                     <div
                       className="font-nunito font-black text-[0.6rem] tracking-widest uppercase shrink-0 px-2.5 py-1 rounded-md"
                       style={{

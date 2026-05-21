@@ -6,6 +6,17 @@ import { C } from '../theme.js';
 
 const CHANGELOG = [
   {
+    ver: 'Beta 2', icon: '⚔️', nome: 'Módulo de Torneios Reformulado', cor: '#C87A2C',
+    items: [
+      'Torneio de Treinamento de Dragão: novo calculador com 6 tipos de carne (Carneiro, Boi, Frango, Veado, Salmão, Lagosta)',
+      'Treino de Tropa: redesenhado com seleção de tropa, quantidade e bônus multiplicador (x1 a x5)',
+      'Pontos de Talismã: reformulado com grid 2×2, total com salvamento e campo de pontos possuídos',
+      'Torneios de Aliança, General, Matar Tropas e Torneio de Poder: convertidos para páginas informativas com explicações detalhadas',
+      'Torneio de Conhecimento: renomeado do módulo de Poções Antigas para refletir o torneio real',
+      'Padrão visual unificado: cabeçalho escuro, total em destaque, botão salvar e seção "Como Funciona" em todos os módulos',
+    ],
+  },
+  {
     ver: 'Beta 1', icon: '🚀', nome: 'Lançamento Beta', cor: '#5A8A5C',
     items: [
       'Módulo de Itens: cadastro com ícone, descrição e onde conseguir',
@@ -110,21 +121,20 @@ const Sobre = () => {
         <div className="p-4 text-center bg-aoe-card">
           <p className="text-5xl leading-none mb-2 m-0" style={{ filter: 'drop-shadow(1px 2px 3px rgba(62,47,28,0.2))' }}>🛡️</p>
 
-          {/* Badge Beta */}
           <div className="inline-flex items-center gap-2 mb-1">
             <p className="font-cinzel font-bold text-lg uppercase tracking-widest m-0" style={{ color: C.ACCENT_DEEP }}>
-              Beta 1
+              Beta 2
             </p>
             <span
               className="font-nunito font-black text-[0.58rem] px-2 py-0.5 rounded-full text-white"
-              style={{ background: C.SUCCESS, letterSpacing: '0.5px' }}
+              style={{ background: C.WARNING, letterSpacing: '0.5px' }}
             >
-              BETA
+              NOVO
             </span>
           </div>
 
           <p className="font-nunito font-semibold text-xs italic m-0 mb-2" style={{ color: C.TEXT_MUTED }}>
-            "Lançamento Beta — Painel Admin + Módulo de Itens"
+            "Módulo de Torneios Reformulado — Calculadores e Guias Táticos"
           </p>
           <div className="gold-stripe mb-3 opacity-50" />
           <p className="font-nunito font-semibold text-sm leading-relaxed text-justify m-0" style={{ color: C.TEXT_PRIMARY }}>

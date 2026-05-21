@@ -23,7 +23,7 @@ import TorneioTreinoTropa      from './components/torneios/TorneioTreinoTropa.js
 import TorneioHabilidadeDragao from './components/torneios/TorneioHabilidadeDragao.jsx';
 import TorneioGeneral          from './components/torneios/TorneioGeneral.jsx';
 import TorneioAprimoramentoTropa from './components/torneios/TorneioAprimoramentoTropa.jsx';
-import TorneioConhecimento     from './components/torneios/TorneioConhecimento.jsx';
+
 import TreinamentoDoDragao     from './components/torneios/TreinamentoDoDragao.jsx';
 import Dragoes                 from './components/dragoes/Dragoes.jsx';
 import DragaoDetalhe           from './components/dragoes/DragaoDetalhe.jsx';
@@ -205,7 +205,7 @@ const App = () => {
       case 'torneio_general':    return <TorneioGeneral />;
       case 'aprimoramento_tropa': return <TorneioAprimoramentoTropa />;
       case 'aprimoramento_tropas': return <AprimoramentoTropas setRoute={setRoute} />;
-      case 'conhecimento':       return <TorneioConhecimento />;
+      case 'conhecimento':       return <TorneioPocoes />;
       case 'treinamento_dragao': return <TreinamentoDoDragao />;
       case 'dragoes':            return <Dragoes setRoute={setRoute} />;
       case 'pesquisas':          return <Pesquisas setRoute={setRoute} />;
