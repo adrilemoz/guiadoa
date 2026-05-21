@@ -12,7 +12,6 @@ import TorneioTreinoTropa       from './torneios/TorneioTreinoTropa.jsx';
 import TorneioHabilidadeDragao  from './torneios/TorneioHabilidadeDragao.jsx';
 import TorneioGeneral           from './torneios/TorneioGeneral.jsx';
 import TorneioAprimoramentoTropa from './torneios/TorneioAprimoramentoTropa.jsx';
-import TorneioConhecimento      from './torneios/TorneioConhecimento.jsx';
 import TreinamentoDoDragao      from './torneios/TreinamentoDoDragao.jsx';
 import TorneioAceleracoes      from './torneios/TorneioAceleracoes.jsx';
 import TorneioPocoes           from './torneios/TorneioPocoes.jsx';
@@ -24,13 +23,12 @@ const LISTA_TORNEIOS = [
   { id: 'habilidade_dragao',   icon: '🐉', title: 'Habilidade dos Grandes Dragões', desc: 'Essência de Fúria',       cat: 'Dragão',  cor: '#8B6BAE' },
   { id: 'matar_tropas',        icon: '☠️', title: 'Matar Tropas',                   desc: 'Combate e trocas',        cat: 'Combate', cor: '#A83C2C', infoOnly: true },
   { id: 'alianca',             icon: '🤝', title: 'Torneios de Aliança',             desc: 'Como funcionam',          cat: 'Aliança', cor: '#5A8A5C', infoOnly: true },
-  { id: 'conhecimento',        icon: '📚', title: 'Pontos de Conhecimento',         desc: 'Pesquisa e Sabedoria',    cat: 'Poder',   cor: '#5C7FA3' },
+  { id: 'pocoes_antigas',       icon: '📚', title: 'Torneio de Conhecimento',        desc: 'Poções Antigas',              cat: 'Poder',   cor: '#8B3A9A' },
   { id: 'talisma',             icon: '🧿', title: 'Pontos de Talismã',              desc: 'Magia e Objetos',         cat: 'Magia',   cor: '#8B6BAE' },
   { id: 'poder',               icon: '⚡', title: 'Torneio de Poder',               desc: 'Ganhe poder de todas as formas', cat: 'Poder',   cor: '#C87A2C', infoOnly: true },
   { id: 'treino_tropa',        icon: '⚔️', title: 'Treino de Tropa',                desc: 'Recrutamento',            cat: 'Tropas',  cor: '#A83C2C' },
   { id: 'treinamento_dragao',  icon: '🍖', title: 'Treinamento do Dragão',          desc: 'Alimentação e Poder',     cat: 'Dragão',  cor: '#8B6BAE' },
   { id: 'aceleracoes',          icon: '⚡', title: 'Torneio de Acelerações',          desc: 'Minutos de aceleração',   cat: 'Poder',   cor: '#3B5C8C' },
-  { id: 'pocoes_antigas',       icon: '🧪', title: 'Poções Antigas',                 desc: 'Superior, Interm., Primária', cat: 'Poder',   cor: '#8B3A9A' },
 ].sort((a, b) => a.title.localeCompare(b.title));
 
 const MODULOS = {
@@ -43,7 +41,6 @@ const MODULOS = {
   treino_tropa:         <TorneioTreinoTropa />,
   general:              <TorneioGeneral />,
   aprimoramento_tropa:  <TorneioAprimoramentoTropa />,
-  conhecimento:         <TorneioConhecimento />,
   treinamento_dragao:   <TreinamentoDoDragao />,
   aceleracoes:          <TorneioAceleracoes />,
   pocoes_antigas:       <TorneioPocoes />,
