@@ -479,7 +479,7 @@ const App = () => {
 
           {/* Engrenagem — link para o Admin */}
           <a
-            href={`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/admin`}
+            href={`${import.meta.env.VITE_API_URL || window.location.origin}/admin`}
             target="_blank"
             rel="noopener noreferrer"
             title="Painel Admin"

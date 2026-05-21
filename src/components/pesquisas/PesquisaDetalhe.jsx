@@ -18,6 +18,33 @@ const CATEGORIAS_ICONE = {
   'Movimento e Construção': '🏃',
 };
 
+// ── Helpers de tempo ──────────────────────────────────────────────────────────
+/** Converte string "Xd Yh Zm" → total em minutos */
+function parseTempo(str) {
+  if (!str || !str.trim()) return 0;
+  let min = 0;
+  const d = str.match(/(\d+)\s*d/i);
+  const h = str.match(/(\d+)\s*h/i);
+  const m = str.match(/(\d+)\s*m/i);
+  if (d) min += parseInt(d[1]) * 24 * 60;
+  if (h) min += parseInt(h[1]) * 60;
+  if (m) min += parseInt(m[1]);
+  return min;
+}
+
+/** Formata minutos → "Xd Yh Zm" legível */
+function formatDuracao(totalMin) {
+  if (totalMin <= 0) return null;
+  const d = Math.floor(totalMin / (24 * 60));
+  const h = Math.floor((totalMin % (24 * 60)) / 60);
+  const m = totalMin % 60;
+  const parts = [];
+  if (d > 0) parts.push(`${d}d`);
+  if (h > 0) parts.push(`${h}h`);
+  if (m > 0) parts.push(`${m}m`);
+  return parts.join(' ') || null;
+}
+
 const PesquisaDetalhe = ({ slug }) => {
   const [pesquisa, setPesquisa] = useState(null);
   const [loading,  setLoading]  = useState(true);
@@ -72,6 +99,11 @@ const PesquisaDetalhe = ({ slug }) => {
   const catIcone   = CATEGORIAS_ICONE[pesquisa.categoria] || '🔬';
   const temTempos  = pesquisa.niveis.some(n => n.tempo && n.tempo.trim() !== '');
   const nivelUnico = pesquisa.nivelMax === 1;
+
+  // Duração total: soma de todos os níveis com tempo informado
+  const totalMinutos  = pesquisa.niveis.reduce((acc, n) => acc + parseTempo(n.tempo), 0);
+  const duracaoTotal  = formatDuracao(totalMinutos);
+  const niveisComTempo = pesquisa.niveis.filter(n => parseTempo(n.tempo) > 0).length;
 
   return (
     <div style={{ maxWidth: 480, margin: '0 auto', paddingBottom: 24 }}>
@@ -135,6 +167,89 @@ const PesquisaDetalhe = ({ slug }) => {
           {pesquisa.descricao || 'Descrição não disponível.'}
         </p>
       </div>
+
+      {/* ── Duração Total ───────────────────────────────────────────────── */}
+      {duracaoTotal && (
+        <div style={{
+          background: `linear-gradient(135deg, ${C.BG_HEADER}f0, #0f2540f0)`,
+          border: `1.5px solid ${C.BORDER}`,
+          borderRadius: 12,
+          padding: '12px 16px',
+          marginBottom: 12,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+        }}>
+          {/* Ícone */}
+          <div style={{
+            width: 44, height: 44, borderRadius: 10, flexShrink: 0,
+            background: `${C.ACCENT}22`,
+            border: `1.5px solid ${C.ACCENT}50`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.5rem',
+          }}>
+            ⏱️
+          </div>
+
+          {/* Texto */}
+          <div style={{ flex: 1 }}>
+            <p style={{
+              fontFamily: '"Nunito",sans-serif', fontWeight: 700,
+              fontSize: '0.58rem', letterSpacing: '2px',
+              color: `${C.ACCENT}99`, textTransform: 'uppercase',
+              margin: '0 0 2px',
+            }}>
+              Duração Total da Pesquisa
+            </p>
+            <p style={{
+              fontFamily: '"Cinzel",serif', fontWeight: 700,
+              fontSize: '1.25rem', color: C.ACCENT,
+              margin: 0, lineHeight: 1,
+            }}>
+              {duracaoTotal}
+            </p>
+            {niveisComTempo < pesquisa.nivelMax && (
+              <p style={{
+                fontFamily: '"Nunito",sans-serif', fontWeight: 600,
+                fontSize: '0.6rem', color: `${C.ACCENT}66`,
+                margin: '3px 0 0', fontStyle: 'italic',
+              }}>
+                {niveisComTempo} de {pesquisa.nivelMax} níveis com tempo informado
+              </p>
+            )}
+          </div>
+
+          {/* Divisores de tempo */}
+          {(() => {
+            const d = Math.floor(totalMinutos / (24 * 60));
+            const h = Math.floor((totalMinutos % (24 * 60)) / 60);
+            const m = totalMinutos % 60;
+            return [
+              { v: d, l: 'dias' },
+              { v: h, l: 'horas' },
+              { v: m, l: 'min' },
+            ].filter(x => x.v > 0).map(x => (
+              <div key={x.l} style={{ textAlign: 'center', flexShrink: 0 }}>
+                <p style={{
+                  fontFamily: '"Cinzel",serif', fontWeight: 700,
+                  fontSize: '1rem', color: C.ACCENT,
+                  margin: 0, lineHeight: 1,
+                }}>
+                  {x.v}
+                </p>
+                <p style={{
+                  fontFamily: '"Nunito",sans-serif', fontWeight: 700,
+                  fontSize: '0.55rem', color: `${C.ACCENT}77`,
+                  textTransform: 'uppercase', letterSpacing: '1px',
+                  margin: '2px 0 0',
+                }}>
+                  {x.l}
+                </p>
+              </div>
+            ));
+          })()}
+        </div>
+      )}
 
       {/* ── Níveis ─────────────────────────────────────────────────────── */}
       <div style={{
