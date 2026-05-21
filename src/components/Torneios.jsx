@@ -23,7 +23,7 @@ const LISTA_TORNEIOS = [
   { id: 'evolucao_tropas',     icon: '⭐', title: 'Evolução de Tropas',             desc: 'Raridade e Poder',        cat: 'Tropas',  cor: '#C87A2C' },
   { id: 'habilidade_dragao',   icon: '🐉', title: 'Habilidade dos Grandes Dragões', desc: 'Essência de Fúria',       cat: 'Dragão',  cor: '#8B6BAE' },
   { id: 'matar_tropas',        icon: '☠️', title: 'Matar Tropas',                   desc: 'Combate Direto',          cat: 'Combate', cor: '#A83C2C' },
-  { id: 'alianca',             icon: '🤝', title: 'Poder de Aliança',               desc: 'Força Coletiva',          cat: 'Aliança', cor: '#5A8A5C' },
+  { id: 'alianca',             icon: '🤝', title: 'Torneios de Aliança',             desc: 'Como funcionam',          cat: 'Aliança', cor: '#5A8A5C', infoOnly: true },
   { id: 'conhecimento',        icon: '📚', title: 'Pontos de Conhecimento',         desc: 'Pesquisa e Sabedoria',    cat: 'Poder',   cor: '#5C7FA3' },
   { id: 'talisma',             icon: '🧿', title: 'Pontos de Talismã',              desc: 'Magia e Objetos',         cat: 'Magia',   cor: '#8B6BAE' },
   { id: 'poder',               icon: '⚡', title: 'Torneio de Poder',               desc: 'Ranking Geral',           cat: 'Poder',   cor: '#C87A2C' },
@@ -164,7 +164,7 @@ const Torneios = () => {
                         color: '#FFF8EE',
                       }}
                     >
-                      {isHigh ? 'ABRINDO…' : 'CALCULAR ▸'}
+                      {isHigh ? 'ABRINDO…' : t.infoOnly ? 'VER ▸' : 'CALCULAR ▸'}
                     </div>
                   </button>
                 );

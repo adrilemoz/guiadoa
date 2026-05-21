@@ -1,82 +1,124 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { C } from '../../theme.js';
-import { dbTropas } from '../../data/tropas.js';
-import TorneioLayout from './shared/TorneioLayout.jsx';
-import { fmtN } from './shared/RewardRow.jsx';
 
-const sortedTropas = [...dbTropas].sort((a,b) => a.nome.localeCompare(b.nome));
+// ── Dados dos torneios de aliança ─────────────────────────────────────────────
+const TORNEIOS = [
+  {
+    id: 'poder',
+    icon: '⚡',
+    title: 'Torneio de Poder',
+    color: C.WARNING,
+    desc: 'O objetivo principal é aumentar o seu poder total durante o período do torneio.',
+    itens: [
+      { icon: '⚔️', text: 'Treine tropas de qualquer tipo — cada unidade recrutada soma poder ao seu castelo.' },
+      { icon: '🐉', text: 'Aumente o poder dos seus dragões evoluindo habilidades, alimentando e treinando-os.' },
+      { icon: '📚', text: 'Faça pesquisas na Árvore do Conhecimento para ganhar poder acadêmico.' },
+      { icon: '🎖️', text: 'Treine e evolua seus generais para acumular mais poder de comando.' },
+      { icon: '💡', text: 'Dica: combine todas as fontes de poder ao mesmo tempo para maximizar o ganho durante o torneio.' },
+    ],
+  },
+  {
+    id: 'alianca_atual',
+    icon: '🤝',
+    title: 'Torneio de Aliança (Atual)',
+    color: C.SUCCESS,
+    desc: 'O foco é no crescimento coletivo — treinar dragões e contribuir com a aliança.',
+    itens: [
+      { icon: '🍖', text: 'Alimente e treine seus dragões regularmente para acumular pontos de aliança.' },
+      { icon: '🏰', text: 'Ajude os membros da sua aliança: acelere construções, pesquisas e treinamentos de aliados.' },
+      { icon: '🤜', text: 'Participe de ataques em grupo e defesas conjuntas para contribuir com a aliança.' },
+      { icon: '💡', text: 'Dica: coordene com sua aliança para distribuir ajudas e maximizar o total de pontos coletivos.' },
+    ],
+  },
+];
 
-// ── helper: multi-linha treino (reutilizado) ─────────────────────────────────
-const MultiTreinoList = ({ treinos, onTropa, onQtd, onAdd, onRm, showSubtotal }) => (
-  <div className="space-y-2">
-    {treinos.map(linha => {
-      const obj = dbTropas.find(x => x.nome===linha.tropa);
-      const pUnit = obj?.poder || 0;
-      const q = parseInt((linha.qtd||'').replace(/\./g,'')) || 0;
-      return (
-        <div key={linha.id} className="flex items-center gap-1.5 p-2 rounded-lg" style={{ background: C.BG_SECONDARY, border:`1px solid ${C.BORDER_SOFT}` }}>
-          <select className="tw-select flex-1 min-w-0" value={linha.tropa} onChange={e => onTropa(linha.id, e.target.value)}>
-            <option value="">— Tropa —</option>
-            {sortedTropas.map(t => <option key={t.nome} value={t.nome}>{t.nome}</option>)}
-          </select>
-          <input className="tw-input text-center" style={{width:76,padding:'4px 6px'}} placeholder="Qtd." value={linha.qtd}
-            onChange={e => onQtd(linha.id, e.target.value)} inputMode="numeric" />
-          {showSubtotal && (
-            <span className="font-nunito font-bold text-[0.62rem] whitespace-nowrap shrink-0" style={{ color: C.POWER, minWidth: 50 }}>
-              ⭐ {fmtN(q*pUnit)}
-            </span>
-          )}
-          <button className="w-6 h-6 flex items-center justify-center rounded border-none cursor-pointer text-xs font-bold"
-            style={{ color: C.ERROR, background: 'transparent', border:`1px solid ${C.ERROR}33` }}
-            onClick={() => onRm(linha.id)}>✕</button>
+// ── Componente ────────────────────────────────────────────────────────────────
+const TorneioAlianca = () => (
+  <div className="max-w-md mx-auto pb-4" style={{ animation: 'reveal-up 0.4s ease both' }}>
+
+    {/* ── Cabeçalho informativo ──────────────────────────────────────────────── */}
+    <div
+      className="rounded-xl overflow-hidden mb-3"
+      style={{ border: `1.5px solid ${C.BORDER}`, boxShadow: '0 3px 14px rgba(62,47,28,0.15)' }}
+    >
+      <div
+        className="px-4 py-3"
+        style={{ background: `linear-gradient(135deg, ${C.NAVY ?? '#1C3A5E'} 0%, #2A4C72 100%)` }}
+      >
+        <p
+          className="font-nunito font-bold text-[0.6rem] tracking-[3px] uppercase m-0 mb-1"
+          style={{ color: 'rgba(200,168,74,0.7)' }}
+        >
+          TORNEIOS DE ALIANÇA
+        </p>
+        <p
+          className="font-nunito font-black leading-tight m-0"
+          style={{ fontSize: '1.1rem', color: C.ACCENT }}
+        >
+          Como Funcionam
+        </p>
+      </div>
+      <div className="px-4 py-3" style={{ background: C.BG_CARD }}>
+        <p
+          className="font-nunito font-semibold text-[0.76rem] leading-relaxed m-0"
+          style={{ color: C.TEXT_SECONDARY }}
+        >
+          Atualmente existem <strong>dois tipos</strong> de torneios de aliança. Cada um possui objetivos
+          distintos — conheça abaixo como cada um funciona e como pontuar.
+        </p>
+      </div>
+    </div>
+
+    {/* ── Cards por torneio ─────────────────────────────────────────────────── */}
+    {TORNEIOS.map(t => (
+      <div
+        key={t.id}
+        className="rounded-xl overflow-hidden mb-3"
+        style={{ border: `1px solid ${C.BORDER_SOFT}`, borderTop: `3px solid ${t.color}` }}
+      >
+        {/* Cabeçalho do card */}
+        <div
+          className="px-4 py-2.5 flex items-center gap-2"
+          style={{
+            background: `linear-gradient(180deg, ${C.BG_CARD_TOP}, ${C.BG_CARD})`,
+            borderBottom: `1.5px solid ${C.BORDER_SOFT}`,
+          }}
+        >
+          <span className="text-lg leading-none">{t.icon}</span>
+          <p
+            className="font-nunito font-black text-[0.82rem] uppercase tracking-widest m-0"
+            style={{ color: t.color }}
+          >
+            {t.title}
+          </p>
         </div>
-      );
-    })}
-    <button className="btn-ghost btn-sm w-full" onClick={onAdd}>＋ Adicionar Tropa</button>
+
+        {/* Corpo */}
+        <div className="px-4 py-3" style={{ background: C.BG_CARD }}>
+          {/* Descrição resumida */}
+          <p
+            className="font-nunito font-semibold text-[0.74rem] leading-relaxed mb-3"
+            style={{ color: C.TEXT_SECONDARY }}
+          >
+            {t.desc}
+          </p>
+
+          {/* Lista de dicas */}
+          {t.itens.map((item, i) => (
+            <div key={i} className="flex gap-2.5 items-start mb-2.5 last:mb-0">
+              <span className="text-base leading-none shrink-0 mt-0.5">{item.icon}</span>
+              <p
+                className="font-nunito font-semibold text-[0.76rem] leading-relaxed m-0"
+                style={{ color: C.TEXT_SECONDARY }}
+              >
+                {item.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
   </div>
 );
 
-// ── helper: input poder simples ──────────────────────────────────────────────
-const PoderInput = ({ label, value, onChange }) => {
-  const handleChange = e => {
-    const n = e.target.value.replace(/\D/g,'');
-    onChange(n ? parseInt(n).toLocaleString('pt-BR') : '');
-  };
-  return (
-    <div>
-      <label className="font-nunito font-bold text-[0.65rem] tracking-wider uppercase block mb-1.5" style={{ color: C.TEXT_MUTED }}>{label}</label>
-      <input className="tw-input text-center font-mono text-base font-black" value={value} onChange={handleChange} inputMode="numeric" placeholder="0" />
-    </div>
-  );
-};
-
-// ────────────────────────────────────────────────────────────────────────────
-// TorneioAlianca
-// ────────────────────────────────────────────────────────────────────────────
-const TorneioAlianca = () => {
-  const [treinos, setTreinos] = useState([{id:1,tropa:'',qtd:''},{id:2,tropa:'',qtd:''}]);
-  const [tropaSel, setTropaSel] = useState('');
-  const [premios, setPremios] = useState({ princ:{m:10,b:1000}, meta1:{m:2,b:1000}, meta2:{m:5,b:1000}, meta3:{m:10,b:1000} });
-  const handlePremioChange = (k,f,v) => setPremios(p => ({ ...p, [k]: { ...p[k], [f]:v } }));
-
-  const handleTropa = (id,v) => setTreinos(t => t.map(x => x.id===id ? {...x,tropa:v} : x));
-  const handleQtd   = (id,v) => { const n=v.replace(/\D/g,''); setTreinos(t => t.map(x => x.id===id ? {...x,qtd: n ? parseInt(n).toLocaleString('pt-BR') : ''} : x)); };
-
-  let totalPts = 0;
-  treinos.forEach(t => {
-    const o=dbTropas.find(x=>x.nome===t.tropa); const q=parseInt((t.qtd||'').replace(/\./g,''))||0;
-    totalPts += q*(o?.poder||0);
-  });
-
-  return (
-    <TorneioLayout
-      title="Poder de Aliança" icon="🤝" color={C.SUCCESS}
-      inventario={<MultiTreinoList treinos={treinos} onTropa={handleTropa} onQtd={handleQtd} onAdd={() => setTreinos(t=>[...t,{id:Date.now(),tropa:'',qtd:''}])} onRm={id=>{if(treinos.length>1)setTreinos(t=>t.filter(x=>x.id!==id))}} showSubtotal />}
-      totalPts={totalPts} ptsSufixo="poder"
-      metas={[{key:'princ',label:'Prêmio Principal',reqPts:0},{key:'meta1',label:'🏅 Meta 1M',reqPts:1000000},{key:'meta2',label:'🥈 Meta 5M',reqPts:5000000},{key:'meta3',label:'🥇 Meta 20M',reqPts:20000000}]}
-      premios={premios} onPremioChange={handlePremioChange}
-      tropaPremio={tropaSel} onTropaChange={setTropaSel}
-    />
-  );
-};
 export default TorneioAlianca;
