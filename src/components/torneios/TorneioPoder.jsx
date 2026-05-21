@@ -1,72 +1,113 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { C } from '../../theme.js';
-import { dbTropas } from '../../data/tropas.js';
-import TorneioLayout from './shared/TorneioLayout.jsx';
-import { fmtN } from './shared/RewardRow.jsx';
 
-const METAS_PODER = [
-  { key: 'princ', label: 'Prêmio Principal',     reqPts: 0 },
-  { key: 'meta1', label: '🏅 Meta 1.000.000',    reqPts: 1_000_000 },
-  { key: 'meta2', label: '🥈 Meta 5.000.000',    reqPts: 5_000_000 },
-  { key: 'meta3', label: '🥇 Meta 15.000.000',   reqPts: 15_000_000 },
+const FONTES = [
+  {
+    icon: '⚔️',
+    title: 'Treinar Tropas',
+    text: 'Recrute unidades de qualquer tipo — cada tropa treinada soma diretamente ao seu poder total. Priorize tropas de nível mais alto, pois elas possuem maior valor de poder por unidade.',
+  },
+  {
+    icon: '🐉',
+    title: 'Poder dos Dragões',
+    text: 'Aumente o poder dos seus dragões evoluindo habilidades, alimentando e realizando sessões de treinamento. Cada ponto de poder ganho pelo dragão conta para o torneio.',
+  },
+  {
+    icon: '📚',
+    title: 'Pesquisas',
+    text: 'Conclua pesquisas na Árvore do Conhecimento durante o período do torneio. Pesquisas militares e econômicas geram poder ao serem finalizadas.',
+  },
+  {
+    icon: '🎖️',
+    title: 'Treinar Generais',
+    text: 'Evolua e treine seus generais para acumular poder de comando. Quanto maior o nível e as habilidades do general, maior o poder gerado.',
+  },
+  {
+    icon: '💡',
+    title: 'Dica de Estratégia',
+    text: 'Combine todas as fontes ao mesmo tempo: enquanto treina tropas, deixe pesquisas rodando e alimentações de dragão programadas. Maximize cada minuto do torneio.',
+  },
 ];
 
-const TorneioPoder = () => {
-  const [treinos, setTreinos] = useState([{ id:1,tropa:'',qtd:'' }, { id:2,tropa:'',qtd:'' }]);
-  const [tropaPremio, setTropaPremio] = useState('');
-  const [premios, setPremios] = useState({ princ:{m:10,b:1000}, meta1:{m:2,b:1000}, meta2:{m:5,b:1000}, meta3:{m:10,b:1000} });
-  const handlePremioChange = (k,f,v) => setPremios(p => ({ ...p, [k]: { ...p[k], [f]:v } }));
+const TorneioPoder = () => (
+  <div className="max-w-md mx-auto pb-4" style={{ animation: 'reveal-up 0.4s ease both' }}>
 
-  const handleTropa = (id,v) => setTreinos(t => t.map(x => x.id===id ? {...x,tropa:v} : x));
-  const handleQtd   = (id,v) => { const n=v.replace(/\D/g,''); setTreinos(t => t.map(x => x.id===id ? {...x,qtd: n ? parseInt(n).toLocaleString('pt-BR') : ''} : x)); };
-  const add = () => setTreinos(t => [...t, {id:Date.now(),tropa:'',qtd:''}]);
-  const rm  = (id) => { if (treinos.length > 1) setTreinos(t => t.filter(x => x.id!==id)); };
-
-  let totalPts = 0;
-  treinos.forEach(t => {
-    const obj = dbTropas.find(x => x.nome===t.tropa);
-    const p = obj?.poder || 0;
-    const q = parseInt(t.qtd.replace(/\./g,'')) || 0;
-    totalPts += q * p;
-  });
-
-  const sortedTropas = [...dbTropas].sort((a,b) => a.nome.localeCompare(b.nome));
-
-  const inventario = (
-    <div className="space-y-2">
-      {treinos.map(linha => {
-        const obj = dbTropas.find(x => x.nome===linha.tropa);
-        const pUnit = obj?.poder || 0;
-        const q = parseInt(linha.qtd.replace(/\./g,'')) || 0;
-        return (
-          <div key={linha.id} className="flex items-center gap-1.5 p-2 rounded-lg" style={{ background: C.BG_SECONDARY, border:`1px solid ${C.BORDER_SOFT}` }}>
-            <select className="tw-select flex-1 min-w-0" value={linha.tropa} onChange={e => handleTropa(linha.id, e.target.value)}>
-              <option value="">— Tropa —</option>
-              {sortedTropas.map(t => <option key={t.nome} value={t.nome}>{t.nome}</option>)}
-            </select>
-            <input className="tw-input text-center" style={{width:80,padding:'4px 6px'}} placeholder="Qtd." value={linha.qtd} onChange={e => handleQtd(linha.id, e.target.value)} inputMode="numeric" />
-            <span className="font-nunito font-bold text-[0.65rem] whitespace-nowrap shrink-0" style={{ color: C.POWER, minWidth:52 }}>
-              ⭐ {fmtN(q*pUnit)}
-            </span>
-            <button className="w-6 h-6 flex items-center justify-center rounded shrink-0 border-none cursor-pointer text-xs font-bold"
-              style={{ color: C.ERROR, background: 'transparent', border: `1px solid ${C.ERROR}33` }}
-              onClick={() => rm(linha.id)}>✕</button>
-          </div>
-        );
-      })}
-      <button className="btn-ghost btn-sm w-full" onClick={add}>＋ Adicionar Tropa</button>
+    {/* ── Cabeçalho ──────────────────────────────────────────────────────────── */}
+    <div
+      className="rounded-xl overflow-hidden mb-3"
+      style={{ border: `1.5px solid ${C.BORDER}`, boxShadow: '0 3px 14px rgba(62,47,28,0.15)' }}
+    >
+      <div
+        className="px-4 py-3"
+        style={{ background: `linear-gradient(135deg, ${C.NAVY ?? '#1C3A5E'} 0%, #2A4C72 100%)` }}
+      >
+        <p
+          className="font-nunito font-bold text-[0.6rem] tracking-[3px] uppercase m-0 mb-1"
+          style={{ color: 'rgba(200,168,74,0.7)' }}
+        >
+          TORNEIO INDIVIDUAL
+        </p>
+        <p
+          className="font-nunito font-black leading-tight m-0"
+          style={{ fontSize: '1.1rem', color: C.ACCENT }}
+        >
+          ⚡ Torneio de Poder
+        </p>
+      </div>
+      <div className="px-4 py-3" style={{ background: C.BG_CARD }}>
+        <p
+          className="font-nunito font-semibold text-[0.76rem] leading-relaxed m-0"
+          style={{ color: C.TEXT_SECONDARY }}
+        >
+          O objetivo é simples: <strong>ganhe o máximo de poder possível</strong> durante o período
+          do torneio. Toda fonte de poder conta — tropas, dragões, pesquisas e generais.
+          Quanto mais você crescer, mais pontos acumula no ranking.
+        </p>
+      </div>
     </div>
-  );
 
-  return (
-    <TorneioLayout
-      title="Torneio de Poder" icon="⚡" color={C.WARNING}
-      inventario={inventario}
-      totalPts={totalPts} ptsSufixo="poder"
-      metas={METAS_PODER} premios={premios} onPremioChange={handlePremioChange}
-      tropaPremio={tropaPremio} onTropaChange={setTropaPremio}
-    />
-  );
-};
+    {/* ── Como Funciona ──────────────────────────────────────────────────────── */}
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{ border: `1px solid ${C.BORDER_SOFT}`, borderTop: `3px solid ${C.WARNING}` }}
+    >
+      <div
+        className="px-4 py-2.5"
+        style={{
+          background: `linear-gradient(180deg, ${C.BG_CARD_TOP}, ${C.BG_CARD})`,
+          borderBottom: `1.5px solid ${C.BORDER_SOFT}`,
+        }}
+      >
+        <p
+          className="font-nunito font-black text-[0.72rem] uppercase tracking-widest m-0"
+          style={{ color: C.TEXT_MUTED }}
+        >
+          📖 Como Pontuar
+        </p>
+      </div>
+      <div className="px-4 py-3" style={{ background: C.BG_CARD }}>
+        {FONTES.map((item, i) => (
+          <div key={i} className="flex gap-2.5 items-start mb-3 last:mb-0">
+            <span className="text-base leading-none shrink-0 mt-0.5">{item.icon}</span>
+            <div>
+              <p
+                className="font-nunito font-black text-[0.74rem] m-0 mb-0.5"
+                style={{ color: C.TEXT_PRIMARY }}
+              >
+                {item.title}
+              </p>
+              <p
+                className="font-nunito font-semibold text-[0.73rem] leading-relaxed m-0"
+                style={{ color: C.TEXT_SECONDARY }}
+              >
+                {item.text}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 export default TorneioPoder;
