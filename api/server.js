@@ -12,7 +12,8 @@ import itemRoutes      from './routes/itens.js';
 import edificioRoutes  from './routes/edificios.js';
 import dragaoRoutes    from './routes/dragoes.js';
 import pesquisaRoutes  from './routes/pesquisas.js';
-import reinoRoutes     from './routes/reinos.js';
+import reinoRoutes      from './routes/reinos.js';
+import assistenteRoutes from './routes/assistente.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -46,7 +47,8 @@ app.use('/api/itens',     itemRoutes);
 app.use('/api/edificios', edificioRoutes);
 app.use('/api/dragoes',  dragaoRoutes);
 app.use('/api/pesquisas', pesquisaRoutes);
-app.use('/api/reinos',   reinoRoutes);
+app.use('/api/reinos',      reinoRoutes);
+app.use('/api/assistente', assistenteRoutes);
 
 // ── Painel Admin (HTML estático) ─────────────────────────────────────────────
 app.use('/admin', express.static(join(__dirname, 'admin')));

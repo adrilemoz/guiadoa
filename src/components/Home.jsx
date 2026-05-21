@@ -6,6 +6,7 @@ import ProfileForm  from './ProfileLogin/ProfileForm.jsx';
 import AlertaModal  from './shared/AlertaModal.jsx';
 import Toast        from '../ui/Toast.jsx';
 import { C } from '../theme.js';
+import AssistenteTatico from './AssistenteTatico.jsx';
 
 const useServerClock = () => {
   const [hora, setHora] = useState(() => {
@@ -303,6 +304,12 @@ const Home = ({ setRoute }) => {
               </span>
             </button>
           ))}
+        </div>
+
+        {/* ── CONSELHEIRO TÁTICO ─────────────────────────────────────── */}
+        <div style={{ marginTop: 12 }}>
+          <Divider label="Conselheiro Tático" />
+          <AssistenteTatico />
         </div>
       </div>
     </div>
