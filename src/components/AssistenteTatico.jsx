@@ -22,6 +22,43 @@ const fmtHora = () => {
   return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
 };
 
+/* ── Parser de markdown simples (negrito) ────────────────────────────────── */
+const parseMarkdown = (texto, isUser) => {
+  const cor = isUser ? 'rgba(255,255,255,0.95)' : '#C8A84A'; // dourado sobre fundo escuro
+  const partes = texto.split(/(\*\*\*?.+?\*\*\*?)/g);
+  return partes.map((p, i) => {
+    if (/^\*\*\*?.+?\*\*\*?$/.test(p)) {
+      const limpo = p.replace(/\*+/g, '');
+      return <strong key={i} style={{ color: cor, fontWeight: 900 }}>{limpo}</strong>;
+    }
+    return p;
+  });
+};
+
+/* ── Botão copiar ─────────────────────────────────────────────────────────── */
+const BotaoCopiar = ({ texto }) => {
+  const [copiado, setCopiado] = useState(false);
+  const copiar = () => {
+    navigator.clipboard?.writeText(texto).catch(() => {});
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+  };
+  return (
+    <button onClick={copiar}
+      style={{
+        marginTop: 4, padding: '3px 8px', borderRadius: 6, cursor: 'pointer',
+        background: copiado ? 'rgba(90,180,90,0.15)' : 'rgba(92,127,163,0.12)',
+        border: `1px solid ${copiado ? 'rgba(90,180,90,0.4)' : 'rgba(92,127,163,0.3)'}`,
+        color: copiado ? '#5AB45A' : COR,
+        fontFamily: '"Nunito",sans-serif', fontWeight: 700, fontSize: '0.6rem',
+        letterSpacing: '0.3px', transition: 'all 0.2s',
+        display: 'flex', alignItems: 'center', gap: 4,
+      }}>
+      {copiado ? '✓ Copiado' : '⎘ Copiar'}
+    </button>
+  );
+};
+
 /* ── Bolha de mensagem ─────────────────────────────────────────────────────── */
 const Bolha = ({ msg }) => {
   const isUser = msg.role === 'user';
@@ -60,13 +97,15 @@ const Bolha = ({ msg }) => {
             fontSize:'0.76rem', lineHeight:1.55, margin:0,
             color: isUser ? '#fff' : C.TEXT_PRIMARY,
             whiteSpace:'pre-wrap', wordBreak:'break-word',
-          }}>{msg.content}</p>
+          }}>{parseMarkdown(msg.content, isUser)}</p>
         </div>
-        <p style={{
-          fontFamily:'"Nunito",sans-serif', fontSize:'0.55rem',
-          color: C.TEXT_FAINT, margin:'3px 4px 0',
-          textAlign: isUser ? 'right' : 'left',
-        }}>{msg.hora}</p>
+        <div style={{ display:'flex', alignItems:'center', justifyContent: isUser ? 'flex-end' : 'flex-start', gap: 8, marginTop: 2 }}>
+          <p style={{
+            fontFamily:'"Nunito",sans-serif', fontSize:'0.55rem',
+            color: C.TEXT_FAINT, margin: 0,
+          }}>{msg.hora}</p>
+          {!isUser && <BotaoCopiar texto={msg.content} />}
+        </div>
       </div>
       {isUser && (
         <div style={{
@@ -107,7 +146,7 @@ const Digitando = () => (
 );
 
 /* ── Modal de tela cheia ──────────────────────────────────────────────────── */
-const AssistenteModal = ({ onClose, mensagens, loading, erro, onEnviar, onLimpar }) => {
+const AssistenteModal = ({ onClose, mensagens, loading, erro, onEnviar, onLimpar, onReenviar }) => {
   const [input, setInput]   = useState('');
   const bottomRef           = useRef(null);
   const inputRef            = useRef(null);
@@ -279,15 +318,30 @@ const AssistenteModal = ({ onClose, mensagens, loading, erro, onEnviar, onLimpar
           {mensagens.map((m, i) => <Bolha key={i} msg={m} />)}
           {loading && <Digitando />}
 
-          {/* Erro */}
+          {/* Erro com botão reenviar */}
           {erro && (
-            <p style={{
-              fontFamily:'"Nunito",sans-serif', fontWeight:600,
-              fontSize:'0.72rem', textAlign:'center',
-              color:'#E07060', background:'rgba(168,60,44,0.1)',
+            <div style={{
+              background:'rgba(168,60,44,0.1)',
               border:'1px solid rgba(168,60,44,0.3)',
-              borderRadius:8, padding:'8px 12px', margin:'4px 0',
-            }}>⚠️ {erro}</p>
+              borderRadius:10, padding:'10px 12px', margin:'4px 0',
+            }}>
+              <p style={{
+                fontFamily:'"Nunito",sans-serif', fontWeight:600,
+                fontSize:'0.72rem', color:'#E07060', margin:0, marginBottom:8,
+              }}>⚠️ {erro}</p>
+              <button onClick={onReenviar} disabled={loading}
+                style={{
+                  width:'100%', padding:'7px 0', borderRadius:8, cursor:'pointer',
+                  background:'linear-gradient(135deg,#C04030,#8A1A10)',
+                  border:'1px solid rgba(168,60,44,0.5)',
+                  color:'#FFF4F0',
+                  fontFamily:'"Nunito",sans-serif', fontWeight:800,
+                  fontSize:'0.72rem', letterSpacing:'0.5px',
+                  display:'flex', alignItems:'center', justifyContent:'center', gap:6,
+                }}>
+                🔄 Reenviar última mensagem
+              </button>
+            </div>
           )}
           <div ref={bottomRef}/>
         </div>
@@ -393,6 +447,17 @@ const AssistenteTatico = () => {
     }
   }, [mensagens]);
 
+  const reenviar = useCallback(() => {
+    const ultima = [...mensagens].reverse().find(m => m.role === 'user');
+    if (!ultima || loading) return;
+    setErro('');
+    setMensagens(m => {
+      const idx = m.map(x => x).lastIndexOf(ultima);
+      return m.filter((_, i) => i !== idx);
+    });
+    enviar(ultima.content);
+  }, [mensagens, loading, enviar]);
+
   const limpar = () => { setMensagens([]); setErro(''); };
 
   return (
@@ -476,6 +541,7 @@ const AssistenteTatico = () => {
           erro={erro}
           onEnviar={enviar}
           onLimpar={limpar}
+          onReenviar={reenviar}
         />
       )}
     </>
