@@ -34,7 +34,6 @@ const FERRAMENTAS = [
   { id: 'niveis',    icon: '🏰',  title: 'Níveis',      sub: 'Tabela de XP',       cor: '#3B7A8C' },
   { id: 'ilhas',     icon: '🏝️',  title: 'Cidade',      sub: 'Sua ilha',           cor: '#4A8A6A' },
   { id: 'pesquisas', icon: '🔬',  title: 'Pesquisas',   sub: 'Centro de Ciência',  cor: '#5A8A7A' },
-  { id: 'backup',    icon: '☁️',  title: 'Nuvem',       sub: 'Sincronização',      cor: '#5A6FAA' },
   { id: 'sobre',     icon: 'ℹ️',  title: 'Info',        sub: 'Sobre o app',        cor: '#7A6A5A' },
 ];
 

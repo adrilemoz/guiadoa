@@ -19,7 +19,7 @@ const TorneioHabilidadeDragao = () => {
   });
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
 
-  const ptsItem    = useMemo(() => (parseInt(qtd) || 0) * 10, [qtd]);
+  const ptsItem    = useMemo(() => (parseInt(qtd) || 0) * 100, [qtd]);
   const ptsPos     = parseInt(ptsPossuidos.replace(/\D/g, '')) || 0;
   const totalFinal = ptsItem + ptsPos;
   const ativo      = ptsItem > 0;
@@ -124,7 +124,7 @@ const TorneioHabilidadeDragao = () => {
           </p>
           <p className="font-nunito font-bold text-[0.68rem] m-0 mt-1 text-center"
             style={{ color: COR }}>
-            10 pontos por unidade
+            100 pontos por unidade
           </p>
         </div>
 
@@ -180,7 +180,7 @@ const TorneioHabilidadeDragao = () => {
         </div>
         <div className="px-4 py-3" style={{ background: C.BG_CARD }}>
           {[
-            { icon: '🔥', text: 'Cada Essência da Fúria vale 10 pontos.' },
+            { icon: '🔥', text: 'Cada Essência da Fúria vale 100 pontos.' },
             { icon: '🌍', text: 'Podem ser obtidas em Antropos nível 10, em Florestas nível 10, em eventos e torneios.' },
             { icon: '🐉', text: 'Também podem ser obtidas no Bastião dos Dragões, na Expedição do Dragão, na aba Loja.' },
           ].map((item, i) => (

@@ -1,141 +1,204 @@
-import React, { useState } from 'react';
-import { dbTropas } from '../../db.js';
+import React, { useState, useMemo } from 'react';
 import { C } from '../../theme.js';
 import Toast from '../../ui/Toast.jsx';
-import TorneioLayout from './shared/TorneioLayout.jsx';
-import { fmtN } from './shared/RewardRow.jsx';
 
-const CATEGORIAS = [
-  { cat: 1, itens: 'Fóssil do Ancião 1 & Relíquia Diabólica 1', tropas: 'Minotauros, Arqueiros e Dragões de Ataque Rápido.' },
-  { cat: 2, itens: 'Fóssil do Ancião 1 & Relíquia Diabólica 1', tropas: 'Dragões de Combate.' },
-  { cat: 3, itens: 'Fóssil do Ancião 1 & Relíquia Diabólica 1', tropas: 'Andarilhos da Areia e Hoplitas.' },
-  { cat: 4, itens: 'Fóssil do Ancião 1 & Relíquia Diabólica 1', tropas: 'Gigantes, Abissais, Terrores do Pântano.' },
-  { cat: 5, itens: 'Fóssil do Ancião 1 & Relíquia Diabólica 1', tropas: 'Espelhos de Fogo, Bigas de Fogo, Serpente Vingativa, Canhão Elétrico, Amarande.' },
-  { cat: 6, itens: 'Fóssil do Ancião 2 & Relíquia Diabólica 2', tropas: 'Ogro de Granito, Serpente Arsênica, Dragonete da Tempestade, Magmassauros, Guerreiro do Magma.' },
-  { cat: 7, itens: 'Fóssil do Ancião 2 & Relíquia Diabólica 2', tropas: 'Titã Petrificado, Dragão do Veneno, Golem do Trovão, Gigante do Gelo, Leviatã Ártico, Cavaleiro Dragão, Centauros Infernais, Condenadores, Cavaleiros Espectrais.' },
-  { cat: 8, itens: 'Fóssil do Ancião 2 & Relíquia Diabólica 2', tropas: 'Perseguidor das Sombras, Escaravelho de Guerra, Arruinador Dimensional, Megalibgwilia, Medusa, Gatuno Alado.' },
-  { cat: 9, itens: 'Fóssil do Ancião 2 & Relíquia Diabólica 2', tropas: 'Esmagadores Colossais, Fantasma do Trovão, Lordes da Lava.' },
+const STORAGE_KEY = 'doa_evolucao_tropas';
+const COR         = '#C87A2C';
+
+const FOSSEIS = [
+  { key: 'crepusculo1', label: 'Fóssil Crepúsculo 1', emoji: '🌅', pts: 10, cor: '#C87A2C' },
+  { key: 'crepusculo2', label: 'Fóssil Crepúsculo 2', emoji: '🌄', pts: 10, cor: '#A85A20' },
+  { key: 'anciao1',     label: 'Fóssil Ancião 1',     emoji: '🦴', pts: 10, cor: '#5A8A5C' },
+  { key: 'anciao2',     label: 'Fóssil Ancião 2',     emoji: '💎', pts: 10, cor: '#8B6BAE' },
 ];
 
+const fmtN = n => Number(n || 0).toLocaleString('pt-BR');
+
 const EvolucaoTropas = () => {
-  const [qtdA1, setQtdA1] = useState(localStorage.getItem('doa_fossil_a1') || '');
-  const [qtdC1, setQtdC1] = useState(localStorage.getItem('doa_fossil_c1') || '');
-  const [qtdA2, setQtdA2] = useState(localStorage.getItem('doa_fossil_a2') || '');
-  const [qtdC2, setQtdC2] = useState(localStorage.getItem('doa_fossil_c2') || '');
-  const [tropaSel, setTropaSel] = useState(localStorage.getItem('doa_evo_tropa') || '');
-  const [premios, setPremios] = useState({ princ: { m:10, b:1000 }, b5: { m:2, b:1000 }, b10: { m:5, b:1000 }, b20: { m:10, b:1000 } });
+  const [qtds, setQtds] = useState(() => {
+    try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s).qtds || {} : {}; }
+    catch { return {}; }
+  });
+  const [ptsPossuidos, setPtsPossuidos] = useState(() => {
+    try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s).ptsPossuidos || '' : ''; }
+    catch { return ''; }
+  });
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
-  const [showCat, setShowCat] = useState(false);
 
-  const handlePremioChange = (key, field, val) => setPremios(p => ({ ...p, [key]: { ...p[key], [field]: val } }));
+  const handleQtd = (key, value) =>
+    setQtds(q => ({ ...q, [key]: value.replace(/\D/g, '') }));
 
-  const handleSave = () => {
-    localStorage.setItem('doa_fossil_a1', qtdA1);
-    localStorage.setItem('doa_fossil_c1', qtdC1);
-    localStorage.setItem('doa_fossil_a2', qtdA2);
-    localStorage.setItem('doa_fossil_c2', qtdC2);
-    localStorage.setItem('doa_evo_tropa', tropaSel);
-    setToast({ open: true, message: 'Inventário guardado com sucesso!', severity: 'success' });
+  const ptsDosItens = useMemo(
+    () => FOSSEIS.reduce((acc, f) => acc + (parseInt(qtds[f.key]) || 0) * f.pts, 0),
+    [qtds]
+  );
+  const ptsPos     = parseInt(ptsPossuidos.replace(/\D/g, '')) || 0;
+  const totalFinal = ptsDosItens + ptsPos;
+
+  const handleSalvar = () => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ qtds, ptsPossuidos }));
+      setToast({ open: true, message: 'Dados salvos com sucesso!', severity: 'success' });
+    } catch {
+      setToast({ open: true, message: 'Erro ao salvar os dados.', severity: 'error' });
+    }
   };
 
-  const qA1 = parseInt(qtdA1) || 0;
-  const qC1 = parseInt(qtdC1) || 0;
-  const qA2 = parseInt(qtdA2) || 0;
-  const qC2 = parseInt(qtdC2) || 0;
-  const totalItens = qA1 + qC1 + qA2 + qC2;
-  const pontos = Math.floor(totalItens / 10);
+  return (
+    <div className="max-w-md mx-auto pb-4" style={{ animation: 'reveal-up 0.4s ease both' }}>
+      <Toast {...toast} onClose={() => setToast(t => ({ ...t, open: false }))} />
 
-  const METAS = [
-    { key: 'princ', label: 'Prêmio Principal', reqPts: 0 },
-    { key: 'b5',    label: '🏅 Bônus 5 pts',   reqPts: 5 },
-    { key: 'b10',   label: '🥈 Bônus 10 pts',  reqPts: 10 },
-    { key: 'b20',   label: '🥇 Bônus 20 pts',  reqPts: 20 },
-  ];
+      {/* ── TOTAL ────────────────────────────────────────────────────────────── */}
+      <div className="rounded-xl overflow-hidden mb-3"
+        style={{ border: `1.5px solid ${C.BORDER}`, boxShadow: '0 3px 14px rgba(62,47,28,0.15)' }}>
 
-  const inventario = (
-    <div className="space-y-2">
-      {/* Linha 1: Ancião */}
-      <div className="flex items-center gap-1.5 p-2.5 rounded-lg" style={{ background: 'rgba(90,138,92,0.08)', border: `1px solid rgba(90,138,92,0.3)` }}>
-        <span className="text-lg shrink-0">🦴</span>
-        <div className="flex-1 min-w-0">
-          <p className="font-nunito font-black text-[0.7rem] m-0 mb-1" style={{ color: C.TEXT_PRIMARY }}>Fóssil Ancião 1</p>
-          <input className="tw-input text-center" placeholder="Qtd." value={qtdA1} onChange={e => setQtdA1(e.target.value.replace(/\D/g,''))} inputMode="numeric" />
+        <div className="px-4 py-3 flex items-center gap-3"
+          style={{ background: 'linear-gradient(135deg, #2A1800 0%, #5A3200 100%)' }}>
+          <div className="flex-1 min-w-0">
+            <p className="font-nunito font-bold text-[0.6rem] tracking-[3px] uppercase m-0 mb-1"
+              style={{ color: 'rgba(220,160,80,0.7)' }}>
+              TOTAL DE PONTOS
+            </p>
+            <p className="font-nunito font-black leading-none m-0"
+              style={{
+                fontSize: 'clamp(1.9rem,9vw,2.7rem)',
+                letterSpacing: '0.05em',
+                color: '#F0B060',
+                textShadow: '0 2px 18px rgba(200,120,40,0.55)',
+              }}>
+              {fmtN(totalFinal)}
+            </p>
+            {ptsPos > 0 && (
+              <p className="font-nunito font-semibold text-[0.6rem] m-0 mt-1"
+                style={{ color: 'rgba(220,160,80,0.55)' }}>
+                {fmtN(ptsDosItens)} (fósseis) + {fmtN(ptsPos)} (possuídos)
+              </p>
+            )}
+          </div>
+          <button className="shrink-0" onClick={handleSalvar}
+            style={{
+              padding: '8px 14px', fontSize: '0.75rem', whiteSpace: 'nowrap',
+              background: 'linear-gradient(180deg,#D08030,#904010)',
+              color: '#FFF4E0', border: '1px solid #6A2A00',
+              borderRadius: 8, cursor: 'pointer', fontWeight: 800,
+              fontFamily: '"Nunito",sans-serif',
+            }}>
+            💾 Salvar
+          </button>
         </div>
-        <div className="text-aoe-gold opacity-40 text-lg self-center">|</div>
-        <div className="flex-1 min-w-0">
-          <p className="font-nunito font-black text-[0.7rem] m-0 mb-1" style={{ color: C.TEXT_PRIMARY }}>Relíquia Diab. 1</p>
-          <input className="tw-input text-center" placeholder="Qtd." value={qtdC1} onChange={e => setQtdC1(e.target.value.replace(/\D/g,''))} inputMode="numeric" />
+
+        {/* Pontos possuídos */}
+        <div className="px-4 py-3"
+          style={{ background: C.BG_CARD, borderTop: `1px solid rgba(200,122,44,0.25)` }}>
+          <label className="font-nunito font-bold text-[0.65rem] tracking-widest uppercase block mb-1.5"
+            style={{ color: C.TEXT_MUTED }}>
+            Pontos já possuídos
+          </label>
+          <input
+            className="tw-input text-center font-mono font-black"
+            style={{ fontSize: '1rem' }}
+            placeholder="0"
+            value={ptsPossuidos}
+            onChange={e => setPtsPossuidos(e.target.value.replace(/\D/g, ''))}
+            inputMode="numeric"
+          />
         </div>
       </div>
-      {/* Linha 2: Ancião 2 */}
-      <div className="flex items-center gap-1.5 p-2.5 rounded-lg" style={{ background: 'rgba(139,107,174,0.08)', border: `1px solid rgba(139,107,174,0.3)` }}>
-        <span className="text-lg shrink-0">💎</span>
-        <div className="flex-1 min-w-0">
-          <p className="font-nunito font-black text-[0.7rem] m-0 mb-1" style={{ color: C.TEXT_PRIMARY }}>Fóssil Ancião 2</p>
-          <input className="tw-input text-center" placeholder="Qtd." value={qtdA2} onChange={e => setQtdA2(e.target.value.replace(/\D/g,''))} inputMode="numeric" />
-        </div>
-        <div className="text-aoe-gold opacity-40 text-lg self-center">|</div>
-        <div className="flex-1 min-w-0">
-          <p className="font-nunito font-black text-[0.7rem] m-0 mb-1" style={{ color: C.TEXT_PRIMARY }}>Relíquia Diab. 2</p>
-          <input className="tw-input text-center" placeholder="Qtd." value={qtdC2} onChange={e => setQtdC2(e.target.value.replace(/\D/g,''))} inputMode="numeric" />
-        </div>
-      </div>
-      {/* Resumo */}
-      <div className="flex gap-2 text-center">
-        <div className="flex-1 py-1.5 rounded-lg" style={{ background: C.BG_SECONDARY, border: `1px solid ${C.BORDER_SOFT}` }}>
-          <p className="font-nunito font-bold text-[0.6rem] uppercase tracking-wider m-0" style={{ color: C.TEXT_MUTED }}>Total Itens</p>
-          <p className="font-nunito font-black text-sm m-0" style={{ color: C.TEXT_PRIMARY }}>{fmtN(totalItens)}</p>
-        </div>
-        <div className="flex-1 py-1.5 rounded-lg" style={{ background: C.BG_SECONDARY, border: `1px solid ${C.BORDER_SOFT}` }}>
-          <p className="font-nunito font-bold text-[0.6rem] uppercase tracking-wider m-0" style={{ color: C.TEXT_MUTED }}>Pontos</p>
-          <p className="font-nunito font-black text-sm m-0" style={{ color: C.ACCENT_DEEP }}>{pontos}</p>
-        </div>
-        <div className="flex-1 py-1.5 rounded-lg" style={{ background: C.BG_SECONDARY, border: `1px solid ${C.BORDER_SOFT}` }}>
-          <p className="font-nunito font-bold text-[0.6rem] uppercase tracking-wider m-0" style={{ color: C.TEXT_MUTED }}>Sobram</p>
-          <p className="font-nunito font-black text-sm m-0" style={{ color: C.TEXT_SECONDARY }}>{totalItens % 10}</p>
-        </div>
-      </div>
-      <button className="btn-success btn-sm w-full" onClick={handleSave}>💾 Guardar Inventário</button>
-    </div>
-  );
 
-  const extraInfo = (
-    <div>
-      <button className="w-full font-nunito font-bold text-[0.72rem] tracking-wider py-2 rounded-lg mb-2 border-none cursor-pointer"
-        style={{ background: C.BG_SECONDARY, border: `1px solid ${C.BORDER_SOFT}`, color: C.TEXT_MUTED }}
-        onClick={() => setShowCat(v => !v)}>
-        {showCat ? '▾' : '▸'} CATEGORIAS DE TROPAS
-      </button>
-      {showCat && (
-        <div className="tw-card p-3 space-y-1.5">
-          {CATEGORIAS.map(cat => (
-            <div key={cat.cat} className="p-2 rounded-md" style={{ background: C.BG_SECONDARY, border: `1px solid ${C.BORDER_SOFT}` }}>
-              <div className="flex items-start gap-1.5">
-                <span className="font-nunito font-black text-[0.65rem] px-1.5 py-0.5 rounded shrink-0" style={{ background: C.ACCENT, color: '#FFF8EE' }}>CAT {cat.cat}</span>
-                <div>
-                  <p className="font-nunito font-bold text-[0.65rem] m-0" style={{ color: C.TEXT_MUTED }}>{cat.itens}</p>
-                  <p className="font-nunito font-semibold text-[0.7rem] m-0 mt-0.5" style={{ color: C.TEXT_SECONDARY }}>{cat.tropas}</p>
-                </div>
+      {/* ── FÓSSEIS — grid 3 colunas ─────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        {FOSSEIS.map(f => {
+          const qtd  = parseInt(qtds[f.key]) || 0;
+          const soma = qtd * f.pts;
+          const ativo = soma > 0;
+          return (
+            <div key={f.key}
+              className="rounded-xl overflow-hidden"
+              style={{
+                border:    `1px solid ${ativo ? f.cor : C.BORDER_SOFT}`,
+                borderTop: `3px solid ${ativo ? f.cor : C.BORDER_SOFT}`,
+                background: ativo
+                  ? `linear-gradient(180deg, ${C.BG_CARD} 0%, ${f.cor}08 100%)`
+                  : C.BG_CARD,
+                boxShadow: ativo ? `0 2px 8px ${f.cor}25` : 'none',
+                transition: 'all 0.18s',
+              }}>
+
+              {/* Topo */}
+              <div className="px-2 pt-2.5 pb-2"
+                style={{ borderBottom: `1px solid rgba(200,168,74,0.12)` }}>
+                <p className="text-center text-xl leading-tight m-0">{f.emoji}</p>
+                <p className="font-nunito font-black text-[0.68rem] m-0 mt-1 leading-snug text-center"
+                  style={{ color: C.TEXT_PRIMARY }}>
+                  {f.label}
+                </p>
+                <p className="font-nunito font-semibold text-[0.58rem] m-0 mt-0.5 text-center"
+                  style={{ color: f.cor, fontWeight: 800 }}>
+                  {fmtN(f.pts)} pts/un.
+                </p>
               </div>
+
+              {/* Input */}
+              <div className="px-2 py-2"
+                style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <span className="font-nunito font-bold text-[0.5rem] leading-none"
+                  style={{ color: C.TEXT_FAINT, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  = pts
+                </span>
+                <input
+                  className="tw-input text-center font-mono font-black"
+                  style={{ padding: '4px 2px', fontSize: '0.82rem', minWidth: 0, flex: 1 }}
+                  placeholder="0"
+                  value={qtds[f.key] || ''}
+                  onChange={e => handleQtd(f.key, e.target.value)}
+                  inputMode="numeric"
+                />
+              </div>
+
+              {/* Subtotal */}
+              <div className="px-2 pb-2.5 text-center">
+                <p className="font-nunito font-black text-[0.9rem] leading-tight m-0"
+                  style={{ color: ativo ? f.cor : C.TEXT_FAINT }}>
+                  {fmtN(soma)}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── COMO FUNCIONA ─────────────────────────────────────────────────────── */}
+      <div className="rounded-xl overflow-hidden"
+        style={{ border: `1px solid ${C.BORDER_SOFT}` }}>
+        <div className="px-4 py-2.5"
+          style={{
+            background: `linear-gradient(180deg, ${C.BG_CARD_TOP}, ${C.BG_CARD})`,
+            borderBottom: `1.5px solid ${C.BORDER_SOFT}`,
+          }}>
+          <p className="font-nunito font-black text-[0.72rem] uppercase tracking-widest m-0"
+            style={{ color: C.TEXT_MUTED }}>
+            📖 Como Funciona
+          </p>
+        </div>
+        <div className="px-4 py-3" style={{ background: C.BG_CARD }}>
+          {[
+            { icon: '⭐', text: 'O torneio consiste em usar Fósseis para evoluir as tropas. Cada fóssil utilizado vale 10 pontos.' },
+            { icon: '🗺️', text: 'Para conseguir os fósseis, ataque Antropos do nível 1 ao 10 e colete Lembranças Antigas como recompensa.' },
+            { icon: '🛒', text: 'Acesse a Loja de Surpresas e realize a troca das Lembranças Antigas pelos fósseis desejados.' },
+            { icon: '🎁', text: 'Também é possível obter fósseis em eventos especiais e torneios ao longo da semana.' },
+            { icon: '💎', text: 'Outra opção é comprar os fósseis diretamente com rubis na loja do jogo.' },
+          ].map((item, i) => (
+            <div key={i} className="flex gap-2.5 items-start mb-2.5 last:mb-0">
+              <span className="text-base leading-none shrink-0 mt-0.5">{item.icon}</span>
+              <p className="font-nunito font-semibold text-[0.76rem] leading-relaxed m-0"
+                style={{ color: C.TEXT_SECONDARY }}>
+                {item.text}
+              </p>
             </div>
           ))}
         </div>
-      )}
+      </div>
     </div>
-  );
-
-  return (
-    <>
-      <Toast {...toast} onClose={() => setToast(t => ({ ...t, open: false }))} />
-      <TorneioLayout
-        title="Evolução de Tropas" icon="⭐" color={C.WARNING}
-        inventario={inventario}
-        totalPts={pontos} ptsSufixo="pontos"
-        metas={METAS} premios={premios} onPremioChange={handlePremioChange}
-        tropaPremio={tropaSel} onTropaChange={setTropaSel}
-        extraInfo={extraInfo}
-      />
-    </>
   );
 };
 

@@ -6,48 +6,31 @@ import { C } from '../theme.js';
 
 const CHANGELOG = [
   {
+    ver: 'Beta 2.1', icon: '🔧', nome: 'Correções e Ajustes de Torneios', cor: '#5A8A5C',
+    items: [
+      'Evolução de Tropas: reescrito com 3 fósseis (Crepúsculo 1, Crepúsculo 2, Ancião 2 — 10 pts cada), remoção das categorias de tropas e nova seção "Como Funciona" com instruções de obtenção via Antropos, Loja de Surpresas e eventos',
+      'Habilidade de Dragão: corrigido valor de pontos por Essência da Fúria de 10 para 100 pontos',
+      'Home: item Nuvem/Sincronização removido do grid de módulos',
+    ],
+  },
+  {
     ver: 'Beta 2', icon: '⚔️', nome: 'Módulo de Torneios Reformulado', cor: '#C87A2C',
     items: [
-      'Torneio de Treinamento de Dragão: novo calculador com 6 tipos de carne (Carneiro, Boi, Frango, Veado, Salmão, Lagosta)',
-      'Treino de Tropa: redesenhado com seleção de tropa, quantidade e bônus multiplicador (x1 a x5)',
-      'Pontos de Talismã: reformulado com grid 2×2, total com salvamento e campo de pontos possuídos',
-      'Torneios de Aliança, General, Matar Tropas e Torneio de Poder: convertidos para páginas informativas com explicações detalhadas',
-      'Torneio de Conhecimento: renomeado do módulo de Poções Antigas para refletir o torneio real',
-      'Padrão visual unificado: cabeçalho escuro, total em destaque, botão salvar e seção "Como Funciona" em todos os módulos',
+      'Treinamento do Dragão: calculador com 6 tipos de carne (Carneiro, Boi, Frango, Veado, Salmão, Lagosta)',
+      'Treino de Tropa: seleção de tropa, quantidade e bônus multiplicador (x1 a x5)',
+      'Pontos de Talismã: grid 2×2, total com salvamento e campo de pontos possuídos',
+      'General, Matar Tropas, Poder e Aliança: convertidos para páginas informativas',
+      'Torneio de Conhecimento: renomeado do módulo de Poções Antigas',
+      'Conselheiro Tático: assistente de IA integrado na Home, alimentado pelos dados do jogo',
     ],
   },
   {
-    ver: 'Beta 1', icon: '🚀', nome: 'Lançamento Beta', cor: '#5A8A5C',
+    ver: 'Beta 1', icon: '🚀', nome: 'Lançamento Beta', cor: '#5C7FA3',
     items: [
-      'Módulo de Itens: cadastro com ícone, descrição e onde conseguir',
-      'Painel Admin web completo (tropas, níveis, itens, setup)',
-      'Importação de dados via interface web — sem terminal',
+      'Módulo de Itens com cadastro pelo painel Admin',
+      'Importação de dados via interface web com progresso em tempo real',
       'Sistema de usuários com bloqueio por tentativas e reset de senha',
-      'Auditoria de ações e log de acesso no backend',
-    ],
-  },
-  {
-    ver: 'v2.3.0', icon: '📊', nome: 'Tracker Dracônico', cor: '#8B6BAE',
-    items: [
-      'Novo Tracker de Progresso para cada Dragão',
-      'Cálculo automático de Essência por sessão de treino',
-      'Histórico detalhado de evolução por fase',
-    ],
-  },
-  {
-    ver: 'v2.2.0', icon: '🐉', nome: 'Módulo dos Dragões', cor: '#C87A2C',
-    items: [
-      'Enciclopédia completa com 12 dragões',
-      'Estatísticas de ataque, defesa e habilidades',
-      'Guia de evolução por raridade',
-    ],
-  },
-  {
-    ver: 'v2.1.0', icon: '⚔️', nome: 'Simulador de Batalha', cor: '#5C7FA3',
-    items: [
-      'Cálculo de poder total do exército',
-      'Filtros por tipo de ataque e estatísticas',
-      'Comparação entre unidades',
+      'Painel Admin completo: tropas, níveis, itens, dragões, edifícios',
     ],
   },
 ];
@@ -123,18 +106,18 @@ const Sobre = () => {
 
           <div className="inline-flex items-center gap-2 mb-1">
             <p className="font-cinzel font-bold text-lg uppercase tracking-widest m-0" style={{ color: C.ACCENT_DEEP }}>
-              Beta 2
+              Beta 2.1
             </p>
             <span
               className="font-nunito font-black text-[0.58rem] px-2 py-0.5 rounded-full text-white"
-              style={{ background: C.WARNING, letterSpacing: '0.5px' }}
+              style={{ background: C.SUCCESS, letterSpacing: '0.5px' }}
             >
               NOVO
             </span>
           </div>
 
           <p className="font-nunito font-semibold text-xs italic m-0 mb-2" style={{ color: C.TEXT_MUTED }}>
-            "Módulo de Torneios Reformulado — Calculadores e Guias Táticos"
+            "Correções de Torneios — Fósseis, Pontuações e Ajustes Visuais"
           </p>
           <div className="gold-stripe mb-3 opacity-50" />
           <p className="font-nunito font-semibold text-sm leading-relaxed text-justify m-0" style={{ color: C.TEXT_PRIMARY }}>
