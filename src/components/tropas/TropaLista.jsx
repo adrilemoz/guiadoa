@@ -102,6 +102,17 @@ const TropaLista = () => {
   const [tropaModal,  setTropaModal]  = useState(null);
 
   const tropasFiltradas = useMemo(() => {
+    // Mapeamento filtro → atributo de ordenação
+    const SORT_MAP = {
+      'Todas':        'nome',
+      'Corpo a Corpo':'atqPerto',
+      'Longo Alcance':'atqDist',
+      'Maior Vida':   'vida',
+      'Maior Defesa': 'def',
+      'Alta Carga':   'car',
+      'Mais Rápidas': 'vel',
+    };
+
     let base = [...tropas];
     if (filtroAtivo === 'Corpo a Corpo') base = base.filter(t => t.atqPerto >= t.atqDist && t.atqPerto > 0);
     if (filtroAtivo === 'Longo Alcance') base = base.filter(t => t.atqDist > t.atqPerto);
@@ -110,16 +121,19 @@ const TropaLista = () => {
     if (filtroAtivo === 'Alta Carga')    base = base.filter(t => t.car    >= 500);
     if (filtroAtivo === 'Mais Rápidas')  base = base.filter(t => t.vel    >= 1_000);
 
-    const textFiltrado = base.filter(t => t.nome.toLowerCase().includes(busca.toLowerCase()));
-
-    // Com filtro ou busca ativa → ordena por poder (maior primeiro)
-    // Sem filtro e sem busca → ordem alfabética
-    const comFiltroAtivo = filtroAtivo !== 'Todas' || busca.trim() !== '';
-    return textFiltrado.sort((a, b) =>
-      comFiltroAtivo
-        ? (b.poder || 0) - (a.poder || 0)
-        : a.nome.localeCompare(b.nome)
+    const textFiltrado = base.filter(t =>
+      t.nome.toLowerCase().includes(busca.toLowerCase())
     );
+
+    const sortAttr  = SORT_MAP[filtroAtivo] || 'poder';
+    const temBusca  = busca.trim() !== '';
+    const temFiltro = filtroAtivo !== 'Todas';
+
+    return textFiltrado.sort((a, b) => {
+      if (!temFiltro && !temBusca) return a.nome.localeCompare(b.nome);  // tudo → A-Z
+      if (sortAttr === 'nome')     return a.nome.localeCompare(b.nome);  // busca sem filtro → A-Z
+      return (b[sortAttr] || 0) - (a[sortAttr] || 0);                   // filtro → maior primeiro
+    });
   }, [busca, filtroAtivo, tropas]);
 
   return (
