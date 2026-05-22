@@ -109,9 +109,17 @@ const TropaLista = () => {
     if (filtroAtivo === 'Maior Defesa')  base = base.filter(t => t.def    >= 800);
     if (filtroAtivo === 'Alta Carga')    base = base.filter(t => t.car    >= 500);
     if (filtroAtivo === 'Mais Rápidas')  base = base.filter(t => t.vel    >= 1_000);
-    return base
-      .filter(t => t.nome.toLowerCase().includes(busca.toLowerCase()))
-      .sort((a, b) => a.nome.localeCompare(b.nome));
+
+    const textFiltrado = base.filter(t => t.nome.toLowerCase().includes(busca.toLowerCase()));
+
+    // Com filtro ou busca ativa → ordena por poder (maior primeiro)
+    // Sem filtro e sem busca → ordem alfabética
+    const comFiltroAtivo = filtroAtivo !== 'Todas' || busca.trim() !== '';
+    return textFiltrado.sort((a, b) =>
+      comFiltroAtivo
+        ? (b.poder || 0) - (a.poder || 0)
+        : a.nome.localeCompare(b.nome)
+    );
   }, [busca, filtroAtivo, tropas]);
 
   return (

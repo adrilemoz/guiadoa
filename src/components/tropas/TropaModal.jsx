@@ -19,7 +19,7 @@ const StatRow = ({ icon, label, value, color, max }) => {
         </span>
       </div>
       <div style={{
-        height: 6, borderRadius: 4, overflow: 'hidden',
+        height: 8, borderRadius: 4, overflow: 'hidden',
         background: 'rgba(62,47,28,0.07)',
         border: '1px solid rgba(62,47,28,0.08)',
       }}>
@@ -173,7 +173,7 @@ const TropaModal = ({ tropa, onFechar }) => {
               <div style={{ flex: 1, height: 1, background: `linear-gradient(270deg,transparent,${C.BORDER_SOFT})` }} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               {ATRIBUTOS.map(attr => (
                 <StatRow key={attr.id}
                   icon={attr.icon} label={attr.label}

@@ -1,18 +1,28 @@
 import React, { useMemo } from 'react';
 import { C } from '../theme.js';
 import { useTropas } from '../hooks/useTropas.js';
-import { getTipoAtaque } from './tropas/tropaUtils.js';
 
-/* ── mini utilitários ────────────────────────────────────────────────────── */
+/* ── Classifica tropa como corpo a corpo ou distância ────────────────────── */
+const classificar = (t) => {
+  // Usa campo explícito do banco se disponível
+  if (t.combate === 'distancia')    return 'dist';
+  if (t.combate === 'corpo_a_corpo') return 'cc';
+  // Fallback: inferência por atributos
+  if (t.atqDist > 0 && t.atqPerto === 0) return 'dist';
+  if (t.atqDist > t.atqPerto)            return 'dist';
+  if (t.atqPerto > 0)                    return 'cc';
+  return 'suporte';
+};
+
 const contarTipos = (tropas) => {
-  let cc = 0, dist = 0, suporte = 0;
+  let cc = 0, dist = 0, rapidas = 0;
   tropas.forEach(t => {
-    const tipo = getTipoAtaque(t).label;
-    if (tipo === 'C. a Corpo') cc++;
-    else if (tipo === 'Dist.')  dist++;
-    else suporte++;
+    const cls = classificar(t);
+    if (cls === 'cc')   cc++;
+    if (cls === 'dist') dist++;
+    if (t.rapida)       rapidas++;
   });
-  return { cc, dist, suporte };
+  return { cc, dist, rapidas };
 };
 
 /* ── Card de entrada ─────────────────────────────────────────────────────── */
@@ -36,14 +46,12 @@ const HubCard = ({ icon, title, desc, meta, cor, onClick, badge }) => (
     onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.98)'; }}
     onTouchEnd={e => { e.currentTarget.style.transform = 'none'; }}
   >
-    {/* Gradiente de fundo sutil */}
     <div style={{
       position: 'absolute', inset: 0,
       background: `linear-gradient(135deg, ${cor}06, transparent 60%)`,
       pointerEvents: 'none',
     }} />
 
-    {/* Ícone */}
     <div style={{
       width: 52, height: 52, borderRadius: 12, flexShrink: 0,
       background: `${cor}14`, border: `2px solid ${cor}30`,
@@ -54,7 +62,6 @@ const HubCard = ({ icon, title, desc, meta, cor, onClick, badge }) => (
       {icon}
     </div>
 
-    {/* Texto */}
     <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
         <span className="font-cinzel font-bold"
@@ -88,7 +95,6 @@ const HubCard = ({ icon, title, desc, meta, cor, onClick, badge }) => (
       )}
     </div>
 
-    {/* Seta */}
     <span style={{ color: C.TEXT_FAINT, fontSize: '1.1rem', flexShrink: 0, position: 'relative' }}>›</span>
   </button>
 );
@@ -114,6 +120,10 @@ const Tropas = ({ setRoute }) => {
     tropas.length ? Math.max(...tropas.map(t => t.poder || 0)) : 0,
     [tropas]
   );
+  const poderMedio = useMemo(() =>
+    tropas.length ? Math.round(tropas.reduce((s, t) => s + (t.poder || 0), 0) / tropas.length) : 0,
+    [tropas]
+  );
 
   return (
     <div style={{ maxWidth: 480, margin: '0 auto', paddingBottom: 16, animation: 'reveal-up 0.35s ease both' }}>
@@ -124,7 +134,6 @@ const Tropas = ({ setRoute }) => {
         borderRadius: '12px 12px 0 0',
         padding: '14px 16px 12px',
         textAlign: 'center',
-        marginBottom: 0,
       }}>
         <div style={{ fontSize: '2rem', marginBottom: 6 }}>⚔️</div>
         <p className="font-cinzel font-bold uppercase m-0"
@@ -133,34 +142,35 @@ const Tropas = ({ setRoute }) => {
         </p>
         <p className="font-nunito font-semibold m-0"
           style={{ fontSize: '0.63rem', color: 'rgba(200,168,74,0.7)', letterSpacing: '1.5px', marginTop: 4 }}>
-          {carregando
-            ? '⟳ Sincronizando…'
-            : tropas.length > 0
-              ? `${tropas.length} unidades disponíveis`
-              : 'Carregando unidades…'}
+          {carregando ? '⟳ Sincronizando…' : tropas.length > 0 ? `${tropas.length} unidades disponíveis` : 'Carregando unidades…'}
         </p>
       </div>
 
-      {/* Stats rápidos */}
+      {/* Stats rápidos — 4 colunas */}
       {tropas.length > 0 && (
         <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(3,1fr)',
+          display: 'grid', gridTemplateColumns: 'repeat(4,1fr)',
           background: C.BG_SECONDARY,
           border: `1.5px solid ${C.BORDER}`, borderTop: 'none',
           borderRadius: '0 0 12px 12px',
           marginBottom: 16, overflow: 'hidden',
         }}>
           {[
-            { icon: '⚔️', val: tipos.cc,      label: 'C. a Corpo' },
-            { icon: '🏹', val: tipos.dist,    label: 'Distância'  },
-            { icon: '🛡️', val: tipos.suporte, label: 'Suporte'    },
+            { icon: '⚔️', val: tipos.cc,       label: 'C. a Corpo', cor: '#b91c1c' },
+            { icon: '🏹', val: tipos.dist,      label: 'Distância',  cor: '#0369a1' },
+            { icon: '⚡', val: tipos.rapidas,   label: 'Rápidas',    cor: '#C87A2C' },
+            { icon: '⭐', val: poderMax,         label: 'Poder Máx.', cor: '#7c3aed' },
           ].map((s, i) => (
             <div key={s.label} style={{
               textAlign: 'center', padding: '8px 4px',
-              borderRight: i < 2 ? `1px solid rgba(200,168,74,0.15)` : 'none',
+              borderRight: i < 3 ? `1px solid rgba(200,168,74,0.15)` : 'none',
             }}>
-              <p className="font-nunito font-black m-0" style={{ fontSize: '1rem', color: C.TEXT_PRIMARY }}>{s.val}</p>
-              <p className="font-nunito font-semibold m-0" style={{ fontSize: '0.58rem', color: C.TEXT_MUTED, marginTop: 2 }}>
+              <p className="font-nunito font-black m-0"
+                style={{ fontSize: '0.95rem', color: s.cor || C.TEXT_PRIMARY }}>
+                {s.val}
+              </p>
+              <p className="font-nunito font-semibold m-0"
+                style={{ fontSize: '0.54rem', color: C.TEXT_MUTED, marginTop: 2 }}>
                 {s.icon} {s.label}
               </p>
             </div>
@@ -168,25 +178,23 @@ const Tropas = ({ setRoute }) => {
         </div>
       )}
 
-      {/* ── CARDS PRINCIPAIS ─────────────────────────────────────────────── */}
+      {/* ── CARDS ────────────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
 
-        {/* Card: Enciclopédia */}
         <HubCard
           icon="📖"
           title="Enciclopédia"
-          desc="Veja todas as unidades do jogo com atributos detalhados e poder de combate."
+          desc="Veja todas as unidades com atributos detalhados, tipo de combate e poder."
           cor="#5C7FA3"
           badge={tropas.length > 0 ? `${tropas.length} tropas` : undefined}
           meta={tropas.length > 0 ? [
-            { icon: '⭐', valor: poderMax, label: 'poder máx.', cor: '#8B6BAE' },
-            { icon: '⚔️', valor: tipos.cc,   label: 'corpo a corpo', cor: '#C85C5C' },
-            { icon: '🏹', valor: tipos.dist,  label: 'distância',    cor: '#5C7FA3' },
+            { icon: '⚔️', valor: tipos.cc,   label: 'corpo a corpo', cor: '#b91c1c' },
+            { icon: '🏹', valor: tipos.dist,  label: 'distância',    cor: '#0369a1' },
+            { icon: '⭐', valor: poderMedio,  label: 'poder médio',  cor: '#8B6BAE' },
           ] : undefined}
           onClick={() => setRoute('tropas_lista')}
         />
 
-        {/* Card: Comparar */}
         <HubCard
           icon="⚖️"
           title="Comparar Tropas"
@@ -194,35 +202,6 @@ const Tropas = ({ setRoute }) => {
           cor="#8B6BAE"
           badge="novo"
           onClick={() => setRoute('tropas_comparar')}
-        />
-
-        <Div label="Ferramentas" />
-
-        {/* Card: Simulador */}
-        <HubCard
-          icon="🧮"
-          title="Simulador de Batalha"
-          desc="Calcule o poder total do seu exército e simule confrontos."
-          cor="#C87A2C"
-          onClick={() => setRoute('calculostropas')}
-        />
-
-        {/* Card: Evolução */}
-        <HubCard
-          icon="⭐"
-          title="Evolução de Tropas"
-          desc="Veja os requisitos e ganhos de cada nível de evolução."
-          cor="#5A8A5C"
-          onClick={() => setRoute('evolucao_tropas')}
-        />
-
-        {/* Card: Aprimoramento */}
-        <HubCard
-          icon="⚗️"
-          title="Aprimoramento"
-          desc="Gerencie os aprimoramentos e upgrades das suas unidades."
-          cor="#3B7A8C"
-          onClick={() => setRoute('aprimoramento_tropas')}
         />
       </div>
     </div>
