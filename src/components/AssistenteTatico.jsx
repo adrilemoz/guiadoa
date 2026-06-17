@@ -8,13 +8,45 @@ const COR_DRK = '#1A3050';
 
 const SUGESTOES = [
   { emoji: '⚔️', texto: 'Qual tropa tem mais poder?' },
-  { emoji: '🐉', texto: 'Como evoluir meu dragão rápido?' },
+  { emoji: '🐉', texto: 'Qual dragão é mais forte?' },
   { emoji: '🏆', texto: 'Qual carne vale mais no torneio?' },
   { emoji: '🧿', texto: 'Como funciona o torneio de talismã?' },
   { emoji: '🎖️', texto: 'Como treinar meus generais?' },
   { emoji: '⚡', texto: 'Como ganhar mais pontos de poder?' },
   { emoji: '☠️', texto: 'Estratégia para matar tropas?' },
   { emoji: '🌅', texto: 'O que são fósseis Crepúsculo?' },
+  { emoji: '🏗️', texto: 'O que a Fazenda nível 10 produz?' },
+  { emoji: '🔬', texto: 'Quais pesquisas aumentam meu ataque?' },
+  { emoji: '🏰', texto: 'Quanto XP preciso para o nível 20?' },
+  { emoji: '⏩', texto: 'Qual aceleração dá mais pontos no torneio?' },
+  { emoji: '🔮', texto: 'Quanto custa aprimorar uma tropa Épica?' },
+  { emoji: '💥', texto: 'O que é Bombardeio Elemental?' },
+  { emoji: '🐑', texto: 'Quantos pontos 100 lagostas geram?' },
+  { emoji: '🌍', texto: 'Quais reinos existem no jogo?' },
+];
+
+// Embaralha e pega 8 sugestões aleatórias a cada abertura
+const shuffleSugestoes = () => [...SUGESTOES].sort(() => Math.random() - 0.5).slice(0, 8);
+
+const INTENCAO_LABEL = {
+  tropa:         { emoji: '⚔️', label: 'Tropas' },
+  dragao:        { emoji: '🐉', label: 'Dragões' },
+  edificio:      { emoji: '🏗️', label: 'Edifícios' },
+  pesquisa:      { emoji: '🔬', label: 'Pesquisas' },
+  nivel:         { emoji: '🏰', label: 'Níveis' },
+  reino:         { emoji: '🌍', label: 'Reinos' },
+  aprimoramento: { emoji: '🔮', label: 'Aprimoramento' },
+  torneio:       { emoji: '🏆', label: 'Torneio' },
+  ilha:          { emoji: '🏝️', label: 'Ilhas' },
+  geral:         { emoji: '💬', label: 'Geral' },
+};
+
+const PENSANDO_MSGS = [
+  'Consultando os dados do jogo…',
+  'Analisando estratégias…',
+  'Verificando o banco de dados…',
+  'Calculando pontos…',
+  'Buscando informações…',
 ];
 
 const fmtHora = () => {
@@ -22,16 +54,49 @@ const fmtHora = () => {
   return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
 };
 
-/* ── Parser de markdown simples (negrito) ────────────────────────────────── */
+/* ── Parser de bold inline ────────────────────────────────────────────────── */
+const parseBold = (texto, cor) =>
+  texto.split(/(\*\*\*?.+?\*\*\*?)/g).map((p, i) =>
+    /^\*\*\*?.+?\*\*\*?$/.test(p)
+      ? <strong key={i} style={{ color: cor, fontWeight: 900 }}>{p.replace(/\*+/g, '')}</strong>
+      : p
+  );
+
+/* ── Parser de markdown completo (listas, cabeçalhos, negrito) ───────────── */
 const parseMarkdown = (texto, isUser) => {
-  const cor = isUser ? 'rgba(255,255,255,0.95)' : '#C8A84A'; // dourado sobre fundo escuro
-  const partes = texto.split(/(\*\*\*?.+?\*\*\*?)/g);
-  return partes.map((p, i) => {
-    if (/^\*\*\*?.+?\*\*\*?$/.test(p)) {
-      const limpo = p.replace(/\*+/g, '');
-      return <strong key={i} style={{ color: cor, fontWeight: 900 }}>{limpo}</strong>;
+  const corNegrito = isUser ? 'rgba(255,255,255,0.95)' : '#C8A84A';
+  const corTitulo  = isUser ? 'rgba(255,255,255,0.95)' : '#E0C060';
+
+  return texto.split('\n').map((linha, li) => {
+    if (!linha.trim()) return <div key={li} style={{ height: 4 }} />;
+
+    // Linha de seção (▸ ou ━)
+    if (/^[▸━]/.test(linha)) {
+      return (
+        <p key={li} style={{ margin: '6px 0 2px', fontWeight: 900, fontSize: '0.72rem', color: corTitulo }}>
+          {parseBold(linha, corNegrito)}
+        </p>
+      );
     }
-    return p;
+
+    // Item de lista (•, -, *, ou número seguido de ponto)
+    if (/^\s*([•\-*]|\d+\.)\s/.test(linha)) {
+      return (
+        <div key={li} style={{ display: 'flex', gap: 5, alignItems: 'flex-start', margin: '1px 0' }}>
+          <span style={{ color: corNegrito, fontWeight: 900, flexShrink: 0, lineHeight: 1.55 }}>›</span>
+          <span style={{ fontSize: '0.75rem', lineHeight: 1.55 }}>
+            {parseBold(linha.replace(/^\s*([•\-*]|\d+\.)\s*/, ''), corNegrito)}
+          </span>
+        </div>
+      );
+    }
+
+    // Linha normal
+    return (
+      <p key={li} style={{ margin: '2px 0', fontSize: '0.76rem', lineHeight: 1.55 }}>
+        {parseBold(linha, corNegrito)}
+      </p>
+    );
   });
 };
 
@@ -86,18 +151,30 @@ const Bolha = ({ msg }) => {
             : '0 1px 4px rgba(0,0,0,0.1)',
         }}>
           {!isUser && (
-            <p style={{
-              fontFamily:'"Nunito",sans-serif', fontWeight:900,
-              fontSize:'0.6rem', letterSpacing:'2px', textTransform:'uppercase',
-              color: COR, margin:0, marginBottom:4,
-            }}>Conselheiro</p>
+            <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
+              <p style={{
+                fontFamily:'"Nunito",sans-serif', fontWeight:900,
+                fontSize:'0.6rem', letterSpacing:'2px', textTransform:'uppercase',
+                color: COR, margin:0,
+              }}>Conselheiro</p>
+              {msg.intencao && INTENCAO_LABEL[msg.intencao] && (
+                <span style={{
+                  fontFamily:'"Nunito",sans-serif', fontWeight:700,
+                  fontSize:'0.55rem', padding:'1px 6px', borderRadius:4,
+                  background:`${COR}20`, border:`1px solid ${COR}40`,
+                  color: COR, letterSpacing:'0.3px',
+                }}>
+                  {INTENCAO_LABEL[msg.intencao].emoji} {INTENCAO_LABEL[msg.intencao].label}
+                </span>
+              )}
+            </div>
           )}
-          <p style={{
+          <div style={{
             fontFamily:'"Nunito",sans-serif', fontWeight:600,
-            fontSize:'0.76rem', lineHeight:1.55, margin:0,
+            fontSize:'0.76rem', lineHeight:1.55,
             color: isUser ? '#fff' : C.TEXT_PRIMARY,
-            whiteSpace:'pre-wrap', wordBreak:'break-word',
-          }}>{parseMarkdown(msg.content, isUser)}</p>
+            wordBreak:'break-word',
+          }}>{parseMarkdown(msg.content, isUser)}</div>
         </div>
         <div style={{ display:'flex', alignItems:'center', justifyContent: isUser ? 'flex-end' : 'flex-start', gap: 8, marginTop: 2 }}>
           <p style={{
@@ -120,7 +197,7 @@ const Bolha = ({ msg }) => {
 };
 
 /* ── Dots loading ─────────────────────────────────────────────────────────── */
-const Digitando = () => (
+const Digitando = ({ mensagem }) => (
   <div style={{ display:'flex', justifyContent:'flex-start', marginBottom:10 }}>
     <div style={{
       width:28, height:28, borderRadius:'50%', flexShrink:0,
@@ -130,23 +207,31 @@ const Digitando = () => (
       fontSize:'0.9rem', marginRight:7,
     }}>🤖</div>
     <div style={{
-      padding:'12px 16px', borderRadius:'4px 16px 16px 16px',
+      padding:'10px 14px', borderRadius:'4px 16px 16px 16px',
       background: C.BG_SECONDARY, border:`1px solid ${C.BORDER_SOFT}`,
-      display:'flex', alignItems:'center', gap:5,
+      display:'flex', alignItems:'center', gap:8,
     }}>
-      {[0,1,2].map(i => (
-        <span key={i} style={{
-          width:7, height:7, borderRadius:'50%', background:COR,
-          display:'inline-block',
-          animation:`typing-dot 1.2s ${i*0.2}s ease-in-out infinite`,
-        }}/>
-      ))}
+      <div style={{ display:'flex', gap:4 }}>
+        {[0,1,2].map(i => (
+          <span key={i} style={{
+            width:6, height:6, borderRadius:'50%', background:COR,
+            display:'inline-block',
+            animation:`typing-dot 1.2s ${i*0.2}s ease-in-out infinite`,
+          }}/>
+        ))}
+      </div>
+      {mensagem && (
+        <span style={{
+          fontFamily:'"Nunito",sans-serif', fontWeight:600,
+          fontSize:'0.65rem', color:C.TEXT_MUTED,
+        }}>{mensagem}</span>
+      )}
     </div>
   </div>
 );
 
 /* ── Modal de tela cheia ──────────────────────────────────────────────────── */
-const AssistenteModal = ({ onClose, mensagens, loading, erro, onEnviar, onLimpar, onReenviar }) => {
+const AssistenteModal = ({ onClose, mensagens, loading, pensando, sugestoes, erro, onEnviar, onLimpar, onReenviar }) => {
   const [input, setInput]   = useState('');
   const bottomRef           = useRef(null);
   const inputRef            = useRef(null);
@@ -291,7 +376,7 @@ const AssistenteModal = ({ onClose, mensagens, loading, erro, onEnviar, onLimpar
               </div>
 
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
-                {SUGESTOES.map(s => (
+                {(sugestoes || SUGESTOES.slice(0, 8)).map(s => (
                   <button key={s.texto} onClick={() => enviar(s.texto)}
                     style={{
                       display:'flex', alignItems:'center', gap:7,
@@ -316,7 +401,7 @@ const AssistenteModal = ({ onClose, mensagens, loading, erro, onEnviar, onLimpar
 
           {/* Mensagens */}
           {mensagens.map((m, i) => <Bolha key={i} msg={m} />)}
-          {loading && <Digitando />}
+          {loading && <Digitando mensagem={pensando} />}
 
           {/* Erro com botão reenviar */}
           {erro && (
@@ -416,6 +501,9 @@ const AssistenteTatico = () => {
   const [mensagens, setMensagens] = useState([]);
   const [loading,   setLoading]   = useState(false);
   const [erro,      setErro]      = useState('');
+  const [intencao,  setIntencao]  = useState('');
+  const [pensando,  setPensando]  = useState('');
+  const [sugestoes] = useState(() => shuffleSugestoes());
 
   // Bloqueia scroll da página quando modal aberto
   useEffect(() => {
@@ -425,6 +513,7 @@ const AssistenteTatico = () => {
 
   const enviar = useCallback(async (pergunta) => {
     setErro('');
+    setPensando(PENSANDO_MSGS[Math.floor(Math.random() * PENSANDO_MSGS.length)]);
     const novaMsg = { role:'user', content: pergunta, hora: fmtHora() };
     setMensagens(m => [...m, novaMsg]);
     setLoading(true);
@@ -439,11 +528,13 @@ const AssistenteTatico = () => {
       });
       const data = await res.json();
       if (data.erro) throw new Error(data.erro);
-      setMensagens(m => [...m, { role:'assistant', content: data.resposta, hora: fmtHora() }]);
+      if (data.intencao) setIntencao(data.intencao);
+      setMensagens(m => [...m, { role:'assistant', content: data.resposta, hora: fmtHora(), intencao: data.intencao }]);
     } catch(e) {
       setErro(e.message || 'Erro ao contatar o assistente.');
     } finally {
       setLoading(false);
+      setPensando('');
     }
   }, [mensagens]);
 
@@ -452,13 +543,13 @@ const AssistenteTatico = () => {
     if (!ultima || loading) return;
     setErro('');
     setMensagens(m => {
-      const idx = m.map(x => x).lastIndexOf(ultima);
-      return m.filter((_, i) => i !== idx);
+      const idx = m.map((x, i) => (x.content === ultima.content && x.hora === ultima.hora ? i : -1)).filter(i => i !== -1).pop();
+      return idx !== undefined ? m.filter((_, i) => i !== idx) : m;
     });
     enviar(ultima.content);
   }, [mensagens, loading, enviar]);
 
-  const limpar = () => { setMensagens([]); setErro(''); };
+  const limpar = () => { setMensagens([]); setErro(''); setIntencao(''); };
 
   return (
     <>
@@ -538,6 +629,9 @@ const AssistenteTatico = () => {
           onClose={() => setAberto(false)}
           mensagens={mensagens}
           loading={loading}
+          pensando={pensando}
+          intencao={intencao}
+          sugestoes={sugestoes}
           erro={erro}
           onEnviar={enviar}
           onLimpar={limpar}

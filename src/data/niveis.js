@@ -1,12 +1,11 @@
 /**
  * niveis.js
- * Tenta buscar da API local. Se offline, usa dados estáticos como fallback.
- * Formato retornado: [[nivel, xp|null], ...]  (compatível com código existente)
+ * Busca sempre da API (MongoDB). Sem cache em memória.
+ * Fallback para dados estáticos apenas se a API estiver inacessível.
  */
 
-const API_URL = 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-// ── Dados estáticos (fallback) ────────────────────────────────────────────────
 export const dbNiveisLocal = [
   [1, 62], [2, 76], [3, null], [4, 196], [5, 356], [6, 676], [7, 1316], [8, 2596],
   [9, null], [10, 10276], [11, 16676], [12, 24676], [13, 34676], [14, 47176],
@@ -20,37 +19,30 @@ export const dbNiveisLocal = [
   [57, null], [58, null], [59, null], [60, null],
 ];
 
-// ── Cache em memória ──────────────────────────────────────────────────────────
-let _cache = null;
-
-/** Retorna niveis no formato [[nivel, xp|null], ...] */
+/** Busca sempre fresh do MongoDB via API. Sem cache. */
 export async function carregarNiveis() {
-  if (_cache) return _cache;
-
   try {
     const r = await fetch(`${API_URL}/api/niveis/todas`, {
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(5000),
+      headers: { 'Cache-Control': 'no-cache' },
     });
     if (r.ok) {
       const dados = await r.json();
-      if (dados.length > 0) {
-        // Converter [{nivel, xp}, ...] → [[nivel, xp], ...]
-        _cache = dados.map(d => [d.nivel, d.xp ?? null]);
-        console.info(`[DOA] ${dados.length} níveis carregados da API`);
-        return _cache;
+      if (Array.isArray(dados) && dados.length > 0) {
+        console.info(`[DOA] ${dados.length} níveis carregados do MongoDB`);
+        return dados.map(d => [d.nivel, d.xp ?? null]);
       }
+      console.warn('[DOA] API retornou lista vazia — usando fallback local');
+    } else {
+      console.warn(`[DOA] API respondeu ${r.status} — usando fallback local`);
     }
   } catch {
-    console.warn('[DOA] API offline — usando dados de níveis locais');
+    console.warn('[DOA] API inacessível — usando fallback local');
   }
-
-  _cache = dbNiveisLocal;
   return dbNiveisLocal;
 }
 
-export function invalidarCacheNiveis() {
-  _cache = null;
-}
+/** Mantido por compatibilidade — não faz nada pois não há cache */
+export function invalidarCacheNiveis() {}
 
-// Compatibilidade com imports síncronos existentes
 export const dbNiveis = dbNiveisLocal;

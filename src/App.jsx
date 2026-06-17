@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Component } from 'react';
 import { C } from './theme.js';
+import { I18nProvider } from './hooks/useI18n.jsx';
 
 import Home                    from './components/Home.jsx';
 import Torneios                from './components/Torneios.jsx';
@@ -247,6 +248,7 @@ const App = () => {
   const currentRoute = ROUTE_LABELS[route];
 
   return (
+    <I18nProvider>
     <>
       {/* ── SYNC BANNER ─────────────────────────────────────────────────── */}
 
@@ -509,6 +511,7 @@ const App = () => {
         </div>
       </footer>
     </>
+    </I18nProvider>
   );
 };
 

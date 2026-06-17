@@ -4,6 +4,7 @@ import { saveProfile } from '../../utils/storage.js';
 import Toast from '../../ui/Toast.jsx';
 import { useTorneioTimer } from '../../hooks/useTorneioTimer.js';
 import { C } from '../../theme.js';
+import { useI18n, LOCALES_DISPONIVEIS } from '../../hooks/useI18n.jsx';
 
 /* ─── helpers ───────────────────────────────────────────────────────────────── */
 const REGIOES = [...new Set(dbReinos.map(r => r.regiao))].sort();
@@ -246,11 +247,13 @@ const ReinoSelector = ({ value, onChange }) => {
 
 /* ─── ProfileForm ───────────────────────────────────────────────────────────── */
 const ProfileForm = ({ onSave, perfilAtual }) => {
+  const [step,     setStep]     = useState(perfilAtual ? 1 : 0); // 0=idioma, 1=perfil
   const [nome,     setNome]     = useState(perfilAtual?.nome     || '');
   const [reino,    setReino]    = useState(perfilAtual?.reino    || '');
   const [fuso,     setFuso]     = useState(perfilAtual?.fuso     || '');
   const [playerId, setPlayerId] = useState(perfilAtual?.playerId || '');
   const [toast,    setToast]    = useState({ open: false, message: '', severity: 'success' });
+  const { locale, setLocale }   = useI18n();
 
   const match  = fuso ? fuso.match(/UTC([+-]?\d+)/) : null;
   const offset = match ? parseInt(match[1], 10) : 0;
@@ -278,14 +281,124 @@ const ProfileForm = ({ onSave, perfilAtual }) => {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: C.BG_MAIN }}>
       <Toast {...toast} onClose={closeToast} />
 
-      {/* ── Header navy ─────────────────────────────────────────────────── */}
-      <div style={{
-        background: 'linear-gradient(160deg, #1C3A5E 0%, #2A4C72 100%)',
-        padding: '32px 20px 28px',
-        textAlign: 'center',
-        borderBottom: '2px solid #A88530',
-        position: 'relative', overflow: 'hidden',
-      }}>
+      {/* ── STEP 0: Escolha de idioma ──────────────────────────────────── */}
+      {step === 0 && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {/* Header */}
+          <div style={{
+            background: 'linear-gradient(160deg,#1C3A5E 0%,#2A4C72 100%)',
+            padding: '40px 20px 32px',
+            textAlign: 'center',
+            borderBottom: '2px solid #A88530',
+            position: 'relative', overflow: 'hidden',
+          }}>
+            <div style={{
+              position: 'absolute', top: 0, left: '15%', right: '15%', height: 1,
+              background: 'linear-gradient(90deg,transparent,rgba(200,168,74,0.6),transparent)',
+            }} />
+            <div style={{
+              width: 72, height: 72, borderRadius: '50%',
+              background: 'radial-gradient(circle,rgba(200,168,74,0.25) 0%,rgba(28,58,94,0.6) 70%)',
+              border: '2px solid rgba(200,168,74,0.5)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '2.2rem', margin: '0 auto 14px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+            }}>🌐</div>
+            <p style={{
+              fontFamily: '"Cinzel",serif', fontWeight: 700,
+              fontSize: '1.1rem', letterSpacing: '3px',
+              color: '#F8F2E0', margin: 0, textTransform: 'uppercase',
+            }}>Bem-vindo</p>
+            <p style={{
+              fontFamily: '"Cinzel",serif', fontWeight: 700,
+              fontSize: '1.1rem', letterSpacing: '3px',
+              color: '#F8F2E0', margin: '2px 0 0', textTransform: 'uppercase',
+            }}>Welcome</p>
+            <p style={{
+              fontFamily: '"Nunito",sans-serif', fontWeight: 600,
+              fontSize: '0.72rem', color: 'rgba(200,168,74,0.7)',
+              letterSpacing: '1.5px', margin: '8px 0 0',
+            }}>◆ GUIA DOA ◆</p>
+          </div>
+
+          {/* Corpo */}
+          <div style={{ flex: 1, padding: '28px 20px', maxWidth: 480, width: '100%', margin: '0 auto' }}>
+            <p style={{
+              fontFamily: '"Cinzel",serif', fontWeight: 700,
+              fontSize: '0.82rem', letterSpacing: '2px',
+              color: C.TEXT_PRIMARY, textAlign: 'center',
+              textTransform: 'uppercase', marginBottom: 6,
+            }}>Escolha seu idioma</p>
+            <p style={{
+              fontFamily: '"Cinzel",serif', fontWeight: 600,
+              fontSize: '0.72rem', color: C.TEXT_MUTED,
+              textAlign: 'center', marginBottom: 24, letterSpacing: '1px',
+            }}>Choose your language</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {LOCALES_DISPONIVEIS.map(loc => (
+                <button key={loc.code}
+                  onClick={() => { setLocale(loc.code); setStep(1); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 16,
+                    padding: '16px 20px',
+                    background: locale === loc.code
+                      ? 'linear-gradient(90deg,rgba(28,58,94,0.12),rgba(200,168,74,0.08))'
+                      : C.BG_CARD,
+                    border: `1.5px solid ${locale === loc.code ? 'rgba(200,168,74,0.6)' : 'rgba(200,168,74,0.25)'}`,
+                    borderLeft: `4px solid ${locale === loc.code ? C.ACCENT : 'transparent'}`,
+                    borderRadius: 12, cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    boxShadow: locale === loc.code ? '0 2px 12px rgba(200,168,74,0.15)' : 'none',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(200,168,74,0.5)'; e.currentTarget.style.transform = 'translateX(2px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = locale === loc.code ? 'rgba(200,168,74,0.6)' : 'rgba(200,168,74,0.25)'; e.currentTarget.style.transform = 'none'; }}
+                >
+                  <span style={{ fontSize: '2.2rem', lineHeight: 1, flexShrink: 0 }}>{loc.flag}</span>
+                  <div style={{ flex: 1, textAlign: 'left' }}>
+                    <span style={{
+                      display: 'block',
+                      fontFamily: '"Nunito",sans-serif', fontWeight: 900,
+                      fontSize: '1rem', color: C.TEXT_PRIMARY,
+                    }}>{loc.nativo}</span>
+                    <span style={{
+                      fontFamily: '"Nunito",sans-serif', fontWeight: 600,
+                      fontSize: '0.7rem', color: C.TEXT_MUTED,
+                    }}>{loc.label}</span>
+                  </div>
+                  {locale === loc.code && (
+                    <span style={{
+                      color: C.ACCENT, fontSize: '1.1rem', flexShrink: 0,
+                    }}>✓</span>
+                  )}
+                  <span style={{ color: C.TEXT_FAINT, fontSize: '1rem', flexShrink: 0 }}>›</span>
+                </button>
+              ))}
+            </div>
+
+            <p style={{
+              fontFamily: '"Nunito",sans-serif', fontWeight: 600,
+              fontSize: '0.65rem', color: C.TEXT_FAINT,
+              textAlign: 'center', marginTop: 20, lineHeight: 1.6,
+            }}>
+              Você poderá trocar o idioma a qualquer momento nas configurações.<br />
+              You can change the language anytime in settings.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── STEP 1: Formulário de perfil ────────────────────────────────── */}
+      {step === 1 && (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* ── Header navy ─────────────────────────────────────────────────── */}
+        <div style={{
+          background: 'linear-gradient(160deg, #1C3A5E 0%, #2A4C72 100%)',
+          padding: '32px 20px 28px',
+          textAlign: 'center',
+          borderBottom: '2px solid #A88530',
+          position: 'relative', overflow: 'hidden',
+        }}>
         {/* Ornamento topo */}
         <div style={{
           position: 'absolute', top: 0, left: '15%', right: '15%', height: 1,
@@ -478,6 +591,8 @@ const ProfileForm = ({ onSave, perfilAtual }) => {
           </div>
         </div>
       </div>
+      </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { carregarNiveis, invalidarCacheNiveis } from '../data/niveis.js';
+import { carregarNiveis } from '../data/niveis.js';
 import { C } from '../theme.js';
 import GameHeader from './shared/GameHeader.jsx';
 import Modal from '../ui/Modal.jsx';
@@ -49,10 +49,8 @@ const Niveis = () => {
   const [todosNiveis, setTodosNiveis] = useState([]);
   const [carregando,  setCarregando]  = useState(true);
 
-  // Carrega SEMPRE fresh (invalida cache) para refletir mudanças do admin
   const buscarNiveis = useCallback(async () => {
     setCarregando(true);
-    invalidarCacheNiveis();           // ← garante que admin seja refletido
     const dados = await carregarNiveis();
     setTodosNiveis(dados);
     setCarregando(false);

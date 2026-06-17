@@ -14,6 +14,7 @@ import dragaoRoutes    from './routes/dragoes.js';
 import pesquisaRoutes  from './routes/pesquisas.js';
 import reinoRoutes      from './routes/reinos.js';
 import assistenteRoutes from './routes/assistente.js';
+import traducoesRoutes  from './routes/traducoes.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -49,6 +50,7 @@ app.use('/api/dragoes',  dragaoRoutes);
 app.use('/api/pesquisas', pesquisaRoutes);
 app.use('/api/reinos',      reinoRoutes);
 app.use('/api/assistente', assistenteRoutes);
+app.use('/api/traducoes',  traducoesRoutes);
 
 // ── Painel Admin (HTML estático) ─────────────────────────────────────────────
 app.use('/admin', express.static(join(__dirname, 'admin')));

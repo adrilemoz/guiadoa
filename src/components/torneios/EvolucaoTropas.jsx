@@ -6,10 +6,10 @@ const STORAGE_KEY = 'doa_evolucao_tropas';
 const COR         = '#C87A2C';
 
 const FOSSEIS = [
-  { key: 'crepusculo1', label: 'Fóssil Crepúsculo 1', emoji: '🌅', pts: 10, cor: '#C87A2C' },
-  { key: 'crepusculo2', label: 'Fóssil Crepúsculo 2', emoji: '🌄', pts: 10, cor: '#A85A20' },
-  { key: 'anciao1',     label: 'Fóssil Ancião 1',     emoji: '🦴', pts: 10, cor: '#5A8A5C' },
-  { key: 'anciao2',     label: 'Fóssil Ancião 2',     emoji: '💎', pts: 10, cor: '#8B6BAE' },
+  { key: 'crepusculo1', label: 'Fóssil Crepúsculo 1', emoji: '🌅', cor: '#C87A2C' },
+  { key: 'crepusculo2', label: 'Fóssil Crepúsculo 2', emoji: '🌄', cor: '#A85A20' },
+  { key: 'anciao1',     label: 'Fóssil Ancião 1',     emoji: '🦴', cor: '#5A8A5C' },
+  { key: 'anciao2',     label: 'Fóssil Ancião 2',     emoji: '💎', cor: '#8B6BAE' },
 ];
 
 const fmtN = n => Number(n || 0).toLocaleString('pt-BR');
@@ -29,7 +29,7 @@ const EvolucaoTropas = () => {
     setQtds(q => ({ ...q, [key]: value.replace(/\D/g, '') }));
 
   const ptsDosItens = useMemo(
-    () => FOSSEIS.reduce((acc, f) => acc + (parseInt(qtds[f.key]) || 0) * f.pts, 0),
+    () => FOSSEIS.reduce((acc, f) => acc + Math.floor((parseInt(qtds[f.key]) || 0) / 10), 0),
     [qtds]
   );
   const ptsPos     = parseInt(ptsPossuidos.replace(/\D/g, '')) || 0;
@@ -109,7 +109,7 @@ const EvolucaoTropas = () => {
       <div className="grid grid-cols-2 gap-2 mb-3">
         {FOSSEIS.map(f => {
           const qtd  = parseInt(qtds[f.key]) || 0;
-          const soma = qtd * f.pts;
+          const soma = Math.floor(qtd / 10);
           const ativo = soma > 0;
           return (
             <div key={f.key}
@@ -134,7 +134,7 @@ const EvolucaoTropas = () => {
                 </p>
                 <p className="font-nunito font-semibold text-[0.58rem] m-0 mt-0.5 text-center"
                   style={{ color: f.cor, fontWeight: 800 }}>
-                  {fmtN(f.pts)} pts/un.
+                  10 itens = 1 pt
                 </p>
               </div>
 
@@ -182,7 +182,7 @@ const EvolucaoTropas = () => {
         </div>
         <div className="px-4 py-3" style={{ background: C.BG_CARD }}>
           {[
-            { icon: '⭐', text: 'O torneio consiste em usar Fósseis para evoluir as tropas. Cada fóssil utilizado vale 10 pontos.' },
+            { icon: '⭐', text: 'O torneio consiste em usar Fósseis para evoluir as tropas. A cada 10 fósseis utilizados você ganha 1 ponto.' },
             { icon: '🗺️', text: 'Para conseguir os fósseis, ataque Antropos do nível 1 ao 10 e colete Lembranças Antigas como recompensa.' },
             { icon: '🛒', text: 'Acesse a Loja de Surpresas e realize a troca das Lembranças Antigas pelos fósseis desejados.' },
             { icon: '🎁', text: 'Também é possível obter fósseis em eventos especiais e torneios ao longo da semana.' },

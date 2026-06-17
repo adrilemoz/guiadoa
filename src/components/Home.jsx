@@ -6,7 +6,10 @@ import ProfileForm  from './ProfileLogin/ProfileForm.jsx';
 import AlertaModal  from './shared/AlertaModal.jsx';
 import Toast        from '../ui/Toast.jsx';
 import { C } from '../theme.js';
-import AssistenteTatico from './AssistenteTatico.jsx';
+import AssistenteTatico  from './AssistenteTatico.jsx';
+import ColorTextBuilder  from './colorbuilder/index.jsx';
+import { useI18n, LocaleSwitcher } from '../hooks/useI18n.jsx';
+import ConfiguracoesIdioma from './ProfileLogin/ConfiguracoesIdioma.jsx';
 
 const useServerClock = () => {
   const [hora, setHora] = useState(() => {
@@ -25,19 +28,21 @@ const useServerClock = () => {
   return hora;
 };
 
-const FERRAMENTAS = [
-  { id: 'torneios',  icon: '🏆', title: 'Torneios',    sub: 'Metas & rankings',   cor: '#C87A2C' },
-  { id: 'tropas',    icon: '⚔️',  title: 'Tropas',      sub: 'Enciclopédia',       cor: '#5C7FA3' },
-  { id: 'dragoes',   icon: '🐉',  title: 'Dragões',     sub: 'Evolução & poder',   cor: '#5A8A5C' },
-  { id: 'edificios', icon: '🏗️',  title: 'Construções', sub: 'Níveis & efeitos',   cor: '#8B6BAE' },
-  { id: 'itens',     icon: '🎒',  title: 'Itens',       sub: 'Armazém',            cor: '#A07040' },
-  { id: 'niveis',    icon: '🏰',  title: 'Níveis',      sub: 'Tabela de XP',       cor: '#3B7A8C' },
-  { id: 'ilhas',     icon: '🏝️',  title: 'Cidade',      sub: 'Sua ilha',           cor: '#4A8A6A' },
-  { id: 'pesquisas', icon: '🔬',  title: 'Pesquisas',   sub: 'Centro de Ciência',  cor: '#5A8A7A' },
-  { id: 'sobre',     icon: 'ℹ️',  title: 'Info',        sub: 'Sobre o app',        cor: '#7A6A5A' },
+// id prefixado com 'modal:' → abre modal interno (não muda de rota)
+const FERRAMENTAS_DEF = [
+  { id: 'torneios',            icon: '🏆', tKey: 'home.botao.torneios',      subKey: 'home.botao.torneios.sub',      cor: '#C87A2C' },
+  { id: 'tropas',              icon: '⚔️',  tKey: 'home.botao.tropas',        subKey: 'home.botao.tropas.sub',        cor: '#5C7FA3' },
+  { id: 'dragoes',             icon: '🐉',  tKey: 'home.botao.dragoes',       subKey: 'home.botao.dragoes.sub',       cor: '#5A8A5C' },
+  { id: 'edificios',           icon: '🏗️',  tKey: 'home.botao.edificios',     subKey: 'home.botao.edificios.sub',     cor: '#8B6BAE' },
+  { id: 'itens',               icon: '🎒',  tKey: 'home.botao.itens',         subKey: 'home.botao.itens.sub',         cor: '#A07040' },
+  { id: 'niveis',              icon: '🏰',  tKey: 'home.botao.niveis',        subKey: 'home.botao.niveis.sub',        cor: '#3B7A8C' },
+  { id: 'ilhas',               icon: '🏝️',  tKey: 'home.botao.ilhas',         subKey: 'home.botao.ilhas.sub',         cor: '#4A8A6A' },
+  { id: 'pesquisas',           icon: '🔬',  tKey: 'home.botao.pesquisas',     subKey: 'home.botao.pesquisas.sub',     cor: '#5A8A7A' },
+  { id: 'sobre',               icon: 'ℹ️',  tKey: 'home.botao.sobre',         subKey: 'home.botao.sobre.sub',         cor: '#7A6A5A' },
+  { id: 'modal:color_builder', icon: '🎨',  tKey: 'home.botao.texto_colorido', subKey: 'home.botao.texto_colorido.sub', cor: '#9B59B6' },
 ];
 
-const Divider = ({ label }) => (
+const Divider = ({ label, extra }) => (
   <div className="flex items-center gap-1.5" style={{ padding: '8px 0 5px' }}>
     <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg,transparent,${C.BORDER})`, opacity: 0.3 }} />
     <span style={{ color: C.ACCENT, fontSize: '0.72rem' }}>◆</span>
@@ -46,6 +51,7 @@ const Divider = ({ label }) => (
     </span>
     <span style={{ color: C.ACCENT, fontSize: '0.72rem' }}>◆</span>
     <div style={{ flex: 1, height: 1, background: `linear-gradient(270deg,transparent,${C.BORDER})`, opacity: 0.3 }} />
+    {extra && <div style={{ flexShrink: 0 }}>{extra}</div>}
   </div>
 );
 
@@ -55,6 +61,9 @@ const Home = ({ setRoute }) => {
   const [alertaModal, setAlertaModal] = useState({ open: false, msg: '' });
   const { toast, closeToast }         = useToast();
   const horaServidor                  = useServerClock();
+  const [modalExtra,  setModalExtra]  = useState(null);
+  const [verIdioma,   setVerIdioma]   = useState(false);
+  const { t }                         = useI18n();
 
   const playerId = profile?.playerId || null;
   const [idCopiado, setIdCopiado] = useState(false);
@@ -109,19 +118,31 @@ const Home = ({ setRoute }) => {
           >
             ◆ Quartel-General ◆
           </span>
-          <button
-            onClick={() => { clearProfile(); setProfile(null); }}
-            className="flex items-center justify-center rounded-md"
-            style={{
-              width: 28, height: 28,
-              background: 'transparent', cursor: 'pointer',
-              border: '1px solid rgba(200,168,74,0.28)',
-              color: 'rgba(248,242,224,0.45)', fontSize: '0.9rem',
-            }}
-            title="Sair"
-          >
-            ⎋
-          </button>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {/* Botão de idioma */}
+            <button
+              onClick={() => setVerIdioma(true)}
+              className="flex items-center justify-center rounded-md"
+              style={{
+                width: 28, height: 28,
+                background: 'transparent', cursor: 'pointer',
+                border: '1px solid rgba(200,168,74,0.28)',
+                color: 'rgba(248,242,224,0.55)', fontSize: '0.85rem',
+              }}
+              title="Idioma / Language"
+            >🌐</button>
+            <button
+              onClick={() => { clearProfile(); setProfile(null); }}
+              className="flex items-center justify-center rounded-md"
+              style={{
+                width: 28, height: 28,
+                background: 'transparent', cursor: 'pointer',
+                border: '1px solid rgba(200,168,74,0.28)',
+                color: 'rgba(248,242,224,0.45)', fontSize: '0.9rem',
+              }}
+              title="Sair"
+            >⎋</button>
+          </div>
         </div>
 
         {/* Corpo: avatar + nome/tags + divider + relógio */}
@@ -234,13 +255,16 @@ const Home = ({ setRoute }) => {
 
       {/* ── ARSENAL ──────────────────────────────────────────────────────── */}
       <div style={{ padding: '0 8px', animation: 'reveal-up 0.4s 0.14s ease both' }}>
-        <Divider label="Arsenal do Quartel" />
+        <Divider label={t('home.arsenal.titulo')} extra={<LocaleSwitcher />} />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
-          {FERRAMENTAS.map((tool, i) => (
+          {FERRAMENTAS_DEF.map((tool, i) => (
             <button
               key={tool.id}
-              onClick={() => setRoute(tool.id)}
+              onClick={() => {
+                if (tool.id.startsWith('modal:')) setModalExtra(tool.id.replace('modal:', ''));
+                else setRoute(tool.id);
+              }}
               style={{
                 background: C.BG_CARD,
                 border: '1.5px solid rgba(200,168,74,0.22)',
@@ -278,28 +302,18 @@ const Home = ({ setRoute }) => {
                 marginBottom: 8,
                 boxShadow: `0 2px 10px ${tool.cor}25`,
               }}>
-                <span style={{
-                  fontSize: '2rem', lineHeight: 1,
-                  filter: `drop-shadow(0 1px 4px ${tool.cor}55)`,
-                }}>
+                <span style={{ fontSize: '2rem', lineHeight: 1, filter: `drop-shadow(0 1px 4px ${tool.cor}55)` }}>
                   {tool.icon}
                 </span>
               </div>
 
-              {/* Título — Cinzel (igual ao Sobre) */}
-              <span
-                className="font-cinzel font-bold"
-                style={{ fontSize: '0.75rem', color: C.TEXT_PRIMARY, lineHeight: 1.2, letterSpacing: '0.3px' }}
-              >
-                {tool.title}
+              <span className="font-cinzel font-bold"
+                style={{ fontSize: '0.75rem', color: C.TEXT_PRIMARY, lineHeight: 1.2, letterSpacing: '0.3px' }}>
+                {t(tool.tKey)}
               </span>
-
-              {/* Subtítulo — Nunito (igual ao Sobre) */}
-              <span
-                className="font-nunito font-semibold"
-                style={{ fontSize: '0.62rem', color: C.TEXT_MUTED, marginTop: 3 }}
-              >
-                {tool.sub}
+              <span className="font-nunito font-semibold"
+                style={{ fontSize: '0.62rem', color: C.TEXT_MUTED, marginTop: 3 }}>
+                {t(tool.subKey)}
               </span>
             </button>
           ))}
@@ -307,10 +321,23 @@ const Home = ({ setRoute }) => {
 
         {/* ── CONSELHEIRO TÁTICO ─────────────────────────────────────── */}
         <div style={{ marginTop: 12 }}>
-          <Divider label="Conselheiro Tático" />
+          <Divider label={t('home.conselheiro.titulo')} />
           <AssistenteTatico />
         </div>
+
       </div>
+
+      {/* ── MODAL EXTRAS ─────────────────────────────────────────────── */}
+      {modalExtra === 'color_builder' && (
+        <ColorTextBuilder onClose={() => setModalExtra(null)} />
+      )}
+
+      {/* ── TELA DE IDIOMA ───────────────────────────────────────────────── */}
+      {verIdioma && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }}>
+          <ConfiguracoesIdioma onVoltar={() => setVerIdioma(false)} />
+        </div>
+      )}
     </div>
   );
 };
