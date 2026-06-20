@@ -31,6 +31,8 @@ const ptBR = {
   'home.botao.pesquisas.sub': 'Centro de Ciência',
   'home.botao.sobre':         'Info',
   'home.botao.sobre.sub':     'Sobre o app',
+  'home.botao.dicas':         'Dicas',
+  'home.botao.dicas.sub':     'Guias e tutoriais',
   'home.botao.texto_colorido':     'Texto Colorido',
   'home.botao.texto_colorido.sub': 'Builder de cores',
 

@@ -37,5 +37,6 @@ const DragaoSchema = new mongoose.Schema({
   atualizadoEm: { type: Date, default: Date.now },
 }, { collection: 'doa_dragoes' });
 
-// slug já tem unique:true no campo — índice explícito removido para evitar duplicata
+DragaoSchema.index({ slug: 1 }, { unique: true });
+
 export default mongoose.model('Dragao', DragaoSchema);

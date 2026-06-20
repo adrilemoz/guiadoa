@@ -19,8 +19,20 @@ export const SUGGEST_PALETTES = [
   ['FF0080','FF4040','FF8000','FFD700','80FF00','00FF80'],
   ['8A2BE2','9932CC','DA70D6','FF69B4','FFB6C1','FFFFFF'],
   ['1E90FF','00BFFF','00FA9A','7FFF00','FFD700','FF4500'],
+  ['FF0000','FF7F00','FFFF00','00FF00','0000FF','8B00FF'],
+  ['FFD700','FFA500','FF8C00','FF4500','DC143C','8B0000'],
+  ['00FFFF','00CED1','1E90FF','4169E1','8A2BE2','FF00FF'],
+  ['FF69B4','FF1493','C71585','9932CC','8A2BE2','4B0082'],
+  ['39FF14','7FFF00','ADFF2F','FFFF00','FFD700','FFA500'],
+  ['FFFFFF','C0C0C0','808080','404040','000000','FF0000'],
+  ['F4A460','D2691E','8B4513','A0522D','CD853F','DEB887'],
+  ['009639','FEDF00','002776','FFFFFF','009639','FEDF00'],
 ];
-export const SUGGEST_NAMES = ['Arco-íris','Pares','Gradiente','Roxo ✦','Oceano'];
+export const SUGGEST_NAMES = [
+  'Arco-íris', 'Pares', 'Gradiente', 'Roxo ✦', 'Oceano',
+  'Vibrante', 'Pôr do sol', 'Neon', 'Pink Power', 'Tóxico',
+  'Mono PB', 'Terroso', '🇧🇷 Brasil',
+];
 
 // ─── Kaomoji (30) ─────────────────────────────────────────────────────────────
 export const KAOMOJI = [
@@ -54,30 +66,30 @@ export const SYM_CATS = [
 // ─── Bandeiras (25) ───────────────────────────────────────────────────────────
 export const FLAGS = [
   // Europa
-  { name:'França',          emoji:'🇫🇷', stripes:['002654','FFFFFF','ED2939'] },
-  { name:'Itália',          emoji:'🇮🇹', stripes:['009246','FFFFFF','CE2B37'] },
+  { name:'França',          emoji:'🇫🇷', stripes:['0055A4','FFFFFF','EF4135'] },
+  { name:'Itália',          emoji:'🇮🇹', stripes:['009246','F1F2F1','CE2B37'] },
   { name:'Alemanha',        emoji:'🇩🇪', stripes:['000000','DD0000','FFCE00'], note:'Horizontal — pode usar na vertical em chats que não diferenciam' },
-  { name:'Bélgica',         emoji:'🇧🇪', stripes:['000000','FAE042','EF3340'] },
+  { name:'Bélgica',         emoji:'🇧🇪', stripes:['000000','FFD90C','EF3340'] },
   { name:'Irlanda',         emoji:'🇮🇪', stripes:['169B62','FFFFFF','FF883E'] },
   { name:'Países Baixos',   emoji:'🇳🇱', stripes:['AE1C28','FFFFFF','21468B'], note:'Horizontal — vermelho/branco/azul' },
-  { name:'Luxemburgo',      emoji:'🇱🇺', stripes:['EF3340','FFFFFF','00A3E0'] },
+  { name:'Luxemburgo',      emoji:'🇱🇺', stripes:['ED2939','FFFFFF','00A1DE'] },
   { name:'Romênia',         emoji:'🇷🇴', stripes:['002B7F','FCD116','CE1126'] },
-  { name:'Andorra',         emoji:'🇦🇩', stripes:['0032A0','FFDA00','C7B37F'], note:'Simplificado — brasão omitido' },
-  { name:'Moldávia',        emoji:'🇲🇩', stripes:['003DA5','FFD200','CC0001'], note:'Simplificado — brasão omitido' },
+  { name:'Andorra',         emoji:'🇦🇩', stripes:['0018A8','FEDD00','D50032'], note:'Simplificado — brasão omitido' },
+  { name:'Moldávia',        emoji:'🇲🇩', stripes:['003DA5','FFD200','CC092F'], note:'Simplificado — brasão omitido' },
   // Américas
   { name:'México',          emoji:'🇲🇽', stripes:['006847','FFFFFF','CE1126'], note:'Simplificado — emblema omitido' },
   { name:'Colômbia',        emoji:'🇨🇴', stripes:['FCD116','003087','CE1126'], note:'Proporcional: amarelo=2x, azul e vermelho=1x' },
-  { name:'Venezuela',       emoji:'🇻🇪', stripes:['CF142B','003087','009A44'], note:'Versão vertical simplificada' },
+  { name:'Venezuela',       emoji:'🇻🇪', stripes:['FFCC00','203484','CF142B'], note:'Faixas amarelo/azul/vermelho — versão vertical simplificada, sem estrelas e brasão' },
   { name:'Peru',            emoji:'🇵🇪', stripes:['D91023','FFFFFF','D91023'], note:'Simplificado — brasão omitido' },
   { name:'Canadá',          emoji:'🇨🇦', stripes:['FF0000','FFFFFF','FF0000'], note:'Simplificado — folha omitida' },
-  { name:'El Salvador',     emoji:'🇸🇻', stripes:['0F47AF','FFFFFF','0F47AF'], note:'Versão simplificada vertical' },
+  { name:'El Salvador',     emoji:'🇸🇻', stripes:['0047AB','FFFFFF','0047AB'], note:'Versão simplificada vertical' },
   { name:'Guiné',           emoji:'🇬🇳', stripes:['CE1126','FCD116','009460'] },
   // África
-  { name:'Mali',            emoji:'🇲🇱', stripes:['14B53A','FFFFFF','CE1126'] },
-  { name:'Senegal',         emoji:'🇸🇳', stripes:['00853F','FDEF42','E31B23'], note:'Simplificado — estrela omitida' },
+  { name:'Mali',            emoji:'🇲🇱', stripes:['14B53A','FCD116','CE1126'] },
+  { name:'Senegal',         emoji:'🇸🇳', stripes:['00853F','FDEF42','E31B1D'], note:'Simplificado — estrela omitida' },
   { name:'Camarões',        emoji:'🇨🇲', stripes:['007A5E','CE1126','FCD116'], note:'Simplificado — estrela omitida' },
-  { name:'Costa do Marfim', emoji:'🇨🇮', stripes:['F77F00','FFFFFF','009A44'] },
-  { name:'Guiné-Bissau',    emoji:'🇬🇼', stripes:['CE1126','FCD116','009460'], note:'Simplificado — estrela omitida' },
+  { name:'Costa do Marfim', emoji:'🇨🇮', stripes:['F77F00','FFFFFF','009E60'] },
+  { name:'Guiné-Bissau',    emoji:'🇬🇼', stripes:['CE1126','FCD116','009E49'], note:'Simplificado — estrela omitida' },
   { name:'Chade',           emoji:'🇹🇩', stripes:['002664','FECB00','C60C30'] },
   // Ásia
   { name:'Emirados Árabes', emoji:'🇦🇪', stripes:['00732F','FFFFFF','FF0000'], note:'Simplificado — barra vermelha vertical' },
@@ -103,17 +115,24 @@ export const MODOS = [
     cor: '#9B59B6',
   },
   {
+    id: 'emoticons',
+    icon: '😄',
+    title: 'Emoticons',
+    desc: 'Kaomoji japoneses e ASCII emoticons para inserir no texto.',
+    cor: '#E67E22',
+  },
+  {
+    id: 'simbolos',
+    icon: '✦',
+    title: 'Símbolos',
+    desc: 'Corações, estrelas, flores, formas, setas e muito mais.',
+    cor: '#27AE60',
+  },
+  {
     id: 'bandeiras',
     icon: '🏳',
     title: 'Bandeiras',
     desc: 'Bandeiras coloridas com listras verticais prontas para copiar.',
     cor: '#2980B9',
-  },
-  {
-    id: 'fontes',
-    icon: '𝓐',
-    title: 'Fontes & Estilos',
-    desc: 'Converta seu texto em 38 estilos Unicode: gótico, cursivo, duplo contorno, circulado, leet e muito mais.',
-    cor: '#C0392B',
   },
 ];

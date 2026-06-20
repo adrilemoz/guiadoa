@@ -315,9 +315,10 @@ const MODULOS = [
   { id:'itens',     icon:'🎒',  label:'Itens',      desc:'Criar e gerenciar itens do jogo',  ativo:true,  badge:'novo'  },
   { id:'reinos',    icon:'🌍',  label:'Reinos',     desc:'Reinos, fusos e idiomas',          ativo:true,  badge:'novo'  },
   { id:'torneios',  icon:'🏆',  label:'Torneios',   desc:'Metas e configurações',            ativo:false, badge:'breve' },
-  { id:'pesquisas',  icon:'🔬',  label:'Pesquisas',   desc:'Centro de Ciência e pesquisas',    ativo:true,  badge:'novo'  },
-  { id:'ilhas',      icon:'🏝️',  label:'Ilhas',       desc:'Produção e territórios',           ativo:false, badge:'breve' },
-  { id:'traducoes',  icon:'🌐',  label:'Traduções',   desc:'Gerenciar idiomas e textos do app', ativo:true,  badge:'novo'  },
+  { id:'pesquisas', icon:'🔬',  label:'Pesquisas',  desc:'Centro de Ciência e pesquisas',    ativo:true,  badge:'novo'  },
+  { id:'ilhas',     icon:'🏝️',  label:'Ilhas',      desc:'Produção e territórios',           ativo:false, badge:'breve' },
+  { id:'traducoes', icon:'🌐',  label:'Traduções',   desc:'Gerenciar idiomas e textos do app', ativo:true,  badge:'novo'  },
+  { id:'dicas',     icon:'💡',  label:'Dicas',        desc:'Tutoriais e guias da comunidade',   ativo:true,  badge:'novo'  },
 ];
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -610,6 +611,7 @@ function irModulo(id) {
   if (id === 'pesquisas') { carregarPesquisas(); }
   if (id === 'reinos')    { carregarReinos(); }
   if (id === 'traducoes') { carregarTraducoes(); }
+  if (id === 'dicas')     { carregarDicas(); }
 }
 
 function setBreadcrumb(items) {
@@ -2817,444 +2819,931 @@ async function seedReinos() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// TRADUÇÕES
+// TRADUÇÕES — por categorias
 // ══════════════════════════════════════════════════════════════════════════════
 
-function esc(str='') {
-  return String(str)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-function setLoading(msg='Carregando…') {
-  document.getElementById('content').innerHTML =
-    `<div class="loading"><span class="spinner"></span> ${msg}</div>`;
-}
+function esc(s=''){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function setLoading(msg='Carregando…'){document.getElementById('content').innerHTML=`<div class="loading"><span class="spinner"></span> ${msg}</div>`;}
 
-const CHAVES_HOME = [
-  { chave:'home.saudacao.bom_dia',        textoPT:'Bom dia'               },
-  { chave:'home.saudacao.boa_tarde',       textoPT:'Boa tarde'             },
-  { chave:'home.saudacao.boa_noite',       textoPT:'Boa noite'             },
-  { chave:'home.saudacao.comandante',      textoPT:'Comandante'            },
-  { chave:'home.saudacao.aviso',           textoPT:'Sua aliança conta com você.' },
-  { chave:'home.arsenal.titulo',           textoPT:'Arsenal'               },
-  { chave:'home.botao.torneios',           textoPT:'Torneios'              },
-  { chave:'home.botao.torneios.sub',       textoPT:'Metas & rankings'      },
-  { chave:'home.botao.tropas',             textoPT:'Tropas'                },
-  { chave:'home.botao.tropas.sub',         textoPT:'Enciclopédia'          },
-  { chave:'home.botao.dragoes',            textoPT:'Dragões'               },
-  { chave:'home.botao.dragoes.sub',        textoPT:'Evolução & poder'      },
-  { chave:'home.botao.edificios',          textoPT:'Construções'           },
-  { chave:'home.botao.edificios.sub',      textoPT:'Níveis & efeitos'      },
-  { chave:'home.botao.itens',              textoPT:'Itens'                 },
-  { chave:'home.botao.itens.sub',          textoPT:'Armazém'               },
-  { chave:'home.botao.niveis',             textoPT:'Níveis'                },
-  { chave:'home.botao.niveis.sub',         textoPT:'Tabela de XP'          },
-  { chave:'home.botao.ilhas',              textoPT:'Cidade'                },
-  { chave:'home.botao.ilhas.sub',          textoPT:'Sua ilha'              },
-  { chave:'home.botao.pesquisas',          textoPT:'Pesquisas'             },
-  { chave:'home.botao.pesquisas.sub',      textoPT:'Centro de Ciência'     },
-  { chave:'home.botao.sobre',              textoPT:'Info'                  },
-  { chave:'home.botao.sobre.sub',          textoPT:'Sobre o app'           },
-  { chave:'home.botao.texto_colorido',     textoPT:'Texto Colorido'        },
-  { chave:'home.botao.texto_colorido.sub', textoPT:'Builder de cores'      },
-  { chave:'home.conselheiro.titulo',       textoPT:'Conselheiro Tático'    },
-  { chave:'home.hora.servidor',            textoPT:'Hora do servidor'      },
-  { chave:'home.hora.local',               textoPT:'Hora local'            },
-  { chave:'home.perfil.editar',            textoPT:'Editar perfil'         },
-  { chave:'home.perfil.sair',              textoPT:'Sair'                  },
-  { chave:'home.perfil.reino',             textoPT:'Reino'                 },
-  { chave:'home.perfil.alianca',           textoPT:'Aliança'               },
-  { chave:'home.perfil.poder',             textoPT:'Poder'                 },
+const TR_CATEGORIAS = [
+  {
+    id:'home', icon:'🏠', label:'Home', cor:'#C8A84A',
+    desc:'Saudações, botões da grade, perfil e labels gerais',
+    chaves:[
+      {chave:'home.saudacao.bom_dia',        textoPT:'Bom dia'},
+      {chave:'home.saudacao.boa_tarde',       textoPT:'Boa tarde'},
+      {chave:'home.saudacao.boa_noite',       textoPT:'Boa noite'},
+      {chave:'home.saudacao.comandante',      textoPT:'Comandante'},
+      {chave:'home.saudacao.aviso',           textoPT:'Sua aliança conta com você.'},
+      {chave:'home.arsenal.titulo',           textoPT:'Arsenal'},
+      {chave:'home.botao.torneios',           textoPT:'Torneios'},
+      {chave:'home.botao.torneios.sub',       textoPT:'Metas & rankings'},
+      {chave:'home.botao.tropas',             textoPT:'Tropas'},
+      {chave:'home.botao.tropas.sub',         textoPT:'Enciclopédia'},
+      {chave:'home.botao.dragoes',            textoPT:'Dragões'},
+      {chave:'home.botao.dragoes.sub',        textoPT:'Evolução & poder'},
+      {chave:'home.botao.edificios',          textoPT:'Construções'},
+      {chave:'home.botao.edificios.sub',      textoPT:'Níveis & efeitos'},
+      {chave:'home.botao.itens',              textoPT:'Itens'},
+      {chave:'home.botao.itens.sub',          textoPT:'Armazém'},
+      {chave:'home.botao.niveis',             textoPT:'Níveis'},
+      {chave:'home.botao.niveis.sub',         textoPT:'Tabela de XP'},
+      {chave:'home.botao.ilhas',              textoPT:'Cidade'},
+      {chave:'home.botao.ilhas.sub',          textoPT:'Sua ilha'},
+      {chave:'home.botao.pesquisas',          textoPT:'Pesquisas'},
+      {chave:'home.botao.pesquisas.sub',      textoPT:'Centro de Ciência'},
+      {chave:'home.botao.sobre',              textoPT:'Info'},
+      {chave:'home.botao.sobre.sub',          textoPT:'Sobre o app'},
+      {chave:'home.botao.texto_colorido',     textoPT:'Texto Colorido'},
+      {chave:'home.botao.texto_colorido.sub', textoPT:'Builder de cores'},
+      {chave:'home.conselheiro.titulo',       textoPT:'Conselheiro Tático'},
+      {chave:'home.hora.servidor',            textoPT:'Hora do servidor'},
+      {chave:'home.hora.local',               textoPT:'Hora local'},
+      {chave:'home.perfil.editar',            textoPT:'Editar perfil'},
+      {chave:'home.perfil.sair',              textoPT:'Sair'},
+      {chave:'home.perfil.reino',             textoPT:'Reino'},
+      {chave:'home.perfil.alianca',           textoPT:'Aliança'},
+      {chave:'home.perfil.poder',             textoPT:'Poder'},
+    ],
+  },
+  {
+    id:'tropas', icon:'⚔️', label:'Tropas', cor:'#5C7FA3',
+    desc:'Nomes e tipos das tropas',
+    dinamico:true, endpoint:'/tropas',
+    mapear: item => [
+      {chave:`tropa.${item.slug}.nome`,  textoPT:item.nome  || ''},
+      {chave:`tropa.${item.slug}.tipo`,  textoPT:item.tipo  || ''},
+    ].filter(c=>c.textoPT),
+  },
+  {
+    id:'dragoes', icon:'🐉', label:'Dragões', cor:'#5A8A5C',
+    desc:'Nomes e elementos dos dragões',
+    dinamico:true, endpoint:'/dragoes',
+    mapear: item => [
+      {chave:`dragao.${item.slug}.nome`,     textoPT:item.nome     || ''},
+      {chave:`dragao.${item.slug}.elemento`, textoPT:item.elemento || ''},
+    ].filter(c=>c.textoPT),
+  },
+  {
+    id:'edificios', icon:'🏗️', label:'Construções', cor:'#8B6BAE',
+    desc:'Nomes dos edifícios',
+    dinamico:true, endpoint:'/edificios',
+    mapear: item => [
+      {chave:`edificio.${item.slug}.nome`, textoPT:item.nome || ''},
+    ].filter(c=>c.textoPT),
+  },
+  {
+    id:'pesquisas', icon:'🔬', label:'Pesquisas', cor:'#5A8A7A',
+    desc:'Nomes das pesquisas',
+    dinamico:true, endpoint:'/pesquisas',
+    mapear: item => [
+      {chave:`pesquisa.${item.slug}.nome`, textoPT:item.nome || ''},
+    ].filter(c=>c.textoPT),
+  },
+  {
+    id:'itens', icon:'🎒', label:'Itens', cor:'#A07040',
+    desc:'Nomes e categorias dos itens',
+    dinamico:true, endpoint:'/itens',
+    mapear: item => [
+      {chave:`item.${item.slug}.nome`,      textoPT:item.nome      || ''},
+      {chave:`item.${item.slug}.categoria`, textoPT:item.categoria || ''},
+    ].filter(c=>c.textoPT),
+  },
+  {
+    id:'torneios', icon:'🏆', label:'Torneios', cor:'#C87A2C',
+    desc:'Labels e nomes dos torneios',
+    chaves:[
+      {chave:'torneio.label.pontos',            textoPT:'Pontos'},
+      {chave:'torneio.label.total',             textoPT:'Total de Pontos'},
+      {chave:'torneio.label.possuidos',         textoPT:'Pontos já possuídos'},
+      {chave:'torneio.label.salvar',            textoPT:'Salvar'},
+      {chave:'torneio.label.como_funciona',     textoPT:'Como Funciona'},
+      {chave:'torneio.nome.aceleracoes',        textoPT:'Acelerações'},
+      {chave:'torneio.nome.treino_tropa',       textoPT:'Treino de Tropa'},
+      {chave:'torneio.nome.evolucao_tropas',    textoPT:'Evolução de Tropas'},
+      {chave:'torneio.nome.pocoes',             textoPT:'Poções'},
+      {chave:'torneio.nome.habilidade_dragao',  textoPT:'Habilidade do Dragão'},
+      {chave:'torneio.nome.treinamento_dragao', textoPT:'Treinamento do Dragão'},
+      {chave:'torneio.nome.matar_tropas',       textoPT:'Matar Tropas'},
+      {chave:'torneio.nome.alianca',            textoPT:'Aliança'},
+      {chave:'torneio.nome.conhecimento',       textoPT:'Conhecimento'},
+      {chave:'torneio.nome.poder',              textoPT:'Poder'},
+      {chave:'torneio.nome.general',            textoPT:'General'},
+      {chave:'torneio.nome.talisma',            textoPT:'Talisma'},
+    ],
+  },
 ];
 
+// Mapa: id da categoria → prefixo das chaves no banco
+const TR_PREFIX = {home:'home',tropas:'tropa',dragoes:'dragao',edificios:'edificio',pesquisas:'pesquisa',itens:'item',torneios:'torneio'};
+
 let TR_LOCALE  = 'en-US';
+let TR_CAT     = null;
 let TR_DADOS   = [];
 let TR_FILTRO  = 'todos';
-let TR_EXPAND  = null; // id do card expandido
+let TR_EXPAND  = null;
 
-function badgeTr(doc) {
-  if (!doc.traducao) return `<span class="tr-badge tr-badge-sem">Sem tradução</span>`;
-  const mp = {
-    rascunho:['tr-badge-rascunho','Rascunho'],
-    revisado:['tr-badge-revisado','Revisado'],
-    ativo:   ['tr-badge-ativo','✓ Ativo'],
-  };
-  const [cls,lbl] = mp[doc.status] || ['tr-badge-rascunho', doc.status];
+function badgeTr(doc){
+  if(!doc||!doc.traducao) return `<span class="tr-badge tr-badge-sem">Sem tradução</span>`;
+  const mp={rascunho:['tr-badge-rascunho','Rascunho'],revisado:['tr-badge-revisado','Revisado'],ativo:['tr-badge-ativo','✓ Ativo']};
+  const[cls,lbl]=mp[doc.status]||['tr-badge-rascunho',doc.status];
   return `<span class="tr-badge ${cls}">${lbl}</span>`;
 }
 
-function renderTraducoes() {
-  const filtrados = TR_FILTRO === 'sem'      ? TR_DADOS.filter(d=>!d.traducao)
-    : TR_FILTRO === 'rascunho' ? TR_DADOS.filter(d=>d.status==='rascunho')
-    : TR_FILTRO === 'revisado' ? TR_DADOS.filter(d=>d.status==='revisado')
-    : TR_FILTRO === 'ativo'    ? TR_DADOS.filter(d=>d.status==='ativo')
+const TR_CSS=`<style>
+.tr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:16px}
+.tr-cat-card{background:var(--card);border:1.5px solid rgba(200,168,74,0.2);border-radius:14px;
+  padding:18px 16px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;gap:7px}
+.tr-cat-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.12)}
+.tr-cat-bar{position:absolute;top:0;left:0;right:0;height:3px}
+.tr-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  background:var(--card);border:1.5px solid rgba(200,168,74,0.2);
+  border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.tr-filtros{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.tr-filtro{font-size:0.68rem;padding:3px 12px;border-radius:100px;
+  border:1.5px solid rgba(200,168,74,0.25);background:transparent;
+  color:var(--muted);cursor:pointer;font-family:inherit;
+  letter-spacing:0.05em;text-transform:uppercase;transition:all 0.12s}
+.tr-filtro.on{background:linear-gradient(135deg,#2A4C72,#1C3A5E);
+  color:rgba(200,168,74,0.9);border-color:rgba(200,168,74,0.5)}
+.tr-cards{display:flex;flex-direction:column;gap:6px}
+.tr-card{background:var(--card);border:1.5px solid rgba(200,168,74,0.2);
+  border-radius:12px;overflow:hidden;transition:border-color 0.15s}
+.tr-card:hover{border-color:rgba(200,168,74,0.4)}
+.tr-card-head{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none}
+.tr-card-head:hover{background:rgba(200,168,74,0.04)}
+.tr-col{flex:1;min-width:0}
+.tr-col .lbl{font-size:0.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px}
+.tr-col .val{font-size:0.88rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-col .val.en{color:var(--text)}
+.tr-col .val.vazio{color:#A83C2C;font-style:italic;opacity:0.7}
+.tr-chevron{font-size:0.8rem;color:var(--muted);flex-shrink:0;transition:transform 0.2s}
+.tr-chevron.open{transform:rotate(90deg)}
+.tr-card-body{border-top:1px solid rgba(200,168,74,0.15);padding:14px;background:rgba(200,168,74,0.02)}
+.tr-chave-tag{font-family:monospace;font-size:0.68rem;color:var(--muted);
+  background:rgba(0,0,0,0.04);padding:3px 8px;border-radius:5px;
+  display:inline-block;margin-bottom:10px;word-break:break-all}
+.tr-field{margin-bottom:10px}
+.tr-field label{display:block;font-size:0.62rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.1em;margin-bottom:5px}
+.tr-field input{width:100%;background:var(--bg);
+  border:1.5px solid rgba(200,168,74,0.3);border-radius:8px;
+  color:var(--text);padding:8px 12px;font-size:0.85rem;
+  font-family:inherit;outline:none;transition:border-color 0.15s;box-sizing:border-box}
+.tr-field input:focus{border-color:var(--gold)}
+.tr-field input[readonly]{opacity:0.6;cursor:default;background:rgba(0,0,0,0.03)}
+.tr-acoes{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px}
+.tr-btn{border-radius:7px;padding:6px 12px;cursor:pointer;font-size:0.72rem;
+  font-family:inherit;font-weight:600;letter-spacing:0.04em;transition:all 0.13s;border:1.5px solid}
+.tr-btn-auto{background:rgba(184,134,11,0.12);color:#B8860B;border-color:rgba(184,134,11,0.35)}
+.tr-btn-save{background:linear-gradient(135deg,#2A4C72,#1C3A5E);color:rgba(200,168,74,0.95);border-color:rgba(200,168,74,0.4)}
+.tr-btn-rev{background:rgba(46,125,82,0.12);color:#2E7D52;border-color:rgba(46,125,82,0.35)}
+.tr-btn-ativ{background:rgba(28,58,94,0.1);color:#2A4C72;border-color:rgba(28,58,94,0.3)}
+.tr-btn-ativ.on{background:linear-gradient(135deg,#2A4C72,#1C3A5E);color:rgba(200,168,74,0.9)}
+.tr-badge{display:inline-flex;align-items:center;font-size:0.62rem;padding:2px 8px;
+  border-radius:100px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;
+  white-space:nowrap;border:1px solid;flex-shrink:0}
+.tr-badge-sem{background:rgba(168,60,44,0.12);color:#A83C2C;border-color:rgba(168,60,44,0.3)}
+.tr-badge-rascunho{background:rgba(184,134,11,0.12);color:#B8860B;border-color:rgba(184,134,11,0.3)}
+.tr-badge-revisado{background:rgba(46,125,82,0.12);color:#2E7D52;border-color:rgba(46,125,82,0.3)}
+.tr-badge-ativo{background:rgba(28,58,94,0.12);color:#2A4C72;border-color:rgba(28,58,94,0.3)}
+.tr-diag{padding:10px 14px;border-radius:10px;font-size:0.75rem;margin-bottom:10px;line-height:1.6;border:1.5px solid}
+.tr-diag.ok{background:rgba(46,125,82,0.08);color:#2E7D52;border-color:rgba(46,125,82,0.3)}
+.tr-diag.erro{background:rgba(168,60,44,0.08);color:#A83C2C;border-color:rgba(168,60,44,0.3)}
+.tr-diag.aviso{background:rgba(184,134,11,0.08);color:#B8860B;border-color:rgba(184,134,11,0.3)}
+.tr-progress-bar{height:5px;background:rgba(200,168,74,0.12);border-radius:5px;overflow:hidden;margin:4px 0}
+.tr-progress-fill{height:100%;border-radius:5px;transition:width 0.4s}
+</style>`;
+
+// ── TELA 1: Grade de categorias ───────────────────────────────────────────────
+async function carregarTraducoes(){
+  TR_CAT=null; TR_DADOS=[]; TR_FILTRO='todos'; TR_EXPAND=null;
+  setLoading('Carregando categorias…');
+
+  // Busca todas as traduções para calcular stats por categoria
+  let statsMap={};
+  try{
+    const todos=await fetch(`${API}/traducoes/admin?locale=${TR_LOCALE}`,
+      {headers:{Authorization:`Bearer ${TOKEN}`}}).then(r=>r.json());
+    if(Array.isArray(todos)){
+      todos.forEach(d=>{
+        const prefix=d.chave.split('.')[0];
+        if(!statsMap[prefix]) statsMap[prefix]={total:0,ativo:0,sem:0};
+        statsMap[prefix].total++;
+        if(d.status==='ativo')  statsMap[prefix].ativo++;
+        if(!d.traducao)         statsMap[prefix].sem++;
+      });
+    }
+  }catch(e){/* stats são opcionais */}
+
+  document.getElementById('content').innerHTML = TR_CSS + `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <label style="font-size:0.72rem;color:var(--muted);font-weight:700;letter-spacing:0.08em;text-transform:uppercase">Idioma</label>
+      <select onchange="TR_LOCALE=this.value;carregarTraducoes()"
+        style="background:var(--bg);border:1.5px solid rgba(200,168,74,0.25);border-radius:8px;
+               color:var(--text);padding:6px 12px;font-size:0.82rem;cursor:pointer;outline:none">
+        <option value="en-US" ${TR_LOCALE==='en-US'?'selected':''}>🇺🇸 English (en-US)</option>
+      </select>
+      <button class="btn btn-navy btn-sm" onclick="testarAPITr()">🔍 Testar API de tradução</button>
+    </div>
+    <div id="tr-diag-box"></div>
+    <div class="tr-grid">
+      ${TR_CATEGORIAS.map(cat=>{
+        const prefix=TR_PREFIX[cat.id]||cat.id;
+        const st=statsMap[prefix]||{total:cat.chaves?.length||0,ativo:0,sem:cat.chaves?.length||0};
+        const pct=st.total?Math.round((st.ativo/st.total)*100):0;
+        const completo=st.total>0&&st.ativo===st.total;
+        return `<div class="tr-cat-card" onclick="abrirCategoria('${cat.id}')"
+          style="border-color:${completo?cat.cor+'70':'rgba(200,168,74,0.2)'}">
+          <div class="tr-cat-bar" style="background:linear-gradient(90deg,${cat.cor},${cat.cor}50)"></div>
+          <span style="font-size:2rem;line-height:1">${cat.icon}</span>
+          <span style="font-family:'Cinzel',serif;font-weight:700;font-size:0.88rem;color:var(--text)">${cat.label}</span>
+          <span style="font-size:0.7rem;color:var(--muted);line-height:1.4">${cat.desc}</span>
+          <div class="tr-progress-bar">
+            <div class="tr-progress-fill" style="width:${pct}%;background:${cat.cor}"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:0.62rem;color:var(--muted)">${st.ativo}/${st.total} ativos</span>
+            ${completo
+              ?`<span class="tr-badge tr-badge-ativo">✓ Completo</span>`
+              :st.sem>0
+                ?`<span class="tr-badge tr-badge-sem">${st.sem} sem</span>`
+                :`<span class="tr-badge" style="background:rgba(200,168,74,0.1);color:var(--muted);border-color:rgba(200,168,74,0.2)">0</span>`}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ── TELA 2: Lista da categoria ────────────────────────────────────────────────
+async function abrirCategoria(catId){
+  const cat=TR_CATEGORIAS.find(c=>c.id===catId);
+  if(!cat) return;
+  TR_CAT=cat; TR_FILTRO='todos'; TR_EXPAND=null;
+
+  setBreadcrumb([
+    {label:'🌐 Traduções', action:()=>carregarTraducoes()},
+    {label:`${cat.icon} ${cat.label}`},
+  ]);
+  setLoading(`Carregando ${cat.label}…`);
+
+  try{
+    // 1. Traduções existentes no banco
+    const todosBanco=await fetch(`${API}/traducoes/admin?locale=${TR_LOCALE}`,
+      {headers:{Authorization:`Bearer ${TOKEN}`}}).then(r=>r.json());
+
+    // 2. Chaves da categoria
+    let chavesDaCat=[];
+    if(cat.dinamico){
+      const resp=await fetch(`${API}${cat.endpoint}`,
+        {headers:{Authorization:`Bearer ${TOKEN}`}}).then(r=>r.json());
+      const lista=resp.items||resp.tropas||resp.dragoes||
+                  resp.edificios||resp.pesquisas||resp.itens||resp;
+      if(Array.isArray(lista)){
+        lista.forEach(item=>{ if(item.slug) chavesDaCat.push(...cat.mapear(item)); });
+      }
+    } else {
+      chavesDaCat=cat.chaves||[];
+    }
+
+    // 3. Mescla com o que existe no banco
+    TR_DADOS=chavesDaCat.map(c=>{
+      const existente=Array.isArray(todosBanco)?todosBanco.find(d=>d.chave===c.chave):null;
+      return existente||{_id:null,chave:c.chave,textoPT:c.textoPT,traducao:'',status:'rascunho',fonte:'manual'};
+    }).filter(d=>d.textoPT);
+
+    renderListaCategoria();
+  }catch(e){ toast('Erro: '+e.message,'erro'); carregarTraducoes(); }
+}
+
+function renderListaCategoria(){
+  const cat=TR_CAT;
+  if(!cat) return;
+
+  const filtrados = TR_FILTRO==='sem'      ? TR_DADOS.filter(d=>!d.traducao)
+    : TR_FILTRO==='rascunho' ? TR_DADOS.filter(d=>d.status==='rascunho'&&d.traducao)
+    : TR_FILTRO==='revisado' ? TR_DADOS.filter(d=>d.status==='revisado')
+    : TR_FILTRO==='ativo'    ? TR_DADOS.filter(d=>d.status==='ativo')
     : TR_DADOS;
 
-  const total    = TR_DADOS.length;
-  const rascunho = TR_DADOS.filter(d=>d.status==='rascunho').length;
-  const ativos   = TR_DADOS.filter(d=>d.status==='ativo').length;
-  const semTrad  = TR_DADOS.filter(d=>!d.traducao).length;
+  const total=TR_DADOS.length;
+  const ativos=TR_DADOS.filter(d=>d.status==='ativo').length;
+  const rascunho=TR_DADOS.filter(d=>d.status==='rascunho'&&d.traducao).length;
+  const semTrad=TR_DADOS.filter(d=>!d.traducao).length;
+  const pct=total?Math.round((ativos/total)*100):0;
 
-  const filtros  = ['todos','sem','rascunho','revisado','ativo'];
-  const fLabels  = {todos:`Todos (${total})`,sem:`Sem tradução (${semTrad})`,rascunho:`Rascunho (${rascunho})`,revisado:'Revisado',ativo:`Ativo (${ativos})`};
+  const filtros=['todos','sem','rascunho','revisado','ativo'];
+  const fLabels={todos:`Todos (${total})`,sem:`Sem tradução (${semTrad})`,
+    rascunho:`Rascunho (${rascunho})`,revisado:'Revisado',ativo:`Ativo (${ativos})`};
 
-  document.getElementById('content').innerHTML = `
-  <style>
-    .tr-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;
-      background:var(--card);border:1.5px solid rgba(200,168,74,0.2);
-      border-radius:12px;padding:12px 14px;margin-bottom:12px}
-    .tr-filtros{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
-    .tr-filtro{font-size:0.68rem;padding:3px 12px;border-radius:100px;
-      border:1.5px solid rgba(200,168,74,0.25);background:transparent;
-      color:var(--muted);cursor:pointer;font-family:inherit;
-      letter-spacing:0.05em;text-transform:uppercase;transition:all 0.12s}
-    .tr-filtro.on{background:linear-gradient(135deg,#2A4C72,#1C3A5E);
-      color:rgba(200,168,74,0.9);border-color:rgba(200,168,74,0.5)}
+  const cardId=chave=>'tr-card-'+chave.replace(/[^a-z0-9]/gi,'-');
+  const inpId =chave=>'tr-inp-' +chave.replace(/[^a-z0-9]/gi,'-');
+  const bdgId =chave=>'tr-bdg-' +chave.replace(/[^a-z0-9]/gi,'-');
+  const safe  =chave=>chave.replace(/'/g,"\\'");
 
-    /* Cards de tradução */
-    .tr-cards{display:flex;flex-direction:column;gap:6px}
-    .tr-card{background:var(--card);border:1.5px solid rgba(200,168,74,0.2);
-      border-radius:12px;overflow:hidden;transition:border-color 0.15s}
-    .tr-card:hover{border-color:rgba(200,168,74,0.4)}
-    .tr-card-head{display:flex;align-items:center;gap:10px;
-      padding:10px 14px;cursor:pointer;user-select:none}
-    .tr-card-head:hover{background:rgba(200,168,74,0.04)}
-    .tr-col-pt{flex:1;min-width:0}
-    .tr-col-pt .lbl{font-size:0.58rem;color:var(--muted);
-      text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px}
-    .tr-col-pt .val{font-size:0.88rem;color:var(--text2);
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .tr-col-en{flex:1;min-width:0}
-    .tr-col-en .lbl{font-size:0.58rem;color:var(--muted);
-      text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px}
-    .tr-col-en .val{font-size:0.88rem;
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .tr-col-en .val.vazio{color:var(--red,#A83C2C);font-style:italic;opacity:0.7}
-    .tr-col-badge{flex-shrink:0}
-    .tr-chevron{font-size:0.8rem;color:var(--muted);
-      flex-shrink:0;transition:transform 0.2s}
-    .tr-chevron.open{transform:rotate(90deg)}
-
-    /* Corpo expandido */
-    .tr-card-body{border-top:1px solid rgba(200,168,74,0.15);
-      padding:14px;background:rgba(200,168,74,0.02)}
-    .tr-chave-info{font-family:monospace;font-size:0.68rem;color:var(--muted);
-      margin-bottom:10px;background:rgba(0,0,0,0.04);
-      padding:4px 8px;border-radius:5px;word-break:break-all}
-    .tr-field{margin-bottom:10px}
-    .tr-field label{display:block;font-size:0.62rem;color:var(--muted);
-      text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
-    .tr-field input{width:100%;background:var(--bg);
-      border:1.5px solid rgba(200,168,74,0.3);border-radius:8px;
-      color:var(--text);padding:8px 12px;font-size:0.85rem;
-      font-family:inherit;outline:none;transition:border-color 0.15s;
-      box-sizing:border-box}
-    .tr-field input:focus{border-color:var(--gold)}
-    .tr-body-acoes{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-    .tr-btn{border-radius:7px;padding:6px 12px;cursor:pointer;
-      font-size:0.72rem;font-family:inherit;font-weight:600;
-      letter-spacing:0.05em;transition:all 0.13s;border:1.5px solid}
-    .tr-btn-auto{background:rgba(184,134,11,0.12);color:#B8860B;
-      border-color:rgba(184,134,11,0.35)}
-    .tr-btn-save{background:linear-gradient(135deg,#2A4C72,#1C3A5E);
-      color:rgba(200,168,74,0.95);border-color:rgba(200,168,74,0.4)}
-    .tr-btn-rev{background:rgba(46,125,82,0.12);color:#2E7D52;
-      border-color:rgba(46,125,82,0.35)}
-    .tr-btn-ativ{background:rgba(28,58,94,0.12);color:#1C3A5E;
-      border-color:rgba(28,58,94,0.35)}
-    .tr-btn-ativ.on{background:linear-gradient(135deg,#2A4C72,#1C3A5E);
-      color:rgba(200,168,74,0.9)}
-
-    /* Badges */
-    .tr-badge{display:inline-flex;align-items:center;font-size:0.62rem;
-      padding:2px 8px;border-radius:100px;font-weight:700;
-      letter-spacing:0.05em;text-transform:uppercase;white-space:nowrap;border:1px solid}
-    .tr-badge-sem{background:rgba(168,60,44,0.12);color:#A83C2C;border-color:rgba(168,60,44,0.3)}
-    .tr-badge-rascunho{background:rgba(184,134,11,0.12);color:#B8860B;border-color:rgba(184,134,11,0.3)}
-    .tr-badge-revisado{background:rgba(46,125,82,0.12);color:#2E7D52;border-color:rgba(46,125,82,0.3)}
-    .tr-badge-ativo{background:rgba(28,58,94,0.12);color:#2A4C72;border-color:rgba(28,58,94,0.3)}
-
-    /* Diagnóstico */
-    .tr-diag{padding:10px 14px;border-radius:10px;font-size:0.75rem;
-      margin-bottom:10px;line-height:1.6;border:1.5px solid}
-    .tr-diag.ok{background:rgba(46,125,82,0.08);color:#2E7D52;border-color:rgba(46,125,82,0.3)}
-    .tr-diag.erro{background:rgba(168,60,44,0.08);color:#A83C2C;border-color:rgba(168,60,44,0.3)}
-    .tr-diag.aviso{background:rgba(184,134,11,0.08);color:#B8860B;border-color:rgba(184,134,11,0.3)}
-  </style>
-
-  <!-- Toolbar -->
-  <div class="tr-toolbar">
-    <select onchange="TR_LOCALE=this.value;carregarTraducoes()"
-      style="background:var(--bg);border:1.5px solid rgba(200,168,74,0.25);border-radius:8px;
-             color:var(--text);padding:6px 10px;font-size:0.8rem;cursor:pointer;outline:none">
-      <option value="en-US" ${TR_LOCALE==='en-US'?'selected':''}>🇺🇸 English (en-US)</option>
-    </select>
-    <button class="btn btn-navy btn-sm" onclick="syncChaves()">↻ Sincronizar chaves</button>
-    <button class="btn btn-navy btn-sm" onclick="testarAPI()">🔍 Testar API tradução</button>
-    <button class="btn btn-navy btn-sm" onclick="autoTraduzirTodos()">⚡ Auto-traduzir pendentes</button>
-    <button class="tr-btn tr-btn-rev" style="padding:6px 12px" onclick="ativarRevisados()">✓ Ativar revisados</button>
-  </div>
-
-  <!-- Diagnóstico (injetado por testarAPI) -->
-  <div id="tr-diag-box"></div>
-
-  <!-- Filtros -->
-  <div class="tr-filtros">
-    ${filtros.map(f=>`<button class="tr-filtro ${TR_FILTRO===f?'on':''}"
-      onclick="TR_FILTRO='${f}';renderTraducoes()">${fLabels[f]}</button>`).join('')}
-  </div>
-
-  <!-- Cards -->
-  <div class="tr-cards">
-    ${filtrados.length===0
-      ? `<div style="text-align:center;padding:40px;color:var(--muted)">
-           <p style="font-size:1.4rem;margin-bottom:8px">📭</p>
-           <p>Nenhuma tradução encontrada para este filtro.</p>
-           <p style="font-size:0.72rem;margin-top:6px">
-             Clique em <strong>↻ Sincronizar chaves</strong> para importar as chaves da Home.
-           </p>
-         </div>`
-      : filtrados.map(doc => {
-          const expanded = TR_EXPAND === doc._id;
-          return `
-          <div class="tr-card" id="tr-card-${doc._id}">
-            <!-- Cabeçalho clicável -->
-            <div class="tr-card-head" onclick="toggleExpand('${doc._id}')">
-              <div class="tr-col-pt">
-                <div class="lbl">🇧🇷 Português</div>
-                <div class="val">${esc(doc.textoPT)}</div>
-              </div>
-              <div class="tr-col-en">
-                <div class="lbl">🇺🇸 ${TR_LOCALE}</div>
-                <div class="val ${doc.traducao?'':'vazio'}">${doc.traducao ? esc(doc.traducao) : 'Sem tradução'}</div>
-              </div>
-              <div class="tr-col-badge">${badgeTr(doc)}</div>
-              <span class="tr-chevron ${expanded?'open':''}">›</span>
-            </div>
-
-            <!-- Corpo expandido -->
-            ${expanded ? `
-            <div class="tr-card-body">
-              <div class="tr-chave-info">🔑 ${doc.chave}</div>
-
-              <div class="tr-field">
-                <label>🇧🇷 Texto original</label>
-                <input type="text" value="${esc(doc.textoPT)}" readonly
-                  style="opacity:0.7;cursor:default;background:rgba(0,0,0,0.03)" />
-              </div>
-
-              <div class="tr-field">
-                <label>🇺🇸 Tradução — edite e clique em Salvar</label>
-                <input type="text" id="tr-inp-${doc._id}"
-                  value="${esc(doc.traducao||'')}"
-                  placeholder="Digite a tradução aqui…"
-                  onkeydown="if(event.key==='Enter'){salvarTr('${doc._id}')}" />
-              </div>
-
-              <div class="tr-body-acoes">
-                <button class="tr-btn tr-btn-auto" onclick="autoTraduzirUm('${doc._id}','${doc.chave}')">
-                  ⚡ Auto-traduzir
-                </button>
-                <button class="tr-btn tr-btn-save" onclick="salvarTr('${doc._id}')">
-                  💾 Salvar
-                </button>
-                <button class="tr-btn tr-btn-rev" onclick="mudarStatusTr('${doc._id}','revisado')">
-                  ✓ Revisar
-                </button>
-                <button class="tr-btn tr-btn-ativ ${doc.status==='ativo'?'on':''}"
-                  onclick="mudarStatusTr('${doc._id}','ativo')">
-                  ${doc.status==='ativo'?'✓ Ativo no app':'Ativar no app'}
-                </button>
-                <div id="tr-badge-${doc._id}" style="margin-left:auto">${badgeTr(doc)}</div>
-              </div>
-            </div>` : ''}
-          </div>`;
-        }).join('')}
-  </div>`;
-}
-
-function toggleExpand(id) {
-  TR_EXPAND = TR_EXPAND === id ? null : id;
-  renderTraducoes();
-  // Scroll suave até o card expandido
-  if (TR_EXPAND) setTimeout(() => {
-    document.getElementById(`tr-card-${id}`)?.scrollIntoView({behavior:'smooth',block:'nearest'});
-  }, 50);
-}
-
-async function carregarTraducoes() {
-  setLoading('Carregando traduções…');
-  try {
-    const r = await fetch(`${API}/traducoes/admin?locale=${TR_LOCALE}`,
-      {headers:{Authorization:`Bearer ${TOKEN}`}});
-    if (!r.ok) { toast('Erro ao carregar traduções','erro'); return; }
-    TR_DADOS  = await r.json();
-    TR_EXPAND = null;
-    renderTraducoes();
-  } catch(e) { toast('Erro: '+e.message,'erro'); }
-}
-
-// ── Diagnóstico da API de tradução ────────────────────────────────────────────
-async function testarAPI() {
-  const box = document.getElementById('tr-diag-box');
-  if (!box) return;
-  box.innerHTML = `<div class="tr-diag aviso">🔄 Testando conexão com LibreTranslate…</div>`;
-
-  const urls = [
-    'https://translate.terraprint.co',
-    'https://lt.vern.cc',
-    'https://libretranslate.com',
-  ];
-
-  for (const url of urls) {
-    try {
-      const r = await fetch(`${url}/translate`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({q:'Olá',source:'pt',target:'en',format:'text'}),
-        signal: AbortSignal.timeout(6000),
-      });
-      if (r.ok) {
-        const d = await r.json();
-        box.innerHTML = `<div class="tr-diag ok">
-          ✅ <strong>${url}</strong> está funcionando!<br>
-          Teste: "Olá" → "<strong>${d.translatedText || '?'}</strong>"<br>
-          <small style="opacity:0.8">Esta instância será usada para auto-tradução se configurada no backend (LIBRETRANSLATE_URL).</small>
-        </div>`;
-        return;
-      } else {
-        box.innerHTML = `<div class="tr-diag aviso">
-          ⚠ <strong>${url}</strong> respondeu com status ${r.status}. Tentando próxima…
-        </div>`;
-      }
-    } catch(e) {
-      box.innerHTML = `<div class="tr-diag aviso">
-        ⚠ <strong>${url}</strong> inacessível: ${e.message}. Tentando próxima…
-      </div>`;
-    }
-  }
-
-  box.innerHTML = `<div class="tr-diag erro">
-    ❌ <strong>Nenhuma instância pública respondeu.</strong><br>
-    Possíveis causas:
-    <ul style="margin:6px 0 0 16px;font-size:0.72rem">
-      <li>As instâncias públicas têm limites de uso e podem estar temporariamente offline</li>
-      <li>O backend pode estar bloqueando requisições externas — a auto-tradução ocorre no servidor, não no browser</li>
-      <li>Solução: configure <code>LIBRETRANSLATE_URL</code> no Render apontando para uma instância estável ou auto-hospedada</li>
-    </ul>
-    <div style="margin-top:8px">
-      💡 <strong>Alternativa imediata:</strong> use o campo de tradução manual em cada card e clique <em>Salvar</em>.
+  document.getElementById('content').innerHTML = TR_CSS + `
+    <!-- Toolbar -->
+    <div class="tr-toolbar">
+      <span style="font-size:1.5rem">${cat.icon}</span>
+      <div style="flex:1">
+        <div style="font-family:'Cinzel',serif;font-weight:700;font-size:0.85rem;color:var(--text)">${cat.label}</div>
+        <div style="font-size:0.68rem;color:var(--muted)">${cat.desc}</div>
+      </div>
+      <button class="btn btn-navy btn-sm" onclick="syncCategoria()">↻ Sincronizar</button>
+      <button class="btn btn-navy btn-sm" onclick="autoTraduzirCategoria()">⚡ Auto-traduzir</button>
+      <button class="tr-btn tr-btn-rev" style="padding:5px 11px" onclick="ativarRevisadosCategoria()">✓ Ativar revisados</button>
     </div>
-  </div>`;
+
+    <!-- Progresso -->
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:0.68rem;color:var(--muted)">Progresso</span>
+        <span style="font-size:0.68rem;color:${cat.cor};font-weight:700">${pct}% — ${ativos}/${total} ativos</span>
+      </div>
+      <div class="tr-progress-bar" style="height:7px">
+        <div class="tr-progress-fill" style="width:${pct}%;background:${cat.cor}"></div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="tr-filtros">
+      ${filtros.map(f=>`<button class="tr-filtro ${TR_FILTRO===f?'on':''}"
+        onclick="TR_FILTRO='${f}';renderListaCategoria()">${fLabels[f]}</button>`).join('')}
+    </div>
+
+    <!-- Cards -->
+    <div class="tr-cards">
+      ${filtrados.length===0?`
+        <div style="text-align:center;padding:40px 20px;color:var(--muted)">
+          <p style="font-size:1.4rem;margin-bottom:8px">📭</p>
+          <p>Nenhuma entrada para este filtro.</p>
+          ${semTrad>0&&TR_FILTRO!=='sem'
+            ?`<p style="font-size:0.72rem;margin-top:6px">Tente o filtro <strong>Sem tradução</strong>.</p>`:''}
+        </div>`
+      :filtrados.map(doc=>{
+        const exp=TR_EXPAND===doc.chave;
+        return `<div class="tr-card" id="${cardId(doc.chave)}">
+          <div class="tr-card-head" onclick="toggleExpandTr('${safe(doc.chave)}')">
+            <div class="tr-col">
+              <div class="lbl">🇧🇷 Português</div>
+              <div class="val">${esc(doc.textoPT)}</div>
+            </div>
+            <div class="tr-col">
+              <div class="lbl">🇺🇸 ${TR_LOCALE}</div>
+              <div class="val ${doc.traducao?'en':'vazio'}">${doc.traducao?esc(doc.traducao):'Sem tradução'}</div>
+            </div>
+            <div style="flex-shrink:0;margin:0 4px">${badgeTr(doc)}</div>
+            <span class="tr-chevron ${exp?'open':''}">›</span>
+          </div>
+          ${exp?`<div class="tr-card-body">
+            <span class="tr-chave-tag">🔑 ${doc.chave}</span>
+            <div class="tr-field">
+              <label>🇧🇷 Original</label>
+              <input type="text" value="${esc(doc.textoPT)}" readonly />
+            </div>
+            <div class="tr-field">
+              <label>🇺🇸 Tradução</label>
+              <input type="text" id="${inpId(doc.chave)}"
+                value="${esc(doc.traducao||'')}" placeholder="Digite aqui e clique Salvar…"
+                onkeydown="if(event.key==='Enter'){salvarTrItem('${safe(doc.chave)}')}"/>
+            </div>
+            <div class="tr-acoes">
+              <button class="tr-btn tr-btn-auto" onclick="autoTraduzirItem('${safe(doc.chave)}')">⚡ Auto</button>
+              <button class="tr-btn tr-btn-save" onclick="salvarTrItem('${safe(doc.chave)}')">💾 Salvar</button>
+              <button class="tr-btn tr-btn-rev"  onclick="mudarStatusTrItem('${safe(doc.chave)}','revisado')">✓ Revisar</button>
+              <button class="tr-btn tr-btn-ativ ${doc.status==='ativo'?'on':''}"
+                onclick="mudarStatusTrItem('${safe(doc.chave)}','ativo')">
+                ${doc.status==='ativo'?'✓ Ativo':'Ativar'}
+              </button>
+              <span id="${bdgId(doc.chave)}" style="margin-left:auto">${badgeTr(doc)}</span>
+            </div>
+          </div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 
-async function salvarTr(id) {
-  const inp = document.getElementById(`tr-inp-${id}`);
-  if (!inp) return;
-  const traducao = inp.value.trim();
-  if (!traducao) { toast('Digite a tradução antes de salvar','aviso'); inp.focus(); return; }
-  try {
-    const r = await fetch(`${API}/traducoes/${id}`,{
-      method:'PATCH',
-      headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
-      body:JSON.stringify({traducao, status:'revisado'}),
-    });
-    if (!r.ok) { toast('Erro ao salvar','erro'); return; }
-    const doc = await r.json();
-    const idx = TR_DADOS.findIndex(d=>d._id===id);
-    if (idx!==-1) TR_DADOS[idx]=doc;
-    const el = document.getElementById(`tr-badge-${id}`);
-    if (el) el.innerHTML = badgeTr(doc);
-    toast('✓ Tradução salva e marcada como revisada','ok');
-  } catch(e) { toast('Erro: '+e.message,'erro'); }
+function toggleExpandTr(chave){
+  TR_EXPAND=TR_EXPAND===chave?null:chave;
+  renderListaCategoria();
+  if(TR_EXPAND){
+    const id='tr-card-'+chave.replace(/[^a-z0-9]/gi,'-');
+    setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'nearest'}),60);
+  }
 }
 
-async function mudarStatusTr(id, status) {
-  try {
-    const r = await fetch(`${API}/traducoes/${id}`,{
-      method:'PATCH',
-      headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+// ── Salvar item ───────────────────────────────────────────────────────────────
+async function salvarTrItem(chave){
+  const inp=document.getElementById('tr-inp-'+chave.replace(/[^a-z0-9]/gi,'-'));
+  if(!inp) return;
+  const traducao=inp.value.trim();
+  if(!traducao){toast('Digite a tradução antes de salvar','aviso');inp.focus();return;}
+  const doc=TR_DADOS.find(d=>d.chave===chave);
+  if(!doc) return;
+  try{
+    let resultado;
+    if(doc._id){
+      const r=await fetch(`${API}/traducoes/${doc._id}`,{
+        method:'PATCH',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+        body:JSON.stringify({traducao,status:'revisado'}),
+      });
+      resultado=await r.json();
+    } else {
+      // Cria via seed depois atualiza
+      await fetch(`${API}/traducoes/seed`,{
+        method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+        body:JSON.stringify({chaves:[{chave,textoPT:doc.textoPT}],locale:TR_LOCALE}),
+      });
+      const todos=await fetch(`${API}/traducoes/admin?locale=${TR_LOCALE}`,
+        {headers:{Authorization:`Bearer ${TOKEN}`}}).then(r=>r.json());
+      const novo=todos.find(d=>d.chave===chave);
+      if(novo){
+        const r=await fetch(`${API}/traducoes/${novo._id}`,{
+          method:'PATCH',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+          body:JSON.stringify({traducao,status:'revisado'}),
+        });
+        resultado=await r.json();
+      }
+    }
+    if(resultado){
+      const idx=TR_DADOS.findIndex(d=>d.chave===chave);
+      if(idx!==-1) TR_DADOS[idx]={...TR_DADOS[idx],...resultado};
+      const bdg=document.getElementById('tr-bdg-'+chave.replace(/[^a-z0-9]/gi,'-'));
+      if(bdg) bdg.innerHTML=badgeTr(resultado);
+      toast('✓ Salvo e marcado como revisado','ok');
+    }
+  }catch(e){toast('Erro: '+e.message,'erro');}
+}
+
+// ── Mudar status ──────────────────────────────────────────────────────────────
+async function mudarStatusTrItem(chave,status){
+  const doc=TR_DADOS.find(d=>d.chave===chave);
+  if(!doc?._id){toast('Salve primeiro antes de mudar o status','aviso');return;}
+  try{
+    const r=await fetch(`${API}/traducoes/${doc._id}`,{
+      method:'PATCH',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
       body:JSON.stringify({status}),
     });
-    if (!r.ok) { toast('Erro ao atualizar status','erro'); return; }
-    const doc = await r.json();
-    const idx = TR_DADOS.findIndex(d=>d._id===id);
-    if (idx!==-1) TR_DADOS[idx]=doc;
-    const el = document.getElementById(`tr-badge-${id}`);
-    if (el) el.innerHTML = badgeTr(doc);
+    const resultado=await r.json();
+    const idx=TR_DADOS.findIndex(d=>d.chave===chave);
+    if(idx!==-1) TR_DADOS[idx]={...TR_DADOS[idx],...resultado};
+    const bdg=document.getElementById('tr-bdg-'+chave.replace(/[^a-z0-9]/gi,'-'));
+    if(bdg) bdg.innerHTML=badgeTr(resultado);
     toast(status==='ativo'?'✓ Ativado no app!':'✓ Marcado como revisado','ok');
-  } catch(e) { toast('Erro: '+e.message,'erro'); }
+  }catch(e){toast('Erro: '+e.message,'erro');}
 }
 
-async function autoTraduzirUm(id, chave) {
-  const btn = event.target;
-  btn.textContent = '⏳…'; btn.disabled = true;
-  try {
-    const r = await fetch(`${API}/traducoes/auto`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
-      body:JSON.stringify({chave, locale:TR_LOCALE}),
+// ── Auto-traduzir item ────────────────────────────────────────────────────────
+async function autoTraduzirItem(chave){
+  const doc=TR_DADOS.find(d=>d.chave===chave);
+  if(!doc) return;
+  if(!doc._id){
+    await fetch(`${API}/traducoes/seed`,{
+      method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+      body:JSON.stringify({chaves:[{chave,textoPT:doc.textoPT}],locale:TR_LOCALE}),
     });
-    const res = await r.json();
-    if (res.erros?.length) {
-      toast(`⚠ Auto-tradução falhou: ${res.erros[0].erro} — use a tradução manual ou teste a API.`,'erro');
-    } else {
-      await carregarTraducoes();
-      TR_EXPAND = id;
-      renderTraducoes();
-      toast('⚡ Rascunho gerado — revise e salve','ok');
-    }
-  } catch(e) {
-    toast('Erro: '+e.message+' — verifique LIBRETRANSLATE_URL no Render','erro');
   }
-  btn.textContent = '⚡ Auto-traduzir'; btn.disabled = false;
+  try{
+    const r=await fetch(`${API}/traducoes/auto`,{
+      method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+      body:JSON.stringify({chave,locale:TR_LOCALE}),
+    });
+    const res=await r.json();
+    if(res.erros?.length){toast('⚠ Falhou: '+res.erros[0].erro,'erro');}
+    else{await abrirCategoria(TR_CAT.id);toast('⚡ Rascunho gerado — revise e salve','ok');}
+  }catch(e){toast('Erro: '+e.message,'erro');}
 }
 
-async function autoTraduzirTodos() {
-  if (!confirm('Traduzir automaticamente todas as chaves sem tradução?\nOs rascunhos precisarão de revisão.')) return;
-  setLoading('Chamando LibreTranslate…');
-  try {
-    const r = await fetch(`${API}/traducoes/auto`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+// ── Sync, auto-traduzir toda a categoria, ativar revisados ────────────────────
+async function syncCategoria(){
+  if(!TR_CAT) return;
+  setLoading('Sincronizando…');
+  try{
+    const chaves=TR_DADOS.map(d=>({chave:d.chave,textoPT:d.textoPT}));
+    const r=await fetch(`${API}/traducoes/seed`,{
+      method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+      body:JSON.stringify({chaves,locale:TR_LOCALE}),
+    });
+    const res=await r.json();
+    await abrirCategoria(TR_CAT.id);
+    toast(`↻ ${res.inseridos} novas, ${res.existentes} já existentes`,'ok');
+  }catch(e){toast('Erro: '+e.message,'erro');}
+}
+
+async function autoTraduzirCategoria(){
+  if(!TR_CAT) return;
+  const sem=TR_DADOS.filter(d=>!d.traducao).length;
+  if(sem===0){toast('Todas as entradas já têm tradução!','ok');return;}
+  if(!confirm(`Auto-traduzir ${sem} entradas em "${TR_CAT.label}"?\nRascunhos precisarão de revisão.`)) return;
+  setLoading('Traduzindo…');
+  try{
+    const chaves=TR_DADOS.map(d=>({chave:d.chave,textoPT:d.textoPT}));
+    await fetch(`${API}/traducoes/seed`,{
+      method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+      body:JSON.stringify({chaves,locale:TR_LOCALE}),
+    });
+    const r=await fetch(`${API}/traducoes/auto`,{
+      method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
       body:JSON.stringify({locale:TR_LOCALE}),
     });
-    const res = await r.json();
-    await carregarTraducoes();
-    if (res.erros?.length) {
-      toast(`⚡ ${res.traduzidos} traduzidos, ${res.erros.length} erro(s). Clique em "🔍 Testar API" para diagnóstico.`,'aviso');
+    const res=await r.json();
+    await abrirCategoria(TR_CAT.id);
+    toast(res.erros?.length?`⚡ ${res.traduzidos} traduzidos, ${res.erros.length} erro(s)`:`⚡ ${res.traduzidos} traduzidos!`,'ok');
+  }catch(e){toast('Erro: '+e.message,'erro');}
+}
+
+async function ativarRevisadosCategoria(){
+  const revisados=TR_DADOS.filter(d=>d.status==='revisado'&&d._id);
+  if(!revisados.length){toast('Nenhuma entrada revisada para ativar','aviso');return;}
+  if(!confirm(`Ativar ${revisados.length} traduções em "${TR_CAT.label}"?`)) return;
+  try{
+    await Promise.all(revisados.map(d=>fetch(`${API}/traducoes/${d._id}`,{
+      method:'PATCH',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+      body:JSON.stringify({status:'ativo'}),
+    })));
+    await abrirCategoria(TR_CAT.id);
+    toast(`✓ ${revisados.length} ativadas!`,'ok');
+  }catch(e){toast('Erro: '+e.message,'erro');}
+}
+
+// ── Diagnóstico API ───────────────────────────────────────────────────────────
+async function testarAPITr(){
+  const box=document.getElementById('tr-diag-box');
+  if(!box) return;
+  box.innerHTML=`<div class="tr-diag aviso">🔄 Testando LibreTranslate…</div>`;
+  const urls=['https://translate.terraprint.co','https://lt.vern.cc','https://libretranslate.com'];
+  for(const url of urls){
+    try{
+      const r=await fetch(`${url}/translate`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({q:'Olá',source:'pt',target:'en',format:'text'}),
+        signal:AbortSignal.timeout(6000),
+      });
+      if(r.ok){
+        const d=await r.json();
+        box.innerHTML=`<div class="tr-diag ok">
+          ✅ <strong>${url}</strong> funcionando — "Olá" → "<strong>${d.translatedText||'?'}</strong>"<br>
+          <small>Configure <code>LIBRETRANSLATE_URL=${url}</code> no Render para usar esta instância.</small>
+        </div>`;
+        return;
+      }
+    }catch(e){/* tenta próxima */}
+  }
+  box.innerHTML=`<div class="tr-diag erro">
+    ❌ Nenhuma instância pública respondeu. Configure <code>LIBRETRANSLATE_URL</code> no Render
+    ou use tradução manual.
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DICAS & TUTORIAIS — Admin
+// ══════════════════════════════════════════════════════════════════════════════
+
+let DI_CATS     = [];   // categorias
+let DI_DICAS    = [];   // dicas da categoria aberta
+let DI_CAT      = null; // categoria ativa
+let DI_EDITANDO = null; // dica sendo editada
+
+const DI_CSS = `<style>
+.di-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.di-cat-card{background:var(--card);border:1.5px solid rgba(200,168,74,0.2);border-radius:12px;
+  padding:16px 12px;cursor:pointer;transition:all 0.14s;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:7px;position:relative;overflow:hidden}
+.di-cat-card:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(0,0,0,0.1)}
+.di-cat-bar{position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold)}
+.di-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  background:var(--card);border:1.5px solid rgba(200,168,74,0.2);
+  border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.di-list{display:flex;flex-direction:column;gap:8px}
+.di-dica-card{background:var(--card);border:1.5px solid rgba(200,168,74,0.2);
+  border-radius:12px;overflow:hidden;display:flex;gap:0}
+.di-dica-img{width:90px;flex-shrink:0;object-fit:cover;background:var(--bg)}
+.di-dica-img-ph{width:90px;flex-shrink:0;background:rgba(200,168,74,0.08);
+  display:flex;align-items:center;justify-content:center;font-size:1.8rem}
+.di-dica-body{flex:1;padding:10px 12px;min-width:0}
+.di-dica-titulo{font-family:'Cinzel',serif;font-weight:700;font-size:0.82rem;
+  color:var(--text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.di-dica-conteudo{font-size:0.7rem;color:var(--muted);line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.di-dica-acoes{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.di-btn{border-radius:7px;padding:4px 10px;cursor:pointer;font-size:0.68rem;
+  font-family:inherit;font-weight:600;border:1.5px solid;transition:all 0.12s}
+.di-btn-edit{background:rgba(28,58,94,0.1);color:#2A4C72;border-color:rgba(28,58,94,0.3)}
+.di-btn-del{background:rgba(168,60,44,0.1);color:#A83C2C;border-color:rgba(168,60,44,0.3)}
+.di-btn-pri{background:linear-gradient(135deg,#2A4C72,#1C3A5E);color:rgba(200,168,74,0.95);border-color:rgba(200,168,74,0.4)}
+.di-form{background:var(--card);border:1.5px solid rgba(200,168,74,0.25);border-radius:12px;padding:16px}
+.di-field{margin-bottom:12px}
+.di-field label{display:block;font-size:0.62rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:0.1em;margin-bottom:5px;font-weight:700}
+.di-field input,.di-field select,.di-field textarea{width:100%;background:var(--bg);
+  border:1.5px solid rgba(200,168,74,0.3);border-radius:8px;color:var(--text);
+  padding:8px 12px;font-size:0.85rem;font-family:inherit;outline:none;
+  transition:border-color 0.15s;box-sizing:border-box}
+.di-field input:focus,.di-field select:focus,.di-field textarea:focus{border-color:var(--gold)}
+.di-field textarea{resize:vertical;min-height:80px}
+.di-imgs-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.di-img-thumb{position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden}
+.di-img-thumb img{width:100%;height:100%;object-fit:cover}
+.di-img-del{position:absolute;top:2px;right:2px;background:rgba(168,60,44,0.85);
+  color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;
+  font-size:0.7rem;display:flex;align-items:center;justify-content:center}
+.di-badge-dest{background:rgba(200,168,74,0.15);color:var(--gold);
+  border:1px solid rgba(200,168,74,0.3);font-size:0.6rem;padding:1px 6px;
+  border-radius:100px;font-weight:700;letter-spacing:0.05em}
+.di-upload-area{border:2px dashed rgba(200,168,74,0.3);border-radius:10px;
+  padding:16px;text-align:center;cursor:pointer;background:rgba(200,168,74,0.04);
+  transition:all 0.15s}
+.di-upload-area:hover{border-color:var(--gold);background:rgba(200,168,74,0.08)}
+</style>`;
+
+// ── Tela 1: Grade de categorias ───────────────────────────────────────────────
+async function carregarDicas(){
+  DI_CAT=null; DI_DICAS=[]; DI_EDITANDO=null;
+  setLoading('Carregando Dicas…');
+  try{
+    DI_CATS=await fetch(`${API}/dicas/categorias/todas`,
+      {headers:{Authorization:`Bearer ${TOKEN}`}}).then(r=>r.json());
+    renderGradeDicas();
+  }catch(e){toast('Erro: '+e.message,'erro');}
+}
+
+function renderGradeDicas(){
+  document.getElementById('content').innerHTML = DI_CSS + `
+    <div class="di-toolbar">
+      <button class="btn btn-navy btn-sm" onclick="seedCatsDicas()">↻ Importar categorias padrão</button>
+      <button class="btn btn-navy btn-sm" onclick="mostrarFormCategoria()">+ Nova categoria</button>
+    </div>
+    <div id="di-form-cat"></div>
+    <div class="di-grid">
+      ${DI_CATS.length===0
+        ?`<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted)">
+            <p style="font-size:1.4rem;margin-bottom:8px">📭</p>
+            <p>Nenhuma categoria. Clique em <strong>↻ Importar categorias padrão</strong>.</p>
+          </div>`
+        :DI_CATS.map(cat=>`
+          <div class="di-cat-card" onclick="abrirCatDica('${cat._id}','${esc(cat.slug)}','${esc(cat.label)}','${esc(cat.icon)}')">
+            <div class="di-cat-bar"></div>
+            <span style="font-size:2rem">${cat.icon}</span>
+            <span style="font-family:'Cinzel',serif;font-weight:700;font-size:0.82rem;color:var(--text)">${cat.label}</span>
+            ${!cat.ativo?`<span style="font-size:0.6rem;color:#A83C2C">Inativa</span>`:''}
+          </div>`).join('')}
+    </div>`;
+}
+
+function mostrarFormCategoria(){
+  document.getElementById('di-form-cat').innerHTML=`
+    <div class="di-form" style="margin-bottom:14px">
+      <p style="font-family:'Cinzel',serif;font-weight:700;font-size:0.82rem;color:var(--text);margin-bottom:12px">Nova Categoria</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 60px;gap:8px">
+        <div class="di-field" style="margin:0"><label>Label</label><input id="di-cat-label" placeholder="Ex: Grodz"/></div>
+        <div class="di-field" style="margin:0"><label>Slug</label><input id="di-cat-slug" placeholder="Ex: grodz"/></div>
+        <div class="di-field" style="margin:0"><label>Ícone</label><input id="di-cat-icon" placeholder="🏰" value="📖"/></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="di-btn di-btn-pri" onclick="criarCategoriaDica()">Criar</button>
+        <button class="di-btn di-btn-edit" onclick="document.getElementById('di-form-cat').innerHTML=''">Cancelar</button>
+      </div>
+    </div>`;
+}
+
+async function criarCategoriaDica(){
+  const label=document.getElementById('di-cat-label')?.value.trim();
+  const slug =document.getElementById('di-cat-slug')?.value.trim().toLowerCase().replace(/\s+/g,'-');
+  const icon =document.getElementById('di-cat-icon')?.value.trim()||'📖';
+  if(!label||!slug){toast('Label e slug são obrigatórios','aviso');return;}
+  try{
+    await fetch(`${API}/dicas/categorias`,{
+      method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+      body:JSON.stringify({label,slug,icon}),
+    });
+    toast('✓ Categoria criada!','ok');
+    carregarDicas();
+  }catch(e){toast('Erro: '+e.message,'erro');}
+}
+
+async function seedCatsDicas(){
+  try{
+    const r=await fetch(`${API}/dicas/categorias/seed`,
+      {method:'POST',headers:{Authorization:`Bearer ${TOKEN}`}});
+    const res=await r.json();
+    toast(`↻ ${res.inseridas} novas, ${res.existentes} já existentes`,'ok');
+    carregarDicas();
+  }catch(e){toast('Erro: '+e.message,'erro');}
+}
+
+// ── Tela 2: Dicas de uma categoria ───────────────────────────────────────────
+async function abrirCatDica(catId, slug, label, icon){
+  DI_CAT={_id:catId,slug,label,icon};
+  DI_EDITANDO=null;
+  setBreadcrumb([
+    {label:'💡 Dicas', action:()=>carregarDicas()},
+    {label:`${icon} ${label}`},
+  ]);
+  setLoading(`Carregando ${label}…`);
+  try{
+    DI_DICAS=await fetch(`${API}/dicas/admin?categoria=${slug}`,
+      {headers:{Authorization:`Bearer ${TOKEN}`}}).then(r=>r.json());
+    renderListaDicas();
+  }catch(e){toast('Erro: '+e.message,'erro');}
+}
+
+function renderListaDicas(){
+  const cat=DI_CAT;
+  document.getElementById('content').innerHTML = DI_CSS + `
+    <div class="di-toolbar">
+      <span style="font-size:1.4rem">${cat.icon}</span>
+      <div style="flex:1">
+        <div style="font-family:'Cinzel',serif;font-weight:700;font-size:0.85rem;color:var(--text)">${cat.label}</div>
+        <div style="font-size:0.68rem;color:var(--muted)">${DI_DICAS.length} dica(s)</div>
+      </div>
+      <button class="btn btn-navy btn-sm" onclick="mostrarFormDica(null)">+ Nova dica</button>
+    </div>
+
+    <!-- Formulário inline (injetado aqui) -->
+    <div id="di-form-box"></div>
+
+    <!-- Lista -->
+    <div class="di-list" id="di-lista">
+      ${DI_DICAS.length===0
+        ?`<div style="text-align:center;padding:40px;color:var(--muted)">
+            <p style="font-size:1.4rem;margin-bottom:8px">${cat.icon}</p>
+            <p>Nenhuma dica ainda. Clique em <strong>+ Nova dica</strong>.</p>
+          </div>`
+        :DI_DICAS.map((d,i)=>`
+          <div class="di-dica-card">
+            ${d.imagens?.length
+              ?`<img class="di-dica-img" src="${esc(d.imagens[0].url)}" alt="" onerror="this.style.display='none'" />`
+              :`<div class="di-dica-img-ph">${cat.icon}</div>`}
+            <div class="di-dica-body">
+              <div class="di-dica-titulo">${esc(d.titulo)} ${d.destaque?'<span class="di-badge-dest">⭐</span>':''} ${!d.ativo?'<span style="font-size:0.6rem;color:#A83C2C">[Inativa]</span>':''}</div>
+              ${d.conteudo?`<div class="di-dica-conteudo">${esc(d.conteudo)}</div>`:''}
+              <div style="font-size:0.6rem;color:var(--muted);margin-top:3px">${d.imagens?.length||0} imagem(ns)</div>
+              <div class="di-dica-acoes">
+                <button class="di-btn di-btn-edit" onclick='mostrarFormDica(${JSON.stringify(d).replace(/'/g,"\\'")} )'>✏️ Editar</button>
+                <button class="di-btn di-btn-del"  onclick="excluirDica('${d._id}','${esc(d.titulo)}')">🗑️</button>
+              </div>
+            </div>
+          </div>`).join('')}
+    </div>`;
+}
+
+// ── Formulário criar/editar dica ──────────────────────────────────────────────
+function mostrarFormDica(dica){
+  DI_EDITANDO=dica;
+  const isEdit=!!dica;
+  const box=document.getElementById('di-form-box');
+  if(!box) return;
+  box.innerHTML=`
+    <div class="di-form" style="margin-bottom:14px">
+      <p style="font-family:'Cinzel',serif;font-weight:700;font-size:0.85rem;color:var(--text);margin-bottom:14px">
+        ${isEdit?'✏️ Editar dica':'+ Nova dica'}
+      </p>
+
+      <div class="di-field">
+        <label>Título *</label>
+        <input id="di-titulo" value="${isEdit?esc(dica.titulo):''}" placeholder="Ex: Como evoluir Dragões rapidamente" />
+      </div>
+
+      <div class="di-field">
+        <label>Categoria</label>
+        <select id="di-cat-sel">
+          ${DI_CATS.map(c=>`<option value="${c.slug}" ${DI_CAT?.slug===c.slug?'selected':''}>${c.icon} ${c.label}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="di-field">
+        <label>Conteúdo / Descrição</label>
+        <textarea id="di-conteudo" placeholder="Descreva a dica ou tutorial aqui…">${isEdit?esc(dica.conteudo||''):''}</textarea>
+      </div>
+
+      <div class="di-field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="di-destaque" ${isEdit&&dica.destaque?'checked':''} style="width:auto;accent-color:var(--gold)"/>
+          ⭐ Marcar como destaque
+        </label>
+      </div>
+
+      <div class="di-field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="di-ativo" ${!isEdit||dica.ativo?'checked':''} style="width:auto;accent-color:var(--gold)"/>
+          Dica ativa (visível no app)
+        </label>
+      </div>
+
+      ${isEdit && dica.imagens?.length?`
+      <div class="di-field">
+        <label>Imagens atuais</label>
+        <div class="di-imgs-grid">
+          ${dica.imagens.map((img,idx)=>`
+            <div class="di-img-thumb">
+              <img src="${esc(img.url)}" alt="" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'80\\' height=\\'80\\'><rect fill=\\'%23eee\\' width=\\'80\\' height=\\'80\\'/></svg>'" />
+              <button class="di-img-del" onclick="removerImagem('${dica._id}',${idx})" title="Remover">✕</button>
+            </div>`).join('')}
+        </div>
+      </div>`:''}
+
+      <div class="di-field">
+        <label>Adicionar imagens</label>
+        <div class="di-upload-area" onclick="document.getElementById('di-file-inp').click()">
+          <div style="font-size:1.5rem;margin-bottom:6px">📷</div>
+          <div style="font-size:0.78rem;color:var(--muted)">Clique para selecionar imagens</div>
+          <div style="font-size:0.65rem;color:var(--muted);margin-top:3px">JPG, PNG, WebP — máx 10MB cada</div>
+          <input type="file" id="di-file-inp" accept="image/*" multiple style="display:none"
+            onchange="previewImagens(this)" />
+        </div>
+        <div id="di-preview-imgs" class="di-imgs-grid" style="margin-top:8px"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="di-btn di-btn-pri" onclick="salvarDica()">
+          ${isEdit?'💾 Salvar alterações':'✓ Criar dica'}
+        </button>
+        <button class="di-btn di-btn-edit" onclick="document.getElementById('di-form-box').innerHTML='';DI_EDITANDO=null">
+          Cancelar
+        </button>
+      </div>
+    </div>`;
+}
+
+// Preview de imagens antes de upload
+let DI_FILES_PENDENTES = [];
+function previewImagens(input){
+  DI_FILES_PENDENTES = Array.from(input.files);
+  const box = document.getElementById('di-preview-imgs');
+  if(!box) return;
+  box.innerHTML = DI_FILES_PENDENTES.map((f,i)=>`
+    <div class="di-img-thumb">
+      <img src="${URL.createObjectURL(f)}" alt="" />
+      <button class="di-img-del" onclick="DI_FILES_PENDENTES.splice(${i},1);previewImagens({files:DI_FILES_PENDENTES})" title="Remover">✕</button>
+    </div>`).join('');
+}
+
+// Salvar dica (criar ou editar)
+async function salvarDica(){
+  const titulo   = document.getElementById('di-titulo')?.value.trim();
+  const categoria= document.getElementById('di-cat-sel')?.value;
+  const conteudo = document.getElementById('di-conteudo')?.value.trim();
+  const destaque = document.getElementById('di-destaque')?.checked;
+  const ativo    = document.getElementById('di-ativo')?.checked;
+
+  if(!titulo){toast('Título é obrigatório','aviso');return;}
+
+  try{
+    let dica;
+    if(DI_EDITANDO){
+      const r=await fetch(`${API}/dicas/${DI_EDITANDO._id}`,{
+        method:'PATCH',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+        body:JSON.stringify({titulo,categoria,conteudo,destaque,ativo}),
+      });
+      dica=await r.json();
     } else {
-      toast(`⚡ ${res.traduzidos} traduzidos! Revise antes de ativar.`,'ok');
+      const r=await fetch(`${API}/dicas`,{
+        method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+        body:JSON.stringify({titulo,categoria,conteudo,destaque,ativo}),
+      });
+      dica=await r.json();
     }
-  } catch(e) { toast('Erro: '+e.message,'erro'); }
+
+    // Upload de imagens pendentes
+    if(DI_FILES_PENDENTES.length && dica._id){
+      const fd=new FormData();
+      DI_FILES_PENDENTES.forEach(f=>fd.append('imagens',f));
+      await fetch(`${API}/dicas/${dica._id}/imagens`,{
+        method:'POST',headers:{Authorization:`Bearer ${TOKEN}`},
+        body:fd,
+      });
+      DI_FILES_PENDENTES=[];
+    }
+
+    toast(DI_EDITANDO?'✓ Dica atualizada!':'✓ Dica criada!','ok');
+    DI_EDITANDO=null;
+    await abrirCatDica(DI_CAT._id,DI_CAT.slug,DI_CAT.label,DI_CAT.icon);
+  }catch(e){toast('Erro: '+e.message,'erro');}
 }
 
-async function syncChaves() {
-  setLoading('Sincronizando chaves…');
-  try {
-    const r = await fetch(`${API}/traducoes/seed`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
-      body:JSON.stringify({chaves:CHAVES_HOME, locale:TR_LOCALE}),
+// Remover imagem de uma dica
+async function removerImagem(dicaId, idx){
+  if(!confirm('Remover esta imagem?')) return;
+  try{
+    await fetch(`${API}/dicas/${dicaId}/imagens/${idx}`,{
+      method:'DELETE',headers:{Authorization:`Bearer ${TOKEN}`},
     });
-    const res = await r.json();
-    await carregarTraducoes();
-    toast(`↻ ${res.inseridos} novas chaves, ${res.existentes} já existentes`,'ok');
-  } catch(e) { toast('Erro: '+e.message,'erro'); }
+    toast('Imagem removida','ok');
+    await abrirCatDica(DI_CAT._id,DI_CAT.slug,DI_CAT.label,DI_CAT.icon);
+  }catch(e){toast('Erro: '+e.message,'erro');}
 }
 
-async function ativarRevisados() {
-  if (!confirm('Ativar todas as traduções revisadas no app?')) return;
-  try {
-    const r = await fetch(`${API}/traducoes/ativar-todos`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
-      body:JSON.stringify({locale:TR_LOCALE}),
+// Excluir dica
+async function excluirDica(id, titulo){
+  if(!confirm(`Excluir "${titulo}"? As imagens serão removidas do Cloudinary.`)) return;
+  try{
+    await fetch(`${API}/dicas/${id}`,{
+      method:'DELETE',headers:{Authorization:`Bearer ${TOKEN}`},
     });
-    const res = await r.json();
-    await carregarTraducoes();
-    toast(`✓ ${res.ativados} traduções ativadas!`,'ok');
-  } catch(e) { toast('Erro: '+e.message,'erro'); }
+    toast('Dica excluída','ok');
+    await abrirCatDica(DI_CAT._id,DI_CAT.slug,DI_CAT.label,DI_CAT.icon);
+  }catch(e){toast('Erro: '+e.message,'erro');}
 }
 
 </script>

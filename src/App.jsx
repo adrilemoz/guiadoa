@@ -30,6 +30,7 @@ import Dragoes                 from './components/dragoes/Dragoes.jsx';
 import DragaoDetalhe           from './components/dragoes/DragaoDetalhe.jsx';
 import DragaoTracker           from './components/dragoes/DragaoTracker.jsx';
 import Pesquisas              from './components/pesquisas/Pesquisas.jsx';
+import Dicas                 from './components/Dicas.jsx';
 import PesquisaDetalhe        from './components/pesquisas/PesquisaDetalhe.jsx';
 import TorneioPocoes          from './components/torneios/TorneioPocoes.jsx';
 import Modal                   from './ui/Modal.jsx';
@@ -210,6 +211,7 @@ const App = () => {
       case 'treinamento_dragao': return <TreinamentoDoDragao />;
       case 'dragoes':            return <Dragoes setRoute={setRoute} />;
       case 'pesquisas':          return <Pesquisas setRoute={setRoute} />;
+      case 'dicas':              return <Dicas setRoute={setRoute} />;
       case 'pocoes_antigas':     return <TorneioPocoes />;
       default: {
         if (route.startsWith('pesquisa_')) {

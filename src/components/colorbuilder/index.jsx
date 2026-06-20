@@ -27,8 +27,7 @@ function Toast({ msg, visible }) {
   );
 }
 
-// ─── Modos da tela inicial ─────────────────────────────────────────────────────
-// Fonte única: definida aqui e exportada via data.js para outros usos
+// ─── Modos da tela inicial ────────────────────────────────────────────────────
 const MODOS = [
   {
     id:    'texto',
@@ -50,16 +49,16 @@ const MODOS = [
     id:    'fontes',
     icon:  '𝓐',
     title: 'Fontes & Estilos',
-    desc:  'Converta seu texto em 38 estilos Unicode: gótico, cursivo, duplo contorno, circulado, leet e muito mais.',
+    desc:  'Converta seu texto em 38+ estilos Unicode: gótico, cursivo, duplo contorno, circulado, leet e muito mais.',
     cor:   '#C0392B',
     tags:  ['gótico', 'cursivo', 'unicode', 'leet', 'estilos'],
   },
 ];
 
 const MODO_HEADERS = {
-  texto:     { icon: '🎨', title: 'Personalizar Texto'  },
-  bandeiras: { icon: '🏳', title: 'Bandeiras'           },
-  fontes:    { icon: '𝓐',  title: 'Fontes & Estilos'   },
+  texto:     { icon: '🎨', title: 'Personalizar Texto' },
+  bandeiras: { icon: '🏳', title: 'Bandeiras'          },
+  fontes:    { icon: '𝓐',  title: 'Fontes & Estilos'  },
 };
 
 // ─── Tela de boas-vindas ──────────────────────────────────────────────────────

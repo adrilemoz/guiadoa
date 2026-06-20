@@ -84,7 +84,11 @@ export default function ModoTexto({
   const applySuggest = (pi) => {
     const pal = SUGGEST_PALETTES[pi];
     if (!tokens.length) {
-      if (!inputVal.trim()) return;
+      if (!inputVal.trim()) {
+        showToast('Digite um texto primeiro!');
+        inputRef.current?.focus();
+        return;
+      }
       setTokens([...inputVal].map((c, i) => ({ char: c, color: pal[i % pal.length] })));
     } else {
       setTokens(prev => prev.map((tk, i) => ({ ...tk, color: pal[i % pal.length] })));
@@ -116,6 +120,9 @@ export default function ModoTexto({
 
           {/* Sugestões */}
           <div style={T.secLbl}>Sugestões de cor automática</div>
+          <p style={{ fontSize: '0.62rem', color: C.TEXT_FAINT, margin: '0 0 8px' }}>
+            Digite seu texto abaixo e clique num estilo para colorir automaticamente
+          </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
             {SUGGEST_PALETTES.map((pal, pi) => (
               <button key={pi}

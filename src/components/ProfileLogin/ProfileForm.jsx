@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { dbReinos } from '../../data/reinos.js';
 import { saveProfile } from '../../utils/storage.js';
 import Toast from '../../ui/Toast.jsx';
 import { useTorneioTimer } from '../../hooks/useTorneioTimer.js';
 import { C } from '../../theme.js';
 import { useI18n, LOCALES_DISPONIVEIS } from '../../hooks/useI18n.jsx';
+import { dbReinos as DB_REINOS_FALLBACK } from '../../data/reinos.js';
+
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /* ─── helpers ───────────────────────────────────────────────────────────────── */
-const REGIOES = [...new Set(dbReinos.map(r => r.regiao))].sort();
+// REGIOES agora é calculado dinamicamente dentro do ReinoSelector, a partir dos reinos carregados da API.
 
 const ReinoCard = ({ reino, selecionado, onClick }) => (
   <button
@@ -33,7 +35,7 @@ const ReinoCard = ({ reino, selecionado, onClick }) => (
       color: selecionado ? C.ACCENT : C.TEXT_FAINT,
       minWidth: 26, textAlign: 'right', flexShrink: 0,
     }}>
-      #{reino.id}
+      {reino.id}
     </span>
 
     {/* Nome + Região */}
@@ -70,41 +72,45 @@ const ReinoCard = ({ reino, selecionado, onClick }) => (
 
 /* ─── Seletor customizado ───────────────────────────────────────────────────── */
 const ReinoSelector = ({ value, onChange }) => {
-  const [aberto,  setAberto]  = useState(false);
-  const [busca,   setBusca]   = useState('');
-  const [regiao,  setRegiao]  = useState('');
-  const inputRef = useRef(null);
+  const [aberto,   setAberto]   = useState(false);
+  const [regiao,   setRegiao]   = useState('');
+  const [reinos,   setReinos]   = useState(DB_REINOS_FALLBACK); // fallback estático enquanto carrega
+  const [carregando, setCarregando] = useState(true);
   const painelRef = useRef(null);
-  const selecionado = dbReinos.find(r => r.nome === value) || null;
 
-  // Fecha ao clicar fora
+  const selecionado = reinos.find(r => r.nome === value) || null;
+  const REGIOES = [...new Set(reinos.map(r => r.regiao).filter(Boolean))].sort();
+
+  // Busca reinos cadastrados no admin (api/routes/reinos.js)
+  useEffect(() => {
+    fetch(`${API}/api/reinos`)
+      .then(r => r.json())
+      .then(data => {
+        const lista = Array.isArray(data?.reinos) ? data.reinos : [];
+        if (lista.length > 0) setReinos(lista);
+        // Se a API não retornar nada, mantém o fallback estático já carregado
+        setCarregando(false);
+      })
+      .catch(() => setCarregando(false)); // erro de rede → mantém fallback
+  }, []);
+
+  // Fecha ao clicar fora — sem foco automático em nenhum input (evita abrir teclado)
   useEffect(() => {
     if (!aberto) return;
     const fn = e => {
-      if (painelRef.current && !painelRef.current.contains(e.target)) {
-        setAberto(false); setBusca('');
-      }
+      if (painelRef.current && !painelRef.current.contains(e.target)) setAberto(false);
     };
     document.addEventListener('mousedown', fn);
     return () => document.removeEventListener('mousedown', fn);
   }, [aberto]);
 
-  // Foca input ao abrir
-  useEffect(() => {
-    if (aberto) setTimeout(() => inputRef.current?.focus(), 60);
-  }, [aberto]);
-
-  const filtrados = dbReinos.filter(r => {
-    const q = busca.toLowerCase();
-    const matchBusca = !q || r.nome.toLowerCase().includes(q) || String(r.id).includes(q) || r.idioma.toLowerCase().includes(q);
-    const matchRegiao = !regiao || r.regiao === regiao;
-    return matchBusca && matchRegiao;
-  });
+  const filtrados = reinos
+    .filter(r => !regiao || r.regiao === regiao)
+    .sort((a, b) => b.id - a.id); // maior ID primeiro
 
   const selecionar = reino => {
     onChange(reino);
     setAberto(false);
-    setBusca('');
   };
 
   return (
@@ -129,7 +135,7 @@ const ReinoSelector = ({ value, onChange }) => {
             <span style={{
               fontFamily: 'monospace', fontWeight: 900, fontSize: '0.68rem',
               color: C.TEXT_FAINT, minWidth: 26, textAlign: 'right', flexShrink: 0,
-            }}>#{selecionado.id}</span>
+            }}>{selecionado.id}</span>
             <span style={{ flex: 1 }}>
               <span style={{
                 display: 'block', fontFamily: '"Nunito",sans-serif',
@@ -177,48 +183,47 @@ const ReinoSelector = ({ value, onChange }) => {
           boxShadow: '0 8px 24px rgba(62,47,28,0.20)',
           overflow: 'hidden',
         }}>
-          {/* Busca + filtro de região */}
+          {/* Filtro de região — select não abre teclado virtual */}
           <div style={{
             padding: '8px 10px', borderBottom: `1px solid rgba(200,168,74,0.2)`,
-            background: '#EAE0C8', display: 'flex', gap: 6,
+            background: '#EAE0C8', display: 'flex', gap: 6, alignItems: 'center',
           }}>
-            <input
-              ref={inputRef}
-              value={busca}
-              onChange={e => setBusca(e.target.value)}
-              placeholder="🔍 Buscar por nome, ID ou idioma…"
-              style={{
-                flex: 1, fontFamily: '"Nunito",sans-serif', fontWeight: 700,
-                fontSize: '0.78rem', background: '#F8F4E8',
-                border: `1.5px solid ${C.BORDER}`, borderRadius: 6,
-                padding: '6px 10px', color: C.TEXT_PRIMARY, outline: 'none',
-              }}
-            />
+            <span style={{
+              fontFamily: '"Nunito",sans-serif', fontWeight: 700,
+              fontSize: '0.7rem', color: C.TEXT_SECONDARY, flexShrink: 0,
+            }}>Filtrar:</span>
             <select
               value={regiao}
               onChange={e => setRegiao(e.target.value)}
               style={{
-                fontFamily: '"Nunito",sans-serif', fontWeight: 700,
-                fontSize: '0.72rem', background: '#F8F4E8',
+                flex: 1, fontFamily: '"Nunito",sans-serif', fontWeight: 700,
+                fontSize: '0.74rem', background: '#F8F4E8',
                 border: `1.5px solid ${C.BORDER}`, borderRadius: 6,
                 padding: '6px 8px', color: C.TEXT_SECONDARY, cursor: 'pointer',
-                flexShrink: 0, maxWidth: 120,
               }}
             >
-              <option value="">Todas</option>
+              <option value="">Todas as regiões</option>
               {REGIOES.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </div>
 
-          {/* Lista */}
-          <div style={{ maxHeight: 220, overflowY: 'auto' }}>
-            {filtrados.length === 0 ? (
+          {/* Lista rolável — sem input de texto, sem teclado */}
+          <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+            {carregando ? (
               <div style={{
                 padding: '18px', textAlign: 'center',
                 fontFamily: '"Nunito",sans-serif', fontWeight: 700,
                 fontSize: '0.78rem', color: C.TEXT_FAINT,
               }}>
-                Nenhum reino encontrado
+                Carregando reinos…
+              </div>
+            ) : filtrados.length === 0 ? (
+              <div style={{
+                padding: '18px', textAlign: 'center',
+                fontFamily: '"Nunito",sans-serif', fontWeight: 700,
+                fontSize: '0.78rem', color: C.TEXT_FAINT,
+              }}>
+                Nenhum reino nessa região
               </div>
             ) : filtrados.map(r => (
               <ReinoCard
@@ -237,7 +242,7 @@ const ReinoSelector = ({ value, onChange }) => {
             fontFamily: '"Nunito",sans-serif', fontWeight: 700,
             fontSize: '0.62rem', color: C.TEXT_FAINT,
           }}>
-            {filtrados.length} de {dbReinos.length} reinos
+            {filtrados.length} de {reinos.length} reinos
           </div>
         </div>
       )}

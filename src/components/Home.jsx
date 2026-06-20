@@ -39,6 +39,7 @@ const FERRAMENTAS_DEF = [
   { id: 'ilhas',               icon: '🏝️',  tKey: 'home.botao.ilhas',         subKey: 'home.botao.ilhas.sub',         cor: '#4A8A6A' },
   { id: 'pesquisas',           icon: '🔬',  tKey: 'home.botao.pesquisas',     subKey: 'home.botao.pesquisas.sub',     cor: '#5A8A7A' },
   { id: 'sobre',               icon: 'ℹ️',  tKey: 'home.botao.sobre',         subKey: 'home.botao.sobre.sub',         cor: '#7A6A5A' },
+  { id: 'dicas',               icon: '💡',  tKey: 'home.botao.dicas',         subKey: 'home.botao.dicas.sub',         cor: '#D4A017' },
   { id: 'modal:color_builder', icon: '🎨',  tKey: 'home.botao.texto_colorido', subKey: 'home.botao.texto_colorido.sub', cor: '#9B59B6' },
 ];
 
