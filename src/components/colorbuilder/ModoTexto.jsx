@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { PRESETS, SUGGEST_PALETTES, SUGGEST_NAMES, KAOMOJI, ASCII_EM, SYM_CATS } from './data.js';
+import { PRESETS, SUGGEST_PALETTES, SUGGEST_NAMES, KAOMOJI, ASCII_EM, SYM_CATS, FRASES_PRONTAS } from './data.js';
 import { T, C, safeCopy } from './styles.js';
 
 const ABAS = [
@@ -47,8 +47,36 @@ export default function ModoTexto({
 
   const parseText = () => {
     if (!inputVal.trim()) return;
+    // Se já existem cores aplicadas e o texto mudou, avisa antes de sobrescrever
+    const temCores = tokens.some(t => t.color);
+    const textoAtual = tokens.map(t => t.char).join('');
+    if (temCores && textoAtual !== inputVal) {
+      if (!window.confirm('Remontar vai apagar as cores já aplicadas. Continuar?')) return;
+    }
     setTokens([...inputVal].map(c => ({ char: c, color: null })));
     setSelected(new Set());
+  };
+
+  // Decodifica um código pronto no formato [HEX]texto[HEX2]texto2... em tokens
+  const parseCodigo = (codigo) => {
+    const novosTokens = [];
+    const regex = /\[([0-9A-Fa-f]{6})\]([^\[]*)/g;
+    let match;
+    while ((match = regex.exec(codigo)) !== null) {
+      const [, hex, texto] = match;
+      [...texto].forEach(char => novosTokens.push({ char, color: hex.toUpperCase() }));
+    }
+    return novosTokens;
+  };
+
+  const aplicarFrasePronta = (frase) => {
+    const temCoresManuais = tokens.some(t => t.color) && tokens.map(t => t.char).join('') !== '';
+    if (temCoresManuais && !window.confirm('Isso vai substituir o texto e as cores atuais. Continuar?')) return;
+    const novosTokens = parseCodigo(frase.codigo);
+    setTokens(novosTokens);
+    setInputVal(novosTokens.map(t => t.char).join(''));
+    setSelected(new Set());
+    showToast(`"${frase.label}" aplicado!`);
   };
 
   const getCode = () => {
@@ -135,6 +163,42 @@ export default function ModoTexto({
                 <span style={{ fontSize: '0.72rem' }}>{SUGGEST_NAMES[pi]}</span>
               </button>
             ))}
+          </div>
+
+          {/* Frases prontas */}
+          <div style={T.secLbl}>Frases prontas</div>
+          <p style={{ fontSize: '0.62rem', color: C.TEXT_FAINT, margin: '0 0 8px' }}>
+            Textos já coloridos para comemorações e general — clique para usar
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+            {FRASES_PRONTAS.map(frase => {
+              const tokensPreview = parseCodigo(frase.codigo);
+              return (
+                <button key={frase.id}
+                  onClick={() => aplicarFrasePronta(frase)}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+                    background: C.BG_SECONDARY, border: `1.5px solid rgba(200,168,74,0.2)`,
+                    borderRadius: 9, padding: '8px 12px', cursor: 'pointer',
+                    transition: 'all 0.13s', textAlign: 'left',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(200,168,74,0.45)'; e.currentTarget.style.background = C.BG_INPUT; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(200,168,74,0.2)'; e.currentTarget.style.background = C.BG_SECONDARY; }}
+                >
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: '0.62rem', color: C.TEXT_MUTED, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>
+                      {frase.label}
+                    </div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>
+                      {tokensPreview.map((tk, i) => (
+                        <span key={i} style={{ color: '#' + tk.color }}>{tk.char}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '0.85rem', color: C.TEXT_FAINT, flexShrink: 0 }}>→</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Campo */}
@@ -304,27 +368,66 @@ export default function ModoTexto({
           {/* Paleta de cores */}
           <div style={T.secLbl}>Paleta de cores — clique para ativar</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
-            {[...PRESETS, ...savedColors].map((hex, i) => {
-              const isSaved  = i >= PRESETS.length;
+            {PRESETS.map((hex, i) => {
               const isActive = hex.replace('#', '').toUpperCase() === activeColor;
               return (
-                <div key={i}
+                <div key={'preset-' + i}
                   onClick={() => { setActive(hex); showToast('Cor ' + hex.toUpperCase() + ' ativa'); }}
-                  onContextMenu={isSaved ? (e) => { e.preventDefault(); removeColor(hex); showToast('Cor removida'); } : undefined}
-                  title={hex + (isSaved ? ' (clique dir p/ remover)' : '')}
+                  title={hex}
                   style={{
                     width: 24, height: 24, borderRadius: 6, background: hex,
                     flexShrink: 0, cursor: 'pointer',
                     border: isActive ? `2.5px solid ${C.ACCENT}` : '2.5px solid transparent',
                     boxShadow: isActive ? `0 0 0 2px rgba(200,168,74,0.5)` : 'none',
-                    outline: isSaved ? '2px dashed rgba(200,168,74,0.4)' : 'none',
-                    outlineOffset: 2, transition: 'all 0.1s',
+                    transition: 'all 0.1s',
                     transform: isActive ? 'scale(1.1)' : 'scale(1)',
                   }}
                 />
               );
             })}
           </div>
+
+          {savedColors.length > 0 && (
+            <>
+              <div style={T.secLbl}>Cores salvas — toque em ✕ para remover</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
+                {savedColors.map((hex, i) => {
+                  const isActive = hex.replace('#', '').toUpperCase() === activeColor;
+                  return (
+                    <div key={'saved-' + i}
+                      style={{ position: 'relative', flexShrink: 0 }}
+                    >
+                      <div
+                        onClick={() => { setActive(hex); showToast('Cor ' + hex.toUpperCase() + ' ativa'); }}
+                        title={hex}
+                        style={{
+                          width: 24, height: 24, borderRadius: 6, background: hex,
+                          cursor: 'pointer',
+                          border: isActive ? `2.5px solid ${C.ACCENT}` : '2.5px solid transparent',
+                          boxShadow: isActive ? `0 0 0 2px rgba(200,168,74,0.5)` : 'none',
+                          outline: '2px dashed rgba(200,168,74,0.4)',
+                          outlineOffset: 2, transition: 'all 0.1s',
+                          transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                        }}
+                      />
+                      <button
+                        onClick={(e) => { e.stopPropagation(); removeColor(hex); showToast('Cor removida'); }}
+                        title="Remover cor salva"
+                        style={{
+                          position: 'absolute', top: -7, right: -7,
+                          width: 15, height: 15, borderRadius: '50%',
+                          background: C.ERROR, color: '#fff', border: 'none',
+                          fontSize: 8, fontWeight: 900, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          lineHeight: 1, padding: 0,
+                        }}
+                      >✕</button>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           {/* Cor personalizada */}
           <div style={T.secLbl}>Cor personalizada</div>
@@ -392,17 +495,20 @@ export default function ModoTexto({
             <button style={T.btnSolid} onClick={() => safeCopy(code, () => showToast('Código copiado!'))}>⎘ Copiar código</button>
             <button style={T.btnOutline} onClick={() => safeCopy(tokens.map(t => t.char).join(''), () => showToast('Texto puro copiado!'))}>⎘ Texto puro</button>
             <button style={T.btnOutline} onClick={() => {
+              if (!window.confirm('Remover todas as cores aplicadas?')) return;
               setTokens(prev => prev.map(tk => ({ ...tk, color: null })));
               setSelected(new Set());
               showToast('Cores removidas');
             }}>✦ Limpar cores</button>
             <button style={T.btnOutline} onClick={() => {
-              // Permite remontar o campo sem apagar o progresso atual
+              // Volta para a aba de digitação, mantendo o progresso atual intacto
               setAba('texto');
-              showToast('Monte um novo texto no campo acima');
-            }}>+ Novo texto</button>
+            }}>✏️ Editar texto</button>
             <button style={{ ...T.btnOutline, color: C.ERROR, borderColor: 'rgba(168,60,44,0.35)' }}
-              onClick={() => { setTokens([]); setSelected(new Set()); setInputVal(''); showToast('Recomeçado'); }}>
+              onClick={() => {
+                if (!window.confirm('Apagar tudo e recomeçar do zero?')) return;
+                setTokens([]); setSelected(new Set()); setInputVal(''); showToast('Recomeçado');
+              }}>
               ✕ Recomeçar
             </button>
           </div>

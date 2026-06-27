@@ -4,25 +4,46 @@ import { autenticar } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// URL da instância LibreTranslate — usa env ou fallback para pública
-const LT_URL = process.env.LIBRETRANSLATE_URL || 'https://translate.terraprint.co';
-const LT_KEY = process.env.LIBRETRANSLATE_KEY || '';   // vazio = instâncias sem key
+// URLs das instâncias LibreTranslate, em ordem de tentativa.
+// 1ª: a configurada via env (se houver) — usa LT_KEY, pois a key pertence a essa instância.
+// 2ª, 3ª, 4ª: mirrors públicos gratuitos, usados como fallback se a principal falhar/cair.
+const LT_KEY = process.env.LIBRETRANSLATE_KEY || ''; // vazio = instâncias sem key
 
-// ── Helper: chama LibreTranslate ─────────────────────────────────────────────
+const LT_INSTANCES = [
+  ...(process.env.LIBRETRANSLATE_URL ? [{ url: process.env.LIBRETRANSLATE_URL, key: LT_KEY }] : []),
+  { url: 'https://translate.terraprint.co',     key: '' },
+  { url: 'https://libretranslate.de',           key: '' },
+  { url: 'https://translate.argosopentech.com', key: '' },
+];
+
+// ── Helper: tenta cada instância LibreTranslate em sequência até uma funcionar ──
 async function traduzirTexto(texto, de = 'pt', para = 'en') {
-  const body = { q: texto, source: de, target: para, format: 'text' };
-  if (LT_KEY) body.api_key = LT_KEY;
+  const erros = [];
 
-  const res = await fetch(`${LT_URL}/translate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(8000),
-  });
+  for (const { url, key } of LT_INSTANCES) {
+    try {
+      const body = { q: texto, source: de, target: para, format: 'text' };
+      if (key) body.api_key = key;
 
-  if (!res.ok) throw new Error(`LibreTranslate retornou ${res.status}`);
-  const data = await res.json();
-  return data.translatedText || '';
+      const res = await fetch(`${url}/translate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(8000),
+      });
+
+      if (!res.ok) throw new Error(`${url} retornou ${res.status}`);
+      const data = await res.json();
+      if (!data.translatedText) throw new Error(`${url} não retornou translatedText`);
+      return data.translatedText;
+    } catch (e) {
+      erros.push(e.message);
+      // continua para a próxima instância da lista
+    }
+  }
+
+  // Todas as instâncias falharam
+  throw new Error(`Todas as instâncias LibreTranslate falharam: ${erros.join(' | ')}`);
 }
 
 // ── GET /api/traducoes?locale=en-US

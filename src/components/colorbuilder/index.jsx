@@ -4,6 +4,7 @@ import { useBuilder } from './useBuilder.js';
 import ModoTexto     from './ModoTexto.jsx';
 import ModoBandeiras from './ModoBandeiras.jsx';
 import ModoFontes    from './ModoFontes.jsx';
+import ModoPlacar    from './ModoPlacar.jsx';
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 function Toast({ msg, visible }) {
@@ -53,12 +54,21 @@ const MODOS = [
     cor:   '#C0392B',
     tags:  ['gótico', 'cursivo', 'unicode', 'leet', 'estilos'],
   },
+  {
+    id:    'placar',
+    icon:  '🏆',
+    title: 'Placar de Jogos',
+    desc:  'Monte o placar de uma partida com cores por time e destaque automático de quem marcou.',
+    cor:   '#16A085',
+    tags:  ['placar', 'futebol', 'gol', 'times'],
+  },
 ];
 
 const MODO_HEADERS = {
   texto:     { icon: '🎨', title: 'Personalizar Texto' },
   bandeiras: { icon: '🏳', title: 'Bandeiras'          },
   fontes:    { icon: '𝓐',  title: 'Fontes & Estilos'  },
+  placar:    { icon: '🏆', title: 'Placar de Jogos'    },
 };
 
 // ─── Tela de boas-vindas ──────────────────────────────────────────────────────
@@ -223,6 +233,10 @@ export default function ColorTextBuilder({ onClose }) {
 
         {modo === 'fontes' && (
           <ModoFontes showToast={showToast} />
+        )}
+
+        {modo === 'placar' && (
+          <ModoPlacar showToast={showToast} />
         )}
 
         <Toast msg={toast} visible={toastVis} />

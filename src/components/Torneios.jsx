@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { getFusoOffset, getProfile } from '../utils/storage.js';
 import { useTorneioTimer } from '../hooks/useTorneioTimer.js';
+import { useI18n } from '../hooks/useI18n.jsx';
 import { C } from '../theme.js';
 import TorneioStatusCard         from './shared/TorneioStatusCard.jsx';
 import EvolucaoTropas            from './torneios/EvolucaoTropas.jsx';
@@ -17,19 +18,22 @@ import TorneioAceleracoes        from './torneios/TorneioAceleracoes.jsx';
 import TorneioPocoes             from './torneios/TorneioPocoes.jsx';
 
 const LISTA_TORNEIOS = [
-  { id: 'general',             icon: '🎖️', title: 'Aprimoramento de General',       desc: 'XP pelo Quartel do General',    cat: 'Poder',   cor: '#A83C2C', infoOnly: true  },
-  { id: 'aprimoramento_tropa', icon: '🛡️', title: 'Aprimoramento de Tropa',          desc: 'Upgrade de Unidades',           cat: 'Tropas',  cor: '#5C7FA3'                  },
-  { id: 'evolucao_tropas',     icon: '⭐', title: 'Evolução de Tropas',              desc: 'Raridade e Poder',              cat: 'Tropas',  cor: '#C87A2C'                  },
-  { id: 'habilidade_dragao',   icon: '🐉', title: 'Habilidade dos Grandes Dragões',  desc: 'Essência de Fúria',             cat: 'Dragão',  cor: '#8B6BAE'                  },
-  { id: 'matar_tropas',        icon: '☠️', title: 'Matar Tropas',                    desc: 'Combate e trocas',              cat: 'Combate', cor: '#A83C2C', infoOnly: true  },
-  { id: 'alianca',             icon: '🤝', title: 'Torneios de Aliança',              desc: 'Como funcionam',                cat: 'Aliança', cor: '#5A8A5C', infoOnly: true  },
-  { id: 'pocoes_antigas',      icon: '📚', title: 'Torneio de Conhecimento',          desc: 'Poções Antigas',                cat: 'Poder',   cor: '#8B3A9A'                  },
-  { id: 'talisma',             icon: '🧿', title: 'Pontos de Talismã',               desc: 'Torre de Oração',               cat: 'Magia',   cor: '#8B6BAE'                  },
-  { id: 'poder',               icon: '⚡', title: 'Torneio de Poder',                desc: 'Ganhe poder de todas as formas', cat: 'Poder',   cor: '#C87A2C', infoOnly: true  },
-  { id: 'treino_tropa',        icon: '⚔️', title: 'Treino de Tropa',                 desc: 'Recrutamento com bônus',        cat: 'Tropas',  cor: '#A83C2C'                  },
-  { id: 'treinamento_dragao',  icon: '🍖', title: 'Treinamento do Dragão',           desc: 'Carnes e XP do Dragão',         cat: 'Dragão',  cor: '#8B6BAE'                  },
-  { id: 'aceleracoes',         icon: '⏩', title: 'Torneio de Acelerações',           desc: 'Minutos de aceleração',         cat: 'Poder',   cor: '#3B5C8C'                  },
-].sort((a, b) => a.title.localeCompare(b.title));
+  { id: 'general',             icon: '🎖️', catKey: 'poder',   cor: '#A83C2C', infoOnly: true  },
+  { id: 'aprimoramento_tropa', icon: '🛡️', catKey: 'tropas',  cor: '#5C7FA3'                  },
+  { id: 'evolucao_tropas',     icon: '⭐', catKey: 'tropas',  cor: '#C87A2C'                  },
+  { id: 'habilidade_dragao',   icon: '🐉', catKey: 'dragao',  cor: '#8B6BAE'                  },
+  { id: 'matar_tropas',        icon: '☠️', catKey: 'combate', cor: '#A83C2C', infoOnly: true  },
+  { id: 'alianca',             icon: '🤝', catKey: 'alianca', cor: '#5A8A5C', infoOnly: true  },
+  { id: 'pocoes_antigas',      icon: '📚', catKey: 'poder',   cor: '#8B3A9A'                  },
+  { id: 'talisma',             icon: '🧿', catKey: 'magia',   cor: '#8B6BAE'                  },
+  { id: 'poder',               icon: '⚡', catKey: 'poder',   cor: '#C87A2C', infoOnly: true  },
+  { id: 'treino_tropa',        icon: '⚔️', catKey: 'tropas',  cor: '#A83C2C'                  },
+  { id: 'treinamento_dragao',  icon: '🍖', catKey: 'dragao',  cor: '#8B6BAE'                  },
+  { id: 'aceleracoes',         icon: '⏩', catKey: 'poder',   cor: '#3B5C8C'                  },
+];
+
+// Ordem fixa de exibição das categorias (não depende de ordenação alfabética por idioma)
+const ORDEM_CATEGORIAS = ['alianca', 'combate', 'dragao', 'magia', 'poder', 'tropas'];
 
 const MODULOS = {
   evolucao_tropas:      <EvolucaoTropas />,
@@ -68,15 +72,18 @@ const SectionDivider = ({ label }) => (
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 const Torneios = () => {
+  const { t } = useI18n();
   const [torneioAtivo, setTorneioAtivo] = useState(null);
   const [highlighted,  setHighlighted]  = useState(null);
 
-  const torneioAtual = LISTA_TORNEIOS.find(t => t.id === torneioAtivo);
+  const torneioAtual = LISTA_TORNEIOS.find(item => item.id === torneioAtivo);
   const profile = getProfile() || {};
   const offset  = getFusoOffset();
   const { horaLocal, countdown, isUrgente, faseTexto } = useTorneioTimer(offset);
 
-  const cats = [...new Set(LISTA_TORNEIOS.map(t => t.cat))].sort();
+  const catsPresentes = ORDEM_CATEGORIAS.filter(catKey =>
+    LISTA_TORNEIOS.some(item => item.catKey === catKey)
+  );
 
   return (
     <div className="max-w-2xl mx-auto pb-4">
@@ -108,12 +115,12 @@ const Torneios = () => {
                 {torneioAtual.icon}
               </div>
               <div>
-                <p className="font-nunito font-bold text-[0.65rem] uppercase tracking-wide m-0" style={{ color: C.TEXT_MUTED }}>Torneio Ativo</p>
-                <p className="font-nunito font-black text-base m-0 leading-tight" style={{ color: C.TEXT_PRIMARY }}>{torneioAtual.title}</p>
+                <p className="font-nunito font-bold text-[0.65rem] uppercase tracking-wide m-0" style={{ color: C.TEXT_MUTED }}>{t('torneio.ativo.label')}</p>
+                <p className="font-nunito font-black text-base m-0 leading-tight" style={{ color: C.TEXT_PRIMARY }}>{t(`torneio.titulo.${torneioAtual.id}`)}</p>
               </div>
             </div>
             <button className="btn-danger btn-sm" onClick={() => { setTorneioAtivo(null); setHighlighted(null); }}>
-              ← Voltar
+              ← {t('torneio.acao.voltar')}
             </button>
           </div>
 
@@ -121,44 +128,44 @@ const Torneios = () => {
         </div>
       ) : (
         <div>
-          <PHeader title="Codex de Batalha" sub="Selecione o módulo do torneio" />
+          <PHeader title={t('torneio.hub.titulo')} sub={t('torneio.hub.subtitulo')} />
 
-          {cats.map(cat => (
-            <div key={cat}>
-              <SectionDivider label={cat.toUpperCase()} />
-              {LISTA_TORNEIOS.filter(t => t.cat === cat).map(t => {
-                const isHigh = highlighted === t.id;
+          {catsPresentes.map(catKey => (
+            <div key={catKey}>
+              <SectionDivider label={t(`torneio.cat.${catKey}`).toUpperCase()} />
+              {LISTA_TORNEIOS.filter(item => item.catKey === catKey).map(item => {
+                const isHigh = highlighted === item.id;
                 return (
                   <button
-                    key={t.id}
-                    onClick={() => { setHighlighted(t.id); setTimeout(() => setTorneioAtivo(t.id), 120); }}
+                    key={item.id}
+                    onClick={() => { setHighlighted(item.id); setTimeout(() => setTorneioAtivo(item.id), 120); }}
                     className="w-full flex items-center gap-2.5 rounded-lg mb-1.5 cursor-pointer transition-all text-left border-none"
                     style={{
                       padding: '9px 12px',
-                      background: isHigh ? `linear-gradient(90deg, ${t.cor}20 0%, ${C.BG_CARD} 100%)` : C.BG_CARD,
-                      border: `1.5px solid ${isHigh ? t.cor : C.BORDER_SOFT}`,
-                      borderLeft: `4px solid ${t.cor}`,
-                      boxShadow: isHigh ? `0 2px 10px ${t.cor}25` : '0 1px 4px rgba(62,47,28,0.06)',
+                      background: isHigh ? `linear-gradient(90deg, ${item.cor}20 0%, ${C.BG_CARD} 100%)` : C.BG_CARD,
+                      border: `1.5px solid ${isHigh ? item.cor : C.BORDER_SOFT}`,
+                      borderLeft: `4px solid ${item.cor}`,
+                      boxShadow: isHigh ? `0 2px 10px ${item.cor}25` : '0 1px 4px rgba(62,47,28,0.06)',
                     }}
                   >
                     <div
                       className="w-9 h-9 shrink-0 flex items-center justify-center text-lg rounded-lg"
-                      style={{ background: `${t.cor}15`, border: `1.5px solid ${t.cor}45` }}
+                      style={{ background: `${item.cor}15`, border: `1.5px solid ${item.cor}45` }}
                     >
-                      {t.icon}
+                      {item.icon}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-nunito font-black text-[0.82rem] m-0 leading-tight" style={{ color: C.TEXT_PRIMARY }}>{t.title}</p>
-                      <p className="font-nunito font-semibold text-[0.68rem] m-0 mt-0.5" style={{ color: C.TEXT_MUTED }}>{t.desc}</p>
+                      <p className="font-nunito font-black text-[0.82rem] m-0 leading-tight" style={{ color: C.TEXT_PRIMARY }}>{t(`torneio.titulo.${item.id}`)}</p>
+                      <p className="font-nunito font-semibold text-[0.68rem] m-0 mt-0.5" style={{ color: C.TEXT_MUTED }}>{t(`torneio.desc.${item.id}`)}</p>
                     </div>
                     <div
                       className="font-nunito font-black text-[0.6rem] tracking-widest uppercase shrink-0 px-2.5 py-1 rounded-md"
                       style={{
-                        background: isHigh ? t.cor : C.ACCENT,
+                        background: isHigh ? item.cor : C.ACCENT,
                         color: '#FFF8EE',
                       }}
                     >
-                      {isHigh ? 'ABRINDO…' : t.infoOnly ? 'VER ▸' : 'CALCULAR ▸'}
+                      {isHigh ? t('torneio.acao.abrindo') : item.infoOnly ? t('torneio.acao.ver') : t('torneio.acao.calcular')}
                     </div>
                   </button>
                 );

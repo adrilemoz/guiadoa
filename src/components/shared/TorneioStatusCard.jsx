@@ -1,5 +1,6 @@
 import React from 'react';
 import GameHeader from './GameHeader.jsx';
+import { useI18n } from '../../hooks/useI18n.jsx';
 import { C } from '../../theme.js';
 
 const CARD_STYLES = `
@@ -13,10 +14,12 @@ const CARD_STYLES = `
   }
 `;
 
-const TorneioStatusCard = ({ horaLocal, countdown, isUrgente, faseTexto, fuso, reino, compact = false }) => (
+const TorneioStatusCard = ({ horaLocal, countdown, isUrgente, faseTexto, fuso, reino, compact = false }) => {
+  const { t } = useI18n();
+  return (
   <div className="tw-card mb-3">
     <style>{CARD_STYLES}</style>
-    <GameHeader title="Status do Torneio" />
+    <GameHeader title={t('torneio.status.titulo')} />
 
     {/* Corpo */}
     <div className="bg-aoe-card px-4 py-3 text-center relative"
@@ -60,7 +63,7 @@ const TorneioStatusCard = ({ horaLocal, countdown, isUrgente, faseTexto, fuso, r
         </span>
         <span className="text-aoe-gold shrink-0 text-xs">·</span>
         <span className="font-nunito font-bold text-[0.65rem] tracking-wider text-aoe-muted whitespace-nowrap shrink-0">
-          {fuso || reino || 'UTC'}
+          {fuso || reino || t('torneio.status.utc')}
         </span>
         <span className="text-aoe-gold shrink-0 text-xs">·</span>
         <span className="font-nunito text-[0.7rem] text-aoe-muted whitespace-nowrap tracking-widest shrink-0">
@@ -71,6 +74,7 @@ const TorneioStatusCard = ({ horaLocal, countdown, isUrgente, faseTexto, fuso, r
 
     <div className="gold-stripe opacity-25" />
   </div>
-);
+  );
+};
 
 export default TorneioStatusCard;

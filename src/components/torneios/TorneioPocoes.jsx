@@ -1,41 +1,22 @@
 import React, { useState, useMemo } from 'react';
 import { C } from '../../theme.js';
 import Toast from '../../ui/Toast.jsx';
+import { useI18n } from '../../hooks/useI18n.jsx';
 
 const STORAGE_KEY = 'doa_torneio_pocoes';
 
 const COR = '#8B3A9A'; // roxo-poção
 
-const POCOES = [
-  {
-    key:    'superior',
-    label:  'Poção Antiga Superior',
-    emoji:  '🟣',
-    pts:    50,
-    desc:   'Maior pontuação',
-    cor:    '#8B3A9A',
-  },
-  {
-    key:    'intermediaria',
-    label:  'Poção Antiga Intermediária',
-    emoji:  '🔵',
-    pts:    30,
-    desc:   'Pontuação média',
-    cor:    '#3A6A9A',
-  },
-  {
-    key:    'primaria',
-    label:  'Poção Antiga Primária',
-    emoji:  '🟢',
-    pts:    10,
-    desc:   'Menor pontuação',
-    cor:    '#3A8A5A',
-  },
+const POCOES_CHAVES = [
+  { key: 'superior',      chave: 'torneio.pocoes.nome.superior',      emoji: '🟣', pts: 50, cor: '#8B3A9A' },
+  { key: 'intermediaria', chave: 'torneio.pocoes.nome.intermediaria', emoji: '🔵', pts: 30, cor: '#3A6A9A' },
+  { key: 'primaria',      chave: 'torneio.pocoes.nome.primaria',      emoji: '🟢', pts: 10, cor: '#3A8A5A' },
 ];
 
 const fmtN = n => Number(n || 0).toLocaleString('pt-BR');
 
 const TorneioPocoes = () => {
+  const { t } = useI18n();
   const [qtds, setQtds] = useState(() => {
     try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s).qtds || {} : {}; }
     catch { return {}; }
@@ -51,7 +32,7 @@ const TorneioPocoes = () => {
   };
 
   const ptsDosItens = useMemo(() =>
-    POCOES.reduce((acc, p) => acc + (parseInt(qtds[p.key]) || 0) * p.pts, 0),
+    POCOES_CHAVES.reduce((acc, p) => acc + (parseInt(qtds[p.key]) || 0) * p.pts, 0),
     [qtds]
   );
 
@@ -61,15 +42,15 @@ const TorneioPocoes = () => {
   const handleSalvar = () => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ qtds, ptsPossuidos }));
-      setToast({ open: true, message: 'Dados salvos com sucesso!', severity: 'success' });
+      setToast({ open: true, message: t('torneio.toast.salvo_sucesso'), severity: 'success' });
     } catch {
-      setToast({ open: true, message: 'Erro ao salvar os dados.', severity: 'error' });
+      setToast({ open: true, message: t('torneio.toast.erro_salvar'), severity: 'error' });
     }
   };
 
   return (
     <div className="max-w-md mx-auto pb-4" style={{ animation: 'reveal-up 0.4s ease both' }}>
-      <Toast {...toast} onClose={() => setToast(t => ({ ...t, open: false }))} />
+      <Toast {...toast} onClose={() => setToast(prev => ({ ...prev, open: false }))} />
 
       {/* ── TOTAL ──────────────────────────────────────────────────────────── */}
       <div className="rounded-xl overflow-hidden mb-3"
@@ -82,7 +63,7 @@ const TorneioPocoes = () => {
           <div className="flex-1 min-w-0">
             <p className="font-nunito font-bold text-[0.6rem] tracking-[3px] uppercase m-0 mb-1"
               style={{ color: 'rgba(200,168,200,0.7)' }}>
-              TOTAL DE PONTOS
+              {t('torneio.aceleracoes.total_pontos')}
             </p>
             <p className="font-nunito font-black leading-none m-0"
               style={{
@@ -96,7 +77,7 @@ const TorneioPocoes = () => {
             {ptsPos > 0 && (
               <p className="font-nunito font-semibold text-[0.6rem] m-0 mt-1"
                 style={{ color: 'rgba(200,168,200,0.55)' }}>
-                {fmtN(ptsDosItens)} (poções) + {fmtN(ptsPos)} (possuídos)
+                {fmtN(ptsDosItens)} {t('torneio.pocoes.detalhe_pocoes')} + {fmtN(ptsPos)} {t('torneio.aceleracoes.detalhe_possuidos')}
               </p>
             )}
           </div>
@@ -112,7 +93,7 @@ const TorneioPocoes = () => {
               borderRadius: 8, cursor: 'pointer', fontWeight: 800,
               fontFamily: '"Nunito",sans-serif',
             }}>
-            💾 Salvar
+            💾 {t('torneio.label.salvar')}
           </button>
         </div>
 
@@ -121,7 +102,7 @@ const TorneioPocoes = () => {
           style={{ background: C.BG_CARD, borderTop: `1px solid rgba(200,168,74,0.25)` }}>
           <label className="font-nunito font-bold text-[0.65rem] tracking-widest uppercase block mb-1.5"
             style={{ color: C.TEXT_MUTED }}>
-            Pontos já possuídos
+            {t('torneio.label.possuidos')}
           </label>
           <input
             className="tw-input text-center font-mono font-black"
@@ -136,7 +117,7 @@ const TorneioPocoes = () => {
 
       {/* ── POÇÕES — 3 cards ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-3 gap-2 mb-3">
-        {POCOES.map(poc => {
+        {POCOES_CHAVES.map(poc => {
           const qtd  = parseInt(qtds[poc.key]) || 0;
           const soma = qtd * poc.pts;
           const ativo = soma > 0;
@@ -161,11 +142,11 @@ const TorneioPocoes = () => {
                 </div>
                 <p className="font-nunito font-black text-[0.66rem] m-0 leading-snug text-center"
                   style={{ color: C.TEXT_PRIMARY }}>
-                  {poc.label}
+                  {t(poc.chave)}
                 </p>
                 <p className="font-nunito font-semibold text-[0.56rem] m-0 mt-0.5 text-center"
                   style={{ color: poc.cor, fontWeight: 800 }}>
-                  {poc.pts} pts/unidade
+                  {poc.pts} {t('torneio.talisma.pts_por_unidade')}
                 </p>
               </div>
 
@@ -173,7 +154,7 @@ const TorneioPocoes = () => {
               <div className="px-2 py-2" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span className="font-nunito font-bold text-[0.52rem] leading-none"
                   style={{ color: C.TEXT_FAINT, flexShrink: 0, whiteSpace: 'nowrap' }}>
-                  = pts
+                  {t('torneio.label.eq_pts')}
                 </span>
                 <input
                   className="tw-input text-center font-mono font-black"
@@ -204,16 +185,16 @@ const TorneioPocoes = () => {
           <div className="px-4 py-2.5">
             <p className="font-nunito font-black text-[0.65rem] uppercase tracking-widest m-0 mb-1.5"
               style={{ color: COR }}>
-              🧪 Resumo
+              🧪 {t('torneio.pocoes.resumo_titulo')}
             </p>
-            {POCOES.filter(p => (parseInt(qtds[p.key]) || 0) > 0).map(p => {
+            {POCOES_CHAVES.filter(p => (parseInt(qtds[p.key]) || 0) > 0).map(p => {
               const qtd  = parseInt(qtds[p.key]) || 0;
               const soma = qtd * p.pts;
               return (
                 <div key={p.key} className="flex items-center justify-between mb-1 last:mb-0">
                   <span className="font-nunito font-semibold text-[0.72rem]"
                     style={{ color: C.TEXT_SECONDARY }}>
-                    {p.emoji} {p.label}
+                    {p.emoji} {t(p.chave)}
                   </span>
                   <span className="font-nunito font-black text-[0.75rem]"
                     style={{ color: p.cor }}>
@@ -234,22 +215,22 @@ const TorneioPocoes = () => {
             borderBottom: `1.5px solid ${C.BORDER_SOFT}` }}>
           <p className="font-nunito font-black text-[0.72rem] uppercase tracking-widest m-0"
             style={{ color: C.TEXT_MUTED }}>
-            📖 Como Funciona
+            📖 {t('torneio.label.como_funciona')}
           </p>
         </div>
         <div className="px-4 py-3" style={{ background: C.BG_CARD }}>
           {[
-            { icon: '🟣', text: 'Poção Antiga Superior vale 50 pontos por unidade — a mais rara e valiosa das três.' },
-            { icon: '🔵', text: 'Poção Antiga Intermediária vale 30 pontos por unidade.' },
-            { icon: '🟢', text: 'Poção Antiga Primária vale 10 pontos por unidade — mais comum e fácil de acumular.' },
-            { icon: '🏆', text: 'Poções Antigas podem ser obtidas em eventos, na Arena, na Loja de Surpresas ou comprando pacotes de itens.' },
-            { icon: '📦', text: 'Conte quantas poções de cada tipo você usou durante o torneio e preencha as quantidades acima.' },
+            { icon: '🟣', chave: 'torneio.pocoes.dica1' },
+            { icon: '🔵', chave: 'torneio.pocoes.dica2' },
+            { icon: '🟢', chave: 'torneio.pocoes.dica3' },
+            { icon: '🏆', chave: 'torneio.pocoes.dica4' },
+            { icon: '📦', chave: 'torneio.pocoes.dica5' },
           ].map((item, i) => (
             <div key={i} className="flex gap-2.5 items-start mb-2.5 last:mb-0">
               <span className="text-base leading-none shrink-0 mt-0.5">{item.icon}</span>
               <p className="font-nunito font-semibold text-[0.76rem] leading-relaxed m-0"
                 style={{ color: C.TEXT_SECONDARY }}>
-                {item.text}
+                {t(item.chave)}
               </p>
             </div>
           ))}

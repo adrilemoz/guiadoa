@@ -2,16 +2,17 @@ import React, { useState, useMemo } from 'react';
 import { C } from '../../theme.js';
 import { dbTropas } from '../../data/tropas.js';
 import Toast from '../../ui/Toast.jsx';
+import { useI18n } from '../../hooks/useI18n.jsx';
 
 const STORAGE_KEY = 'doa_treino_tropa';
 const COR         = '#A83C2C'; // vermelho-combate
 
-const BONUS = [
-  { value: 1, label: 'x1 — Normal'  },
-  { value: 2, label: 'x2 — Duplo'   },
-  { value: 3, label: 'x3 — Triplo'  },
-  { value: 4, label: 'x4 — Quádrup' },
-  { value: 5, label: 'x5 — Quíntup' },
+const BONUS_CHAVES = [
+  { value: 1, chave: 'torneio.treino_tropa.bonus.x1' },
+  { value: 2, chave: 'torneio.treino_tropa.bonus.x2' },
+  { value: 3, chave: 'torneio.treino_tropa.bonus.x3' },
+  { value: 4, chave: 'torneio.treino_tropa.bonus.x4' },
+  { value: 5, chave: 'torneio.treino_tropa.bonus.x5' },
 ];
 
 const sortedTropas = [...dbTropas].sort((a, b) => a.nome.localeCompare(b.nome));
@@ -20,6 +21,7 @@ const fmtN = n => Number(n || 0).toLocaleString('pt-BR');
 const emptyRow = () => ({ id: Date.now() + Math.random(), tropa: '', qtd: '', bonus: 1 });
 
 const TorneioTreinoTropa = () => {
+  const { t } = useI18n();
   const [linhas, setLinhas] = useState(() => {
     try {
       const s = localStorage.getItem(STORAGE_KEY);
@@ -42,7 +44,7 @@ const TorneioTreinoTropa = () => {
 
   const ptsDasLinhas = useMemo(() =>
     linhas.reduce((acc, l) => {
-      const tropa = dbTropas.find(t => t.nome === l.tropa);
+      const tropa = dbTropas.find(item => item.nome === l.tropa);
       const poder = tropa?.poder || 0;
       const qtd   = parseInt((l.qtd || '').replace(/\./g, '')) || 0;
       return acc + qtd * poder * (l.bonus || 1);
@@ -56,15 +58,15 @@ const TorneioTreinoTropa = () => {
   const handleSalvar = () => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ linhas, ptsPossuidos }));
-      setToast({ open: true, message: 'Dados salvos com sucesso!', severity: 'success' });
+      setToast({ open: true, message: t('torneio.toast.salvo_sucesso'), severity: 'success' });
     } catch {
-      setToast({ open: true, message: 'Erro ao salvar os dados.', severity: 'error' });
+      setToast({ open: true, message: t('torneio.toast.erro_salvar'), severity: 'error' });
     }
   };
 
   return (
     <div className="max-w-md mx-auto pb-4" style={{ animation: 'reveal-up 0.4s ease both' }}>
-      <Toast {...toast} onClose={() => setToast(t => ({ ...t, open: false }))} />
+      <Toast {...toast} onClose={() => setToast(prev => ({ ...prev, open: false }))} />
 
       {/* ── TOTAL ────────────────────────────────────────────────────────────── */}
       <div className="rounded-xl overflow-hidden mb-3"
@@ -75,7 +77,7 @@ const TorneioTreinoTropa = () => {
           <div className="flex-1 min-w-0">
             <p className="font-nunito font-bold text-[0.6rem] tracking-[3px] uppercase m-0 mb-1"
               style={{ color: 'rgba(220,160,140,0.7)' }}>
-              TOTAL DE PONTOS
+              {t('torneio.aceleracoes.total_pontos')}
             </p>
             <p className="font-nunito font-black leading-none m-0"
               style={{
@@ -89,7 +91,7 @@ const TorneioTreinoTropa = () => {
             {ptsPos > 0 && (
               <p className="font-nunito font-semibold text-[0.6rem] m-0 mt-1"
                 style={{ color: 'rgba(220,160,140,0.55)' }}>
-                {fmtN(ptsDasLinhas)} (treino) + {fmtN(ptsPos)} (possuídos)
+                {fmtN(ptsDasLinhas)} {t('torneio.treino_tropa.detalhe_treino')} + {fmtN(ptsPos)} {t('torneio.aceleracoes.detalhe_possuidos')}
               </p>
             )}
           </div>
@@ -101,7 +103,7 @@ const TorneioTreinoTropa = () => {
               borderRadius: 8, cursor: 'pointer', fontWeight: 800,
               fontFamily: '"Nunito",sans-serif',
             }}>
-            💾 Salvar
+            💾 {t('torneio.label.salvar')}
           </button>
         </div>
 
@@ -110,7 +112,7 @@ const TorneioTreinoTropa = () => {
           style={{ background: C.BG_CARD, borderTop: `1px solid rgba(168,60,44,0.25)` }}>
           <label className="font-nunito font-bold text-[0.65rem] tracking-widest uppercase block mb-1.5"
             style={{ color: C.TEXT_MUTED }}>
-            Pontos já possuídos
+            {t('torneio.label.possuidos')}
           </label>
           <input
             className="tw-input text-center font-mono font-black"
@@ -134,13 +136,13 @@ const TorneioTreinoTropa = () => {
           }}>
           <p className="font-nunito font-black text-[0.72rem] uppercase tracking-widest m-0"
             style={{ color: C.TEXT_MUTED }}>
-            ⚔️ Tropas Treinadas
+            ⚔️ {t('torneio.treino_tropa.tropas_treinadas')}
           </p>
         </div>
 
         <div className="px-3 py-3 space-y-2" style={{ background: C.BG_CARD }}>
           {linhas.map(l => {
-            const tropa = dbTropas.find(t => t.nome === l.tropa);
+            const tropa = dbTropas.find(item => item.nome === l.tropa);
             const poder = tropa?.poder || 0;
             const qtd   = parseInt((l.qtd || '').replace(/\./g, '')) || 0;
             const sub   = qtd * poder * (l.bonus || 1);
@@ -162,9 +164,9 @@ const TorneioTreinoTropa = () => {
                     value={l.tropa}
                     onChange={e => setLinha(l.id, 'tropa', e.target.value)}
                   >
-                    <option value="">— Selecionar Tropa —</option>
-                    {sortedTropas.map(t => (
-                      <option key={t.nome} value={t.nome}>{t.nome}</option>
+                    <option value="">{t('torneio.layout.selecionar_tropa')}</option>
+                    {sortedTropas.map(item => (
+                      <option key={item.nome} value={item.nome}>{item.nome}</option>
                     ))}
                   </select>
                   <button
@@ -179,7 +181,7 @@ const TorneioTreinoTropa = () => {
                   {/* Quantidade */}
                   <div className="flex-1 min-w-0">
                     <p className="font-nunito font-bold text-[0.58rem] uppercase tracking-wide m-0 mb-0.5"
-                      style={{ color: C.TEXT_FAINT }}>Quantidade</p>
+                      style={{ color: C.TEXT_FAINT }}>{t('torneio.label.quantidade')}</p>
                     <input
                       className="tw-input text-center font-mono font-black w-full"
                       style={{ fontSize: '0.82rem', padding: '4px 4px' }}
@@ -196,15 +198,15 @@ const TorneioTreinoTropa = () => {
                   {/* Bônus */}
                   <div style={{ width: 90, flexShrink: 0 }}>
                     <p className="font-nunito font-bold text-[0.58rem] uppercase tracking-wide m-0 mb-0.5"
-                      style={{ color: C.TEXT_FAINT }}>Bônus</p>
+                      style={{ color: C.TEXT_FAINT }}>{t('torneio.treino_tropa.bonus_label')}</p>
                     <select
                       className="tw-select w-full"
                       style={{ fontSize: '0.73rem', padding: '4px 4px' }}
                       value={l.bonus}
                       onChange={e => setLinha(l.id, 'bonus', parseInt(e.target.value))}
                     >
-                      {BONUS.map(b => (
-                        <option key={b.value} value={b.value}>{b.label}</option>
+                      {BONUS_CHAVES.map(b => (
+                        <option key={b.value} value={b.value}>{t(b.chave)}</option>
                       ))}
                     </select>
                   </div>
@@ -212,7 +214,7 @@ const TorneioTreinoTropa = () => {
                   {/* Subtotal */}
                   <div className="text-right shrink-0" style={{ minWidth: 56 }}>
                     <p className="font-nunito font-bold text-[0.58rem] uppercase tracking-wide m-0 mb-0.5"
-                      style={{ color: C.TEXT_FAINT }}>Pontos</p>
+                      style={{ color: C.TEXT_FAINT }}>{t('torneio.label.pontos')}</p>
                     <p className="font-nunito font-black text-[0.9rem] leading-none m-0"
                       style={{ color: ativo ? COR : C.TEXT_FAINT }}>
                       {fmtN(sub)}
@@ -224,8 +226,8 @@ const TorneioTreinoTropa = () => {
                 {tropa && (
                   <p className="font-nunito font-semibold text-[0.6rem] m-0 mt-1"
                     style={{ color: C.TEXT_FAINT }}>
-                    {tropa.nome} · {fmtN(poder)} poder/un.
-                    {l.bonus > 1 && <span style={{ color: COR }}> · bônus {l.bonus}×</span>}
+                    {tropa.nome} · {fmtN(poder)} {t('torneio.treino_tropa.poder_por_un')}
+                    {l.bonus > 1 && <span style={{ color: COR }}> · {t('torneio.treino_tropa.bonus_x')} {l.bonus}×</span>}
                   </p>
                 )}
               </div>
@@ -233,7 +235,7 @@ const TorneioTreinoTropa = () => {
           })}
 
           <button className="btn-ghost btn-sm w-full mt-1" onClick={addLinha}>
-            ＋ Adicionar Tropa
+            {t('torneio.treino_tropa.adicionar_tropa')}
           </button>
         </div>
       </div>
@@ -248,21 +250,21 @@ const TorneioTreinoTropa = () => {
           }}>
           <p className="font-nunito font-black text-[0.72rem] uppercase tracking-widest m-0"
             style={{ color: C.TEXT_MUTED }}>
-            📖 Como Funciona
+            📖 {t('torneio.label.como_funciona')}
           </p>
         </div>
         <div className="px-4 py-3" style={{ background: C.BG_CARD }}>
           {[
-            { icon: '⚔️', text: 'O torneio consiste em treinar tropas no Quartel durante o período do evento. Os pontos são calculados com base no poder de cada unidade treinada.' },
-            { icon: '⭐', text: 'Algumas tropas concedem bônus de pontuação — como x2 ou x3 — que multiplicam o poder gerado. Escolha o bônus correto no campo acima.' },
-            { icon: '🔢', text: 'Para calcular: selecione a tropa, informe a quantidade treinada e escolha o bônus. O total é atualizado automaticamente.' },
-            { icon: '💡', text: 'Dica: tropas com bônus x2 ou x3 são muito mais eficientes. Priorize-as quando o bônus estiver ativo durante o torneio.' },
+            { icon: '⚔️', chave: 'torneio.treino_tropa.dica1' },
+            { icon: '⭐', chave: 'torneio.treino_tropa.dica2' },
+            { icon: '🔢', chave: 'torneio.treino_tropa.dica3' },
+            { icon: '💡', chave: 'torneio.treino_tropa.dica4' },
           ].map((item, i) => (
             <div key={i} className="flex gap-2.5 items-start mb-2.5 last:mb-0">
               <span className="text-base leading-none shrink-0 mt-0.5">{item.icon}</span>
               <p className="font-nunito font-semibold text-[0.76rem] leading-relaxed m-0"
                 style={{ color: C.TEXT_SECONDARY }}>
-                {item.text}
+                {t(item.chave)}
               </p>
             </div>
           ))}

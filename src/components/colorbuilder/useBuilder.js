@@ -40,7 +40,8 @@ export function useBuilder() {
   }, []);
 
   const removeColor = useCallback((hex) => {
-    setSavedColors(prev => prev.filter(c => c.toLowerCase() !== hex.toLowerCase()));
+    const norm = h => h.replace('#', '').toLowerCase();
+    setSavedColors(prev => prev.filter(c => norm(c) !== norm(hex)));
   }, []);
 
   return {

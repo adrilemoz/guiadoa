@@ -136,3 +136,42 @@ export const MODOS = [
     cor: '#2980B9',
   },
 ];
+
+// ─── Frases prontas — textos fixos já coloridos, prontos pra copiar ──────────
+// Código no formato [HEX]texto, mesmo padrão usado pelo restante do builder
+export const FRASES_PRONTAS = [
+  {
+    id: 'parabens_general_pt',
+    label: '🎉 Parabéns General (PT)',
+    preview: 'Parabéns General!',
+    // Roxo (8A2BE2) + Laranja (FF8C00) — cores dos generais raros do jogo
+    codigo: '[8A2BE2]Parabéns [FF8C00]General[8A2BE2]!',
+  },
+  {
+    id: 'parabens_general_en',
+    label: '🎉 Congratulations General (EN)',
+    preview: 'Congratulations General!',
+    codigo: '[8A2BE2]Congratulations [FF8C00]General[8A2BE2]!',
+  },
+  {
+    id: 'general_roxo_laranja_pt',
+    label: '⭐ General Lendário (PT)',
+    preview: 'General Lendário ⭐',
+    codigo: '[FF8C00]General [8A2BE2]Lendário[FF8C00] ⭐',
+  },
+  {
+    id: 'boa_sorte_pt',
+    label: '🍀 Boa sorte! (PT)',
+    preview: 'Boa sorte!',
+    codigo: '[8A2BE2]Boa [FF8C00]sorte[8A2BE2]!',
+  },
+];
+
+// ─── Placar de jogos — cores padrão sugeridas ─────────────────────────────────
+export const PLACAR_CORES_PADRAO = {
+  timeA:      'FFD700', // dourado
+  timeB:      '1E90FF', // azul
+  placar:     'FFFFFF', // branco
+  separador:  'FF4500', // laranja-vermelho (o "-")
+  destaque:   'FFD700', // dourado — número do time que marcou por último
+};

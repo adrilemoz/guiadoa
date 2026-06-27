@@ -2,6 +2,7 @@ import React from 'react';
 import { C } from '../../../theme.js';
 import { fmtN } from './RewardRow.jsx';
 import { dbTropas } from '../../../db.js';
+import { useI18n } from '../../../hooks/useI18n.jsx';
 
 /**
  * TorneioLayout — wrapper com cabeçalho, inventário, premiação e resultados.
@@ -25,7 +26,8 @@ const TorneioLayout = ({
   tropaPremio = '', onTropaChange,
   extraInfo,
 }) => {
-  const tropaObj = dbTropas.find(t => t.nome === tropaPremio);
+  const { t } = useI18n();
+  const tropaObj = dbTropas.find(item => item.nome === tropaPremio);
   const poderUnit = tropaObj?.poder || 0;
 
   const totalTropas = metas.reduce((acc, m) => {
@@ -57,19 +59,19 @@ const TorneioLayout = ({
         <span className="text-3xl leading-none shrink-0">{icon}</span>
         <div>
           <p className="font-cinzel font-bold text-sm uppercase tracking-wide m-0 leading-tight" style={{ color: C.TEXT_PRIMARY }}>{title}</p>
-          <p className="font-nunito text-[0.68rem] italic m-0" style={{ color: C.TEXT_MUTED }}>Calculadora de Torneio</p>
+          <p className="font-nunito text-[0.68rem] italic m-0" style={{ color: C.TEXT_MUTED }}>{t('torneio.layout.calculadora')}</p>
         </div>
         {/* Barra de cor lateral */}
         <div className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl" style={{ background: color }} />
       </div>
 
       {/* Inventário */}
-      <SecTitle label="INVENTÁRIO" />
+      <SecTitle label={t('torneio.layout.inventario')} />
       <div className="tw-card mb-2 p-3">{inventario}</div>
 
       {/* Score */}
       <div className="tw-card mb-2 p-3 text-center">
-        <p className="font-nunito font-bold text-[0.62rem] tracking-widest uppercase m-0 mb-1" style={{ color: C.TEXT_MUTED }}>TOTAL DE {ptsSufixo.toUpperCase()}</p>
+        <p className="font-nunito font-bold text-[0.62rem] tracking-widest uppercase m-0 mb-1" style={{ color: C.TEXT_MUTED }}>{t('torneio.layout.total_de')} {ptsSufixo.toUpperCase()}</p>
         <p className="font-nunito font-black leading-none m-0" style={{ fontSize: 'clamp(1.8rem, 8vw, 2.6rem)', color, letterSpacing: '0.04em' }}>
           {fmtN(totalPts)}
         </p>
@@ -78,21 +80,21 @@ const TorneioLayout = ({
       {extraInfo && <div className="mb-2">{extraInfo}</div>}
 
       {/* Premiação */}
-      <SecTitle label="PREMIAÇÃO" />
+      <SecTitle label={t('torneio.layout.premiacao')} />
       <div className="tw-card mb-2 p-3">
         {/* Tropa prêmio */}
-        <p className="font-nunito font-bold text-[0.65rem] tracking-wider uppercase mb-1 m-0" style={{ color: C.TEXT_MUTED }}>Tropa como Prêmio</p>
+        <p className="font-nunito font-bold text-[0.65rem] tracking-wider uppercase mb-1 m-0" style={{ color: C.TEXT_MUTED }}>{t('torneio.layout.tropa_premio')}</p>
         <select
           className="tw-select mb-3"
           value={tropaPremio}
           onChange={e => onTropaChange(e.target.value)}
         >
-          <option value="">— Selecionar Tropa —</option>
-          {dbTropas.map(t => <option key={t.nome} value={t.nome}>{t.nome} (⭐ {t.poder})</option>)}
+          <option value="">{t('torneio.layout.selecionar_tropa')}</option>
+          {dbTropas.map(item => <option key={item.nome} value={item.nome}>{item.nome} (⭐ {item.poder})</option>)}
         </select>
 
         {/* Prêmio principal (sempre visível) */}
-        <p className="font-nunito font-bold text-[0.65rem] tracking-wider uppercase mb-1.5 m-0" style={{ color: C.TEXT_MUTED }}>Distribuição de Recompensas</p>
+        <p className="font-nunito font-bold text-[0.65rem] tracking-wider uppercase mb-1.5 m-0" style={{ color: C.TEXT_MUTED }}>{t('torneio.layout.distribuicao')}</p>
 
         {/* Todos os rows */}
         {metas.map(m => (
@@ -135,11 +137,11 @@ const TorneioLayout = ({
       </div>
 
       {/* Resultados */}
-      <SecTitle label="RESULTADOS" />
+      <SecTitle label={t('torneio.layout.resultados')} />
       <div className="grid grid-cols-2 gap-2">
         {[
-          { label: 'Total de Tropas', value: fmtN(totalTropas), color: C.ACCENT_DEEP, icon: '⚔️' },
-          { label: 'Poder Total',     value: fmtN(totalPoder),  color: C.POWER,       icon: '✦' },
+          { label: t('torneio.layout.total_tropas'), value: fmtN(totalTropas), color: C.ACCENT_DEEP, icon: '⚔️' },
+          { label: t('torneio.layout.poder_total'),  value: fmtN(totalPoder),  color: C.POWER,       icon: '✦' },
         ].map(s => (
           <div key={s.label} className="tw-card p-3 text-center" style={{ borderBottom: `3px solid ${s.color}` }}>
             <p className="font-nunito text-lg leading-none mb-1 m-0">{s.icon}</p>

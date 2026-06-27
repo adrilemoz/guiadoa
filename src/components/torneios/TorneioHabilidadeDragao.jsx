@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { C } from '../../theme.js';
 import Toast from '../../ui/Toast.jsx';
+import { useI18n } from '../../hooks/useI18n.jsx';
 
 const STORAGE_KEY = 'doa_torneio_habilidade_dragao';
 
@@ -9,6 +10,7 @@ const COR = '#C85A2C'; // laranja-fogo
 const fmtN = n => Number(n || 0).toLocaleString('pt-BR');
 
 const TorneioHabilidadeDragao = () => {
+  const { t } = useI18n();
   const [qtd, setQtd] = useState(() => {
     try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s).qtd || '' : ''; }
     catch { return ''; }
@@ -27,15 +29,15 @@ const TorneioHabilidadeDragao = () => {
   const handleSalvar = () => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ qtd, ptsPossuidos }));
-      setToast({ open: true, message: 'Dados salvos com sucesso!', severity: 'success' });
+      setToast({ open: true, message: t('torneio.toast.salvo_sucesso'), severity: 'success' });
     } catch {
-      setToast({ open: true, message: 'Erro ao salvar os dados.', severity: 'error' });
+      setToast({ open: true, message: t('torneio.toast.erro_salvar'), severity: 'error' });
     }
   };
 
   return (
     <div className="max-w-md mx-auto pb-4" style={{ animation: 'reveal-up 0.4s ease both' }}>
-      <Toast {...toast} onClose={() => setToast(t => ({ ...t, open: false }))} />
+      <Toast {...toast} onClose={() => setToast(prev => ({ ...prev, open: false }))} />
 
       {/* ── TOTAL ──────────────────────────────────────────────────────────── */}
       <div className="rounded-xl overflow-hidden mb-3"
@@ -48,7 +50,7 @@ const TorneioHabilidadeDragao = () => {
           <div className="flex-1 min-w-0">
             <p className="font-nunito font-bold text-[0.6rem] tracking-[3px] uppercase m-0 mb-1"
               style={{ color: 'rgba(220,160,100,0.7)' }}>
-              TOTAL DE PONTOS
+              {t('torneio.aceleracoes.total_pontos')}
             </p>
             <p className="font-nunito font-black leading-none m-0"
               style={{
@@ -62,7 +64,7 @@ const TorneioHabilidadeDragao = () => {
             {ptsPos > 0 && (
               <p className="font-nunito font-semibold text-[0.6rem] m-0 mt-1"
                 style={{ color: 'rgba(220,160,100,0.55)' }}>
-                {fmtN(ptsItem)} (essências) + {fmtN(ptsPos)} (possuídos)
+                {fmtN(ptsItem)} {t('torneio.habilidade_dragao.detalhe_essencias')} + {fmtN(ptsPos)} {t('torneio.aceleracoes.detalhe_possuidos')}
               </p>
             )}
           </div>
@@ -78,7 +80,7 @@ const TorneioHabilidadeDragao = () => {
               borderRadius: 8, cursor: 'pointer', fontWeight: 800,
               fontFamily: '"Nunito",sans-serif',
             }}>
-            💾 Salvar
+            💾 {t('torneio.label.salvar')}
           </button>
         </div>
 
@@ -87,7 +89,7 @@ const TorneioHabilidadeDragao = () => {
           style={{ background: C.BG_CARD, borderTop: `1px solid rgba(200,90,44,0.25)` }}>
           <label className="font-nunito font-bold text-[0.65rem] tracking-widest uppercase block mb-1.5"
             style={{ color: C.TEXT_MUTED }}>
-            Pontos já possuídos
+            {t('torneio.label.possuidos')}
           </label>
           <input
             className="tw-input text-center font-mono font-black"
@@ -120,11 +122,11 @@ const TorneioHabilidadeDragao = () => {
           </div>
           <p className="font-nunito font-black text-[0.9rem] m-0 leading-snug text-center"
             style={{ color: C.TEXT_PRIMARY }}>
-            Essência da Fúria
+            {t('torneio.habilidade_dragao.nome_item')}
           </p>
           <p className="font-nunito font-bold text-[0.68rem] m-0 mt-1 text-center"
             style={{ color: COR }}>
-            100 pontos por unidade
+            {t('torneio.habilidade_dragao.pts_por_unidade')}
           </p>
         </div>
 
@@ -133,7 +135,7 @@ const TorneioHabilidadeDragao = () => {
           <div className="flex-1">
             <label className="font-nunito font-bold text-[0.62rem] tracking-widest uppercase block mb-1"
               style={{ color: C.TEXT_MUTED }}>
-              Quantidade
+              {t('torneio.label.quantidade')}
             </label>
             <input
               className="tw-input text-center font-mono font-black"
@@ -159,7 +161,7 @@ const TorneioHabilidadeDragao = () => {
             </p>
             <p className="font-nunito font-semibold text-[0.6rem] m-0 mt-0.5"
               style={{ color: C.TEXT_FAINT }}>
-              pontos
+              {t('torneio.label.pontos_min')}
             </p>
           </div>
         </div>
@@ -175,20 +177,20 @@ const TorneioHabilidadeDragao = () => {
           }}>
           <p className="font-nunito font-black text-[0.72rem] uppercase tracking-widest m-0"
             style={{ color: C.TEXT_MUTED }}>
-            📖 Como Funciona
+            📖 {t('torneio.label.como_funciona')}
           </p>
         </div>
         <div className="px-4 py-3" style={{ background: C.BG_CARD }}>
           {[
-            { icon: '🔥', text: 'Cada Essência da Fúria vale 100 pontos.' },
-            { icon: '🌍', text: 'Podem ser obtidas em Antropos nível 10, em Florestas nível 10, em eventos e torneios.' },
-            { icon: '🐉', text: 'Também podem ser obtidas no Bastião dos Dragões, na Expedição do Dragão, na aba Loja.' },
+            { icon: '🔥', chave: 'torneio.habilidade_dragao.dica1' },
+            { icon: '🌍', chave: 'torneio.habilidade_dragao.dica2' },
+            { icon: '🐉', chave: 'torneio.habilidade_dragao.dica3' },
           ].map((item, i) => (
             <div key={i} className="flex gap-2.5 items-start mb-2.5 last:mb-0">
               <span className="text-base leading-none shrink-0 mt-0.5">{item.icon}</span>
               <p className="font-nunito font-semibold text-[0.76rem] leading-relaxed m-0"
                 style={{ color: C.TEXT_SECONDARY }}>
-                {item.text}
+                {t(item.chave)}
               </p>
             </div>
           ))}

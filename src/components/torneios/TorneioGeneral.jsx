@@ -1,37 +1,20 @@
 import React from 'react';
 import { C } from '../../theme.js';
+import { useI18n } from '../../hooks/useI18n.jsx';
 
 const COR = '#A83C2C'; // vermelho-general
 
-const DICAS = [
-  {
-    icon: '🎖️',
-    title: 'Como Funciona',
-    text: 'O torneio consiste em aumentar o XP dos seus generais durante o período. Cada ponto de experiência ganha conta para o seu placar.',
-  },
-  {
-    icon: '🏛️',
-    title: 'Quartel do General',
-    text: 'Acesse o Quartel do General no seu castelo. Lá você encontrará a opção de Treinamento, onde é possível usar cartas para aumentar o XP do general selecionado.',
-  },
-  {
-    icon: '🃏',
-    title: 'Cartas de General',
-    text: 'O treinamento é feito utilizando outras cartas de general como material. Cartas duplicadas ou de raridade inferior podem ser sacrificadas para gerar XP.',
-  },
-  {
-    icon: '⭐',
-    title: 'Raridade das Cartas',
-    text: 'Cartas de maior raridade concedem mais XP ao ser usadas no treinamento. Priorize acumular cartas antes do torneio para maximizar o ganho de XP durante o evento.',
-  },
-  {
-    icon: '💡',
-    title: 'Dica Estratégica',
-    text: 'Guarde cartas de general ao longo da semana e use-as em massa durante o torneio. Assim você concentra todo o ganho de XP no período de pontuação.',
-  },
+const DICAS_CHAVES = [
+  { icon: '🎖️', tituloChave: 'torneio.general.dica1.titulo', textoChave: 'torneio.general.dica1.texto' },
+  { icon: '🏛️', tituloChave: 'torneio.general.dica2.titulo', textoChave: 'torneio.general.dica2.texto' },
+  { icon: '🃏', tituloChave: 'torneio.general.dica3.titulo', textoChave: 'torneio.general.dica3.texto' },
+  { icon: '⭐', tituloChave: 'torneio.general.dica4.titulo', textoChave: 'torneio.general.dica4.texto' },
+  { icon: '💡', tituloChave: 'torneio.general.dica5.titulo', textoChave: 'torneio.general.dica5.texto' },
 ];
 
-const TorneioGeneral = () => (
+const TorneioGeneral = () => {
+  const { t } = useI18n();
+  return (
   <div className="max-w-md mx-auto pb-4" style={{ animation: 'reveal-up 0.4s ease both' }}>
 
     {/* ── Cabeçalho ──────────────────────────────────────────────────────────── */}
@@ -47,13 +30,13 @@ const TorneioGeneral = () => (
           className="font-nunito font-bold text-[0.6rem] tracking-[3px] uppercase m-0 mb-1"
           style={{ color: 'rgba(220,160,140,0.7)' }}
         >
-          TORNEIO INDIVIDUAL
+          {t('torneio.general.badge')}
         </p>
         <p
           className="font-nunito font-black leading-tight m-0"
           style={{ fontSize: '1.1rem', color: '#F0A090' }}
         >
-          🎖️ Aprimoramento de General
+          🎖️ {t('torneio.titulo.general')}
         </p>
       </div>
       <div className="px-4 py-3" style={{ background: C.BG_CARD }}>
@@ -61,9 +44,7 @@ const TorneioGeneral = () => (
           className="font-nunito font-semibold text-[0.76rem] leading-relaxed m-0"
           style={{ color: C.TEXT_SECONDARY }}
         >
-          O objetivo é <strong>aumentar o XP dos seus generais</strong> ao máximo durante o
-          torneio. Use cartas no Quartel do General para treinar e ganhar experiência —
-          quanto mais XP acumulado, melhor a sua posição no ranking.
+          {t('torneio.general.intro_pre')}<strong>{t('torneio.general.intro_bold')}</strong>{t('torneio.general.intro_pos')}
         </p>
       </div>
     </div>
@@ -84,11 +65,11 @@ const TorneioGeneral = () => (
           className="font-nunito font-black text-[0.72rem] uppercase tracking-widest m-0"
           style={{ color: C.TEXT_MUTED }}
         >
-          📖 Como Funciona
+          📖 {t('torneio.label.como_funciona')}
         </p>
       </div>
       <div className="px-4 py-3" style={{ background: C.BG_CARD }}>
-        {DICAS.map((item, i) => (
+        {DICAS_CHAVES.map((item, i) => (
           <div key={i} className="flex gap-2.5 items-start mb-3 last:mb-0">
             <span className="text-base leading-none shrink-0 mt-0.5">{item.icon}</span>
             <div>
@@ -96,13 +77,13 @@ const TorneioGeneral = () => (
                 className="font-nunito font-black text-[0.74rem] m-0 mb-0.5"
                 style={{ color: C.TEXT_PRIMARY }}
               >
-                {item.title}
+                {t(item.tituloChave)}
               </p>
               <p
                 className="font-nunito font-semibold text-[0.73rem] leading-relaxed m-0"
                 style={{ color: C.TEXT_SECONDARY }}
               >
-                {item.text}
+                {t(item.textoChave)}
               </p>
             </div>
           </div>
@@ -110,6 +91,7 @@ const TorneioGeneral = () => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default TorneioGeneral;
