@@ -140,10 +140,10 @@ const TorneioLayout = ({
       <SecTitle label={t('torneio.layout.resultados')} />
       <div className="grid grid-cols-2 gap-2">
         {[
-          { label: t('torneio.layout.total_tropas'), value: fmtN(totalTropas), color: C.ACCENT_DEEP, icon: '⚔️' },
-          { label: t('torneio.layout.poder_total'),  value: fmtN(totalPoder),  color: C.POWER,       icon: '✦' },
+          { key: 'tropas', label: t('torneio.layout.total_tropas'), value: fmtN(totalTropas), color: C.ACCENT_DEEP, icon: '⚔️' },
+          { key: 'poder',  label: t('torneio.layout.poder_total'),  value: fmtN(totalPoder),  color: C.POWER,       icon: '✦' },
         ].map(s => (
-          <div key={s.label} className="tw-card p-3 text-center" style={{ borderBottom: `3px solid ${s.color}` }}>
+          <div key={s.key} className="tw-card p-3 text-center" style={{ borderBottom: `3px solid ${s.color}` }}>
             <p className="font-nunito text-lg leading-none mb-1 m-0">{s.icon}</p>
             <p className="font-nunito font-black text-base leading-none m-0" style={{ color: s.color }}>{s.value}</p>
             <p className="font-nunito font-bold text-[0.62rem] uppercase tracking-wider m-0 mt-0.5" style={{ color: C.TEXT_MUTED }}>{s.label}</p>

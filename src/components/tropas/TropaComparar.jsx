@@ -117,8 +117,8 @@ const Picker = ({ tropas, selecionadas, onEscolher, onFechar }) => {
   const [busca, setBusca] = useState('');
   const lista = useMemo(() =>
     tropas
-      .filter(t => !selecionadas.find(s => s?.nome === t.nome))
-      .filter(t => t.nome.toLowerCase().includes(busca.toLowerCase()))
+      .filter(item => !selecionadas.find(s => s?.nome === item.nome))
+      .filter(item => item.nome.toLowerCase().includes(busca.toLowerCase()))
       .sort((a, b) => a.nome.localeCompare(b.nome)),
     [tropas, selecionadas, busca]
   );
@@ -178,12 +178,12 @@ const Picker = ({ tropas, selecionadas, onEscolher, onFechar }) => {
 
         {/* Lista */}
         <div style={{ overflowY: 'auto', flex: 1, padding: '8px 10px 16px' }}>
-          {lista.map(t => {
-            const tipo = getTipoAtaque(t);
+          {lista.map(item => {
+            const tipo = getTipoAtaque(item, t);
             return (
               <button
-                key={t.nome}
-                onClick={() => onEscolher(t)}
+                key={item.nome}
+                onClick={() => onEscolher(item)}
                 style={{
                   width: '100%', textAlign: 'left', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', gap: 10,
@@ -196,12 +196,12 @@ const Picker = ({ tropas, selecionadas, onEscolher, onFechar }) => {
                 onMouseEnter={e => e.currentTarget.style.background = `${tipo.color}0E`}
                 onMouseLeave={e => e.currentTarget.style.background = C.BG_CARD}
               >
-                <span style={{ fontSize: '1.25rem' }}>{getIcone(t.nome)}</span>
+                <span style={{ fontSize: '1.25rem' }}>{getIcone(item.nome)}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p className="font-nunito font-bold m-0"
                     style={{ fontSize: '0.8rem', color: C.TEXT_PRIMARY,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {t.nome}
+                    {item.nome}
                   </p>
                   <p className="font-nunito m-0" style={{ fontSize: '0.6rem', color: C.TEXT_MUTED }}>
                     {tipo.label}
@@ -209,7 +209,7 @@ const Picker = ({ tropas, selecionadas, onEscolher, onFechar }) => {
                 </div>
                 <span className="font-nunito font-black"
                   style={{ fontSize: '0.9rem', color: '#7c3aed', flexShrink: 0 }}>
-                  {t.poder}
+                  {item.poder}
                 </span>
               </button>
             );
@@ -328,7 +328,7 @@ const TropaComparar = () => {
 
             {/* Linhas de atributos */}
             {ATRIBUTOS.map((attr, ri) => {
-              const vals = tropasAtivas.map(t => t[attr.id] || 0);
+              const vals = tropasAtivas.map(tropa => tropa[attr.id] || 0);
               const maxVal = Math.max(...vals);
               return (
                 <div

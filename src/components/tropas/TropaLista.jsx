@@ -114,15 +114,15 @@ const TropaLista = () => {
     };
 
     let base = [...tropas];
-    if (filtroAtivo === 'Corpo a Corpo') base = base.filter(t => t.atqPerto >= t.atqDist && t.atqPerto > 0);
-    if (filtroAtivo === 'Longo Alcance') base = base.filter(t => t.atqDist > t.atqPerto);
-    if (filtroAtivo === 'Maior Vida')    base = base.filter(t => t.vida   >= 10_000);
-    if (filtroAtivo === 'Maior Defesa')  base = base.filter(t => t.def    >= 800);
-    if (filtroAtivo === 'Alta Carga')    base = base.filter(t => t.car    >= 500);
-    if (filtroAtivo === 'Mais Rápidas')  base = base.filter(t => t.vel    >= 1_000);
+    if (filtroAtivo === 'Corpo a Corpo') base = base.filter(tropa => tropa.atqPerto >= tropa.atqDist && tropa.atqPerto > 0);
+    if (filtroAtivo === 'Longo Alcance') base = base.filter(tropa => tropa.atqDist > tropa.atqPerto);
+    if (filtroAtivo === 'Maior Vida')    base = base.filter(tropa => tropa.vida   >= 10_000);
+    if (filtroAtivo === 'Maior Defesa')  base = base.filter(tropa => tropa.def    >= 800);
+    if (filtroAtivo === 'Alta Carga')    base = base.filter(tropa => tropa.car    >= 500);
+    if (filtroAtivo === 'Mais Rápidas')  base = base.filter(tropa => tropa.vel    >= 1_000);
 
-    const textFiltrado = base.filter(t =>
-      t.nome.toLowerCase().includes(busca.toLowerCase())
+    const textFiltrado = base.filter(tropa =>
+      tropa.nome.toLowerCase().includes(busca.toLowerCase())
     );
 
     const sortAttr  = SORT_MAP[filtroAtivo] || 'poder';
@@ -223,11 +223,11 @@ const TropaLista = () => {
               </p>
             </div>
           ) : (
-            tropasFiltradas.map(t => (
+            tropasFiltradas.map(tropa => (
               <TropaRow
-                key={t.nome}
-                tropa={t}
-                onClick={() => setTropaModal(t)}
+                key={tropa.nome}
+                tropa={tropa}
+                onClick={() => setTropaModal(tropa)}
               />
             ))
           )}

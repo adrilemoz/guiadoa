@@ -16,11 +16,11 @@ const classificar = (t) => {
 
 const contarTipos = (tropas) => {
   let cc = 0, dist = 0, rapidas = 0;
-  tropas.forEach(t => {
-    const cls = classificar(t);
-    if (cls === 'cc')   cc++;
-    if (cls === 'dist') dist++;
-    if (t.rapida)       rapidas++;
+  tropas.forEach(tropa => {
+    const cls = classificar(tropa);
+    if (cls === 'cc')    cc++;
+    if (cls === 'dist')  dist++;
+    if (tropa.rapida)    rapidas++;
   });
   return { cc, dist, rapidas };
 };
@@ -117,7 +117,7 @@ const Tropas = ({ setRoute }) => {
 
   const tipos = useMemo(() => contarTipos(tropas), [tropas]);
   const poderMax = useMemo(() =>
-    tropas.length ? Math.max(...tropas.map(t => t.poder || 0)) : 0,
+    tropas.length ? Math.max(...tropas.map(tropa => tropa.poder || 0)) : 0,
     [tropas]
   );
   const poderMedio = useMemo(() =>

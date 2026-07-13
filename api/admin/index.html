@@ -2869,11 +2869,14 @@ const TR_CATEGORIAS = [
   {
     id:'tropas', icon:'⚔️', label:'Tropas', cor:'#5C7FA3',
     desc:'Nomes e tipos das tropas',
-    dinamico:true, endpoint:'/tropas',
-    mapear: item => [
-      {chave:`tropa.${item.slug}.nome`,  textoPT:item.nome  || ''},
-      {chave:`tropa.${item.slug}.tipo`,  textoPT:item.tipo  || ''},
-    ].filter(c=>c.textoPT),
+    dinamico:true, endpoint:'/tropas/todas',
+    mapear: item => {
+      const slug = (item.slug || item.nome || '').toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+      return [
+        {chave:`tropa.${slug}.nome`,    textoPT:item.nome    || ''},
+        {chave:`tropa.${slug}.combate`, textoPT:item.combate || ''},
+      ].filter(c=>c.textoPT && c.chave.indexOf('undefined')===-1);
+    },
   },
   {
     id:'dragoes', icon:'🐉', label:'Dragões', cor:'#5A8A5C',
@@ -2910,7 +2913,7 @@ const TR_CATEGORIAS = [
     ].filter(c=>c.textoPT),
   },
   {
-    id:'torneios_hub', icon:'🏆', label:'Torneios — Menu & Compartilhado', cor:'#C87A2C',
+    id:'torneios_hub', icon:'🏆', label:'Menu & Compartilhado', cor:'#C87A2C', grupo:'torneios',
     desc:'Hub, layout da calculadora e labels reutilizados pelos submódulos',
     chaves:[
       {chave:'torneio.hub.titulo',       textoPT:'Codex de Batalha'},
@@ -2977,7 +2980,7 @@ const TR_CATEGORIAS = [
     ],
   },
   {
-    id:'torneio_general', icon:'🎖️', label:'Torneios — General', cor:'#A83C2C',
+    id:'torneio_general', icon:'🎖️', label:'General', cor:'#A83C2C', grupo:'torneios',
     desc:'Aprimoramento de General',
     chaves:[
       {chave:'torneio.general.badge',      textoPT:'TORNEIO INDIVIDUAL'},
@@ -2997,7 +3000,7 @@ const TR_CATEGORIAS = [
     ],
   },
   {
-    id:'torneio_aprimoramento_tropa', icon:'🛡️', label:'Torneios — Aprimoramento de Tropa', cor:'#5C7FA3',
+    id:'torneio_aprimoramento_tropa', icon:'🛡️', label:'Aprimoramento de Tropa', cor:'#5C7FA3', grupo:'torneios',
     desc:'Calculadora de aprimoramento por raridade',
     chaves:[
       {chave:'torneio.aprimoramento_tropa.raridade.incomum',    textoPT:'Incomum'},
@@ -3014,7 +3017,7 @@ const TR_CATEGORIAS = [
     ],
   },
   {
-    id:'torneio_poder', icon:'⚡', label:'Torneios — Poder', cor:'#C87A2C',
+    id:'torneio_poder', icon:'⚡', label:'Poder', cor:'#C87A2C', grupo:'torneios',
     desc:'Torneio de Poder',
     chaves:[
       {chave:'torneio.poder.intro_pre',  textoPT:'O objetivo é simples: '},
@@ -3033,7 +3036,7 @@ const TR_CATEGORIAS = [
     ],
   },
   {
-    id:'torneio_matar_tropas', icon:'☠️', label:'Torneios — Matar Tropas', cor:'#A83C2C',
+    id:'torneio_matar_tropas', icon:'☠️', label:'Matar Tropas', cor:'#A83C2C', grupo:'torneios',
     desc:'Abates e trocas de tropas',
     chaves:[
       {chave:'torneio.matar_tropas.badge',       textoPT:'TORNEIO DE COMBATE'},
@@ -3054,7 +3057,7 @@ const TR_CATEGORIAS = [
     ],
   },
   {
-    id:'torneio_alianca', icon:'🤝', label:'Torneios — Aliança', cor:'#5A8A5C',
+    id:'torneio_alianca', icon:'🤝', label:'Aliança', cor:'#5A8A5C', grupo:'torneios',
     desc:'Torneios de Aliança (Poder e Aliança Atual)',
     chaves:[
       {chave:'torneio.alianca.badge',          textoPT:'TORNEIOS DE ALIANÇA'},
@@ -3077,7 +3080,7 @@ const TR_CATEGORIAS = [
     ],
   },
   {
-    id:'torneio_aceleracoes', icon:'⏩', label:'Torneios — Acelerações', cor:'#3B5C8C',
+    id:'torneio_aceleracoes', icon:'⏩', label:'Acelerações', cor:'#3B5C8C', grupo:'torneios',
     desc:'Calculadora de itens de aceleração',
     chaves:[
       {chave:'torneio.aceleracoes.item.1min',  textoPT:'1 Minuto'},
@@ -3103,7 +3106,7 @@ const TR_CATEGORIAS = [
     ],
   },
   {
-    id:'torneio_habilidade_dragao', icon:'🐉', label:'Torneios — Habilidade do Dragão', cor:'#8B6BAE',
+    id:'torneio_habilidade_dragao', icon:'🐉', label:'Habilidade do Dragão', cor:'#8B6BAE', grupo:'torneios',
     desc:'Essência da Fúria',
     chaves:[
       {chave:'torneio.habilidade_dragao.detalhe_essencias', textoPT:'(essências)'},
@@ -3115,7 +3118,7 @@ const TR_CATEGORIAS = [
     ],
   },
   {
-    id:'torneio_evolucao_tropas', icon:'⭐', label:'Torneios — Evolução de Tropas', cor:'#C87A2C',
+    id:'torneio_evolucao_tropas', icon:'⭐', label:'Evolução de Tropas', cor:'#C87A2C', grupo:'torneios',
     desc:'Fósseis e raridade',
     chaves:[
       {chave:'torneio.evolucao_tropas.detalhe_fosseis',    textoPT:'(fósseis)'},
@@ -3132,7 +3135,7 @@ const TR_CATEGORIAS = [
     ],
   },
   {
-    id:'torneio_talisma', icon:'🧿', label:'Torneios — Pontos de Talismã', cor:'#5A8AAE',
+    id:'torneio_talisma', icon:'🧿', label:'Pontos de Talismã', cor:'#5A8AAE', grupo:'torneios',
     desc:'Torre de Oração e talismãs',
     chaves:[
       {chave:'torneio.talisma.cor.verde',       textoPT:'Verde'},
@@ -3150,7 +3153,7 @@ const TR_CATEGORIAS = [
     ],
   },
   {
-    id:'torneio_treinamento_dragao', icon:'🍖', label:'Torneios — Treinamento do Dragão', cor:'#7A4BAE',
+    id:'torneio_treinamento_dragao', icon:'🍖', label:'Treinamento do Dragão', cor:'#7A4BAE', grupo:'torneios',
     desc:'Carnes para alimentar o dragão',
     chaves:[
       {chave:'torneio.treinamento_dragao.carne.carneiro', textoPT:'Carneiro'},
@@ -3169,7 +3172,7 @@ const TR_CATEGORIAS = [
     ],
   },
   {
-    id:'torneio_pocoes', icon:'🧪', label:'Torneios — Poções Antigas', cor:'#8B3A9A',
+    id:'torneio_pocoes', icon:'🧪', label:'Poções Antigas', cor:'#8B3A9A', grupo:'torneios',
     desc:'Calculadora de poções antigas',
     chaves:[
       {chave:'torneio.pocoes.nome.superior',      textoPT:'Poção Antiga Superior'},
@@ -3185,7 +3188,7 @@ const TR_CATEGORIAS = [
     ],
   },
   {
-    id:'torneio_treino_tropa', icon:'⚔️', label:'Torneios — Treino de Tropa', cor:'#A83C2C',
+    id:'torneio_treino_tropa', icon:'⚔️', label:'Treino de Tropa', cor:'#A83C2C', grupo:'torneios',
     desc:'Calculadora de treino com bônus de pontuação',
     chaves:[
       {chave:'torneio.treino_tropa.bonus.x1', textoPT:'x1 — Normal'},
@@ -3210,11 +3213,21 @@ const TR_CATEGORIAS = [
 // Mapa: id da categoria → prefixo das chaves no banco
 const TR_PREFIX = {home:'home',tropas:'tropa',dragoes:'dragao',edificios:'edificio',pesquisas:'pesquisa',itens:'item'};
 
+// Grupos que agregam várias categorias em uma única tela intermediária
+// (ex: as 13 categorias de torneio aparecem como UM card "Torneios" na grade
+// principal; clicar nele abre uma lista vertical com os submódulos).
+const TR_GRUPOS = {
+  torneios: { id:'torneios', icon:'🏆', label:'Torneios', cor:'#C87A2C',
+    desc:'Hub, calculadoras e conteúdo de todos os módulos de torneio' },
+};
+
 let TR_LOCALE  = 'en-US';
 let TR_CAT     = null;
 let TR_DADOS   = [];
 let TR_FILTRO  = 'todos';
 let TR_EXPAND  = null;
+let TR_STATS   = {};
+let TR_ULTIMO_ERRO_AUTO = null; // {catId, erros:[{chave,erro}]} — exibido na lista após auto-traduzir com falhas
 
 function badgeTr(doc){
   if(!doc||!doc.traducao) return `<span class="tr-badge tr-badge-sem">Sem tradução</span>`;
@@ -3224,10 +3237,10 @@ function badgeTr(doc){
 }
 
 const TR_CSS=`<style>
-.tr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:16px}
-.tr-cat-card{background:var(--card);border:1.5px solid rgba(200,168,74,0.2);border-radius:14px;
-  padding:18px 16px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;
-  display:flex;flex-direction:column;gap:7px}
+.tr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.tr-cat-card{background:var(--card);border:1.5px solid rgba(200,168,74,0.2);border-radius:11px;
+  padding:10px 9px 9px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;gap:4px}
 .tr-cat-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.12)}
 .tr-cat-bar{position:absolute;top:0;left:0;right:0;height:3px}
 .tr-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;
@@ -3287,37 +3300,106 @@ const TR_CSS=`<style>
 .tr-diag.aviso{background:rgba(184,134,11,0.08);color:#B8860B;border-color:rgba(184,134,11,0.3)}
 .tr-progress-bar{height:5px;background:rgba(200,168,74,0.12);border-radius:5px;overflow:hidden;margin:4px 0}
 .tr-progress-fill{height:100%;border-radius:5px;transition:width 0.4s}
+.tr-sublist{display:flex;flex-direction:column;gap:7px}
+.tr-sub-item{background:var(--card);border:1.5px solid rgba(200,168,74,0.2);border-radius:12px;
+  padding:11px 14px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:11px;
+  border-left:4px solid transparent}
+.tr-sub-item:hover{transform:translateX(2px);box-shadow:0 3px 12px rgba(0,0,0,0.10)}
+.tr-sub-icon{width:38px;height:38px;flex-shrink:0;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:1.15rem;background:rgba(200,168,74,0.08)}
+.tr-sub-body{flex:1;min-width:0}
+.tr-sub-label{font-family:'Cinzel',serif;font-weight:700;font-size:0.82rem;color:var(--text);line-height:1.25}
+.tr-sub-desc{font-size:0.66rem;color:var(--muted);margin-top:1px}
+.tr-sub-progress{width:64px;flex-shrink:0}
+.tr-sub-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
 </style>`;
 
 // ── TELA 1: Grade de categorias ───────────────────────────────────────────────
+// Sincroniza uma categoria dinâmica direto do grid (sem precisar entrar nela)
+async function syncRapido(catId){
+  const cat = TR_CATEGORIAS.find(c => c.id === catId);
+  if (!cat || !cat.dinamico) return;
+  toast('↻ Sincronizando '+cat.label+'…','aviso');
+  try {
+    const dados = await fetch(`${API}${cat.endpoint}`,
+      {headers:{Authorization:`Bearer ${TOKEN}`}}).then(r=>r.json());
+    const chaves = Array.isArray(dados)
+      ? dados.flatMap(item => cat.mapear(item) || [])
+      : [];
+    if (!chaves.length) {
+      toast('⚠️ Nenhuma chave gerada para '+cat.label+' — verifique se há dados no banco.','aviso');
+      return;
+    }
+    const r = await fetch(`${API}/traducoes/seed`,{
+      method:'POST', headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+      body: JSON.stringify({chaves, locale: TR_LOCALE}),
+    });
+    const res = await r.json();
+    if (!r.ok) { toast('Erro: '+(res.erro||r.status),'erro'); return; }
+    toast(`↻ ${cat.label}: ${res.inseridos} novas, ${res.existentes} já existentes`,'ok');
+    await carregarTraducoes();
+  } catch(e) { toast('Erro ao sincronizar: '+e.message,'erro'); }
+}
+
 async function carregarTraducoes(){
   TR_CAT=null; TR_DADOS=[]; TR_FILTRO='todos'; TR_EXPAND=null;
   setLoading('Carregando categorias…');
 
-  // Mapa chave → id da categoria, para categorias estáticas (não-dinâmicas).
-  // Necessário porque várias categorias de torneio compartilham o prefixo "torneio",
-  // então não dá pra agrupar só pelo primeiro segmento da chave.
-  const chaveParaCat={};
-  TR_CATEGORIAS.forEach(cat=>{
-    if(!cat.dinamico && cat.chaves) cat.chaves.forEach(c=>{ chaveParaCat[c.chave]=cat.id; });
-  });
+  // Busca stats e contagens de dinâmicas em paralelo — muito mais rápido
+  let statsMap = {}, contsDinamicas = {};
+  const dinamicas = TR_CATEGORIAS.filter(c => c.dinamico && !c.grupo);
 
-  // Busca todas as traduções para calcular stats por categoria
-  let statsMap={};
-  try{
-    const todos=await fetch(`${API}/traducoes/admin?locale=${TR_LOCALE}`,
-      {headers:{Authorization:`Bearer ${TOKEN}`}}).then(r=>r.json());
-    if(Array.isArray(todos)){
-      todos.forEach(d=>{
-        // Estáticas: agrupa pelo id exato da categoria. Dinâmicas: cai no prefixo (tropa., dragao. etc).
-        const prefix=chaveParaCat[d.chave] || d.chave.split('.')[0];
-        if(!statsMap[prefix]) statsMap[prefix]={total:0,ativo:0,sem:0};
-        statsMap[prefix].total++;
-        if(d.status==='ativo')  statsMap[prefix].ativo++;
-        if(!d.traducao)         statsMap[prefix].sem++;
-      });
+  try {
+    // /admin/stats retorna só contagens agregadas (sem transferir documentos)
+    const [statsRes, ...dinamicasRes] = await Promise.all([
+      fetch(`${API}/traducoes/admin/stats?locale=${TR_LOCALE}`,
+        {headers:{Authorization:`Bearer ${TOKEN}`}}).then(r=>r.json()),
+      ...dinamicas.map(cat =>
+        fetch(`${API}${cat.endpoint}`,{headers:{Authorization:`Bearer ${TOKEN}`}})
+          .then(r=>r.json()).then(dados=>{
+            const lista = Array.isArray(dados) ? dados : (dados.items || dados.tropas || dados.dragoes || dados.edificios || dados.pesquisas || dados.itens || []);
+            const total = lista.reduce((acc, item) => acc + (cat.mapear(item)?.length || 0), 0);
+            contsDinamicas[cat.id] = total;
+          }).catch(()=>{})
+      ),
+    ]);
+    if (statsRes && typeof statsRes === 'object' && !statsRes.erro) statsMap = statsRes;
+  } catch(e) { /* stats são opcionais */ }
+
+  TR_STATS = statsMap;
+
+  // Para categorias estáticas com múltiplos prefixos (ex: torneios_hub, torneio_general),
+  // usa o total de chaves do próprio array quando o banco não tem nada ainda
+  const statsDe = cat => {
+    const prefix = TR_PREFIX[cat.id] || cat.id;
+    const st = statsMap[prefix] || null;
+    if (!st || st.total === 0) {
+      if (cat.dinamico && contsDinamicas[cat.id]) {
+        return {total: contsDinamicas[cat.id], ativo: 0, sem: contsDinamicas[cat.id]};
+      }
+      return {total: cat.chaves?.length || 0, ativo: 0, sem: cat.chaves?.length || 0};
     }
-  }catch(e){/* stats são opcionais */}
+    return st;
+  };
+
+  // Categorias soltas (sem grupo) entram direto na grade.
+  // Categorias com `grupo` são agregadas num único card do grupo.
+  const soltas=TR_CATEGORIAS.filter(c=>!c.grupo);
+  const gruposPresentes=[...new Set(TR_CATEGORIAS.filter(c=>c.grupo).map(c=>c.grupo))];
+
+  const entradas=[
+    ...soltas.map(cat=>({tipo:'cat', cat, st:statsDe(cat)})),
+    ...gruposPresentes.map(gid=>{
+      const grupo=TR_GRUPOS[gid];
+      const membros=TR_CATEGORIAS.filter(c=>c.grupo===gid);
+      const st=membros.reduce((acc,c)=>{
+        const s=statsDe(c);
+        acc.total+=s.total; acc.ativo+=s.ativo; acc.sem+=s.sem;
+        return acc;
+      },{total:0,ativo:0,sem:0});
+      return {tipo:'grupo', grupo, st};
+    }),
+  ];
 
   document.getElementById('content').innerHTML = TR_CSS + `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
@@ -3331,27 +3413,81 @@ async function carregarTraducoes(){
     </div>
     <div id="tr-diag-box"></div>
     <div class="tr-grid">
-      ${TR_CATEGORIAS.map(cat=>{
-        const prefix=TR_PREFIX[cat.id]||cat.id;
-        const st=statsMap[prefix]||{total:cat.chaves?.length||0,ativo:0,sem:cat.chaves?.length||0};
+      ${entradas.map(({tipo, cat, grupo, st})=>{
+        const item = tipo==='grupo' ? grupo : cat;
+        const onclick = tipo==='grupo' ? `abrirGrupo('${grupo.id}')` : `abrirCategoria('${cat.id}')`;
+        const isDinamicaVazia = tipo==='cat' && cat.dinamico && st.ativo===0;
         const pct=st.total?Math.round((st.ativo/st.total)*100):0;
         const completo=st.total>0&&st.ativo===st.total;
-        return `<div class="tr-cat-card" onclick="abrirCategoria('${cat.id}')"
-          style="border-color:${completo?cat.cor+'70':'rgba(200,168,74,0.2)'}">
-          <div class="tr-cat-bar" style="background:linear-gradient(90deg,${cat.cor},${cat.cor}50)"></div>
-          <span style="font-size:2rem;line-height:1">${cat.icon}</span>
-          <span style="font-family:'Cinzel',serif;font-weight:700;font-size:0.88rem;color:var(--text)">${cat.label}</span>
-          <span style="font-size:0.7rem;color:var(--muted);line-height:1.4">${cat.desc}</span>
+        return `<div class="tr-cat-card" onclick="${onclick}"
+          style="border-color:${completo?item.cor+'70':'rgba(200,168,74,0.2)'}">
+          <div class="tr-cat-bar" style="background:linear-gradient(90deg,${item.cor},${item.cor}50)"></div>
+          <span style="font-size:1.5rem;line-height:1">${item.icon}</span>
+          <span style="font-family:'Cinzel',serif;font-weight:700;font-size:0.72rem;color:var(--text);line-height:1.25">${item.label}${tipo==='grupo'?`<br><span style="font-size:0.55rem;color:var(--muted);font-weight:600">(${TR_CATEGORIAS.filter(c=>c.grupo===grupo.id).length} módulos)</span>`:''}</span>
           <div class="tr-progress-bar">
-            <div class="tr-progress-fill" style="width:${pct}%;background:${cat.cor}"></div>
+            <div class="tr-progress-fill" style="width:${pct}%;background:${item.cor}"></div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:0.62rem;color:var(--muted)">${st.ativo}/${st.total} ativos</span>
+            <span style="font-size:0.56rem;color:var(--muted)">${st.ativo}/${st.total}</span>
             ${completo
-              ?`<span class="tr-badge tr-badge-ativo">✓ Completo</span>`
+              ?`<span class="tr-badge tr-badge-ativo">✓</span>`
+              :isDinamicaVazia && st.total>0
+                ?`<span class="tr-badge" style="background:rgba(59,92,140,0.15);color:#5C7FA3;border-color:#5C7FA3;cursor:pointer"
+                    onclick="event.stopPropagation();syncRapido('${cat.id}')">↻ Sync</span>`
+                :st.sem>0
+                  ?`<span class="tr-badge tr-badge-sem">${st.sem} sem</span>`
+                  :`<span class="tr-badge" style="background:rgba(200,168,74,0.1);color:var(--muted);border-color:rgba(200,168,74,0.2)">0</span>`}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ── TELA 1.5: Lista vertical de submódulos de um grupo ────────────────────────
+function abrirGrupo(grupoId){
+  const grupo=TR_GRUPOS[grupoId];
+  if(!grupo) return;
+  const membros=TR_CATEGORIAS.filter(c=>c.grupo===grupoId);
+
+  const statsDe=cat=>{
+    const prefix=TR_PREFIX[cat.id]||cat.id;
+    return (TR_STATS&&TR_STATS[prefix])||{total:cat.chaves?.length||0,ativo:0,sem:cat.chaves?.length||0};
+  };
+
+  setBreadcrumb([
+    {label:'🌐 Traduções', action:()=>carregarTraducoes()},
+    {label:`${grupo.icon} ${grupo.label}`},
+  ]);
+
+  document.getElementById('content').innerHTML = TR_CSS + `
+    <div style="margin-bottom:14px">
+      <p style="font-family:'Cinzel',serif;font-weight:700;font-size:0.95rem;color:var(--text);margin-bottom:3px">
+        ${grupo.icon} ${grupo.label}
+      </p>
+      <p style="font-size:0.72rem;color:var(--muted)">${grupo.desc} — selecione um módulo abaixo</p>
+    </div>
+    <div class="tr-sublist">
+      ${membros.map(cat=>{
+        const st=statsDe(cat);
+        const pct=st.total?Math.round((st.ativo/st.total)*100):0;
+        const completo=st.total>0&&st.ativo===st.total;
+        return `<div class="tr-sub-item" onclick="abrirCategoria('${cat.id}')"
+          style="border-left-color:${cat.cor}">
+          <div class="tr-sub-icon">${cat.icon}</div>
+          <div class="tr-sub-body">
+            <div class="tr-sub-label">${cat.label}</div>
+            <div class="tr-sub-desc">${cat.desc}</div>
+          </div>
+          <div class="tr-sub-progress">
+            <div class="tr-progress-bar"><div class="tr-progress-fill" style="width:${pct}%;background:${cat.cor}"></div></div>
+          </div>
+          <div class="tr-sub-right">
+            <span style="font-size:0.62rem;color:var(--muted)">${st.ativo}/${st.total}</span>
+            ${completo
+              ?`<span class="tr-badge tr-badge-ativo">✓</span>`
               :st.sem>0
                 ?`<span class="tr-badge tr-badge-sem">${st.sem} sem</span>`
-                :`<span class="tr-badge" style="background:rgba(200,168,74,0.1);color:var(--muted);border-color:rgba(200,168,74,0.2)">0</span>`}
+                :''}
           </div>
         </div>`;
       }).join('')}
@@ -3364,39 +3500,58 @@ async function abrirCategoria(catId){
   if(!cat) return;
   TR_CAT=cat; TR_FILTRO='todos'; TR_EXPAND=null;
 
+  const grupo=cat.grupo?TR_GRUPOS[cat.grupo]:null;
   setBreadcrumb([
     {label:'🌐 Traduções', action:()=>carregarTraducoes()},
+    ...(grupo?[{label:`${grupo.icon} ${grupo.label}`, action:()=>abrirGrupo(TR_CAT.grupo)}]:[]),
     {label:`${cat.icon} ${cat.label}`},
   ]);
   setLoading(`Carregando ${cat.label}…`);
 
   try{
-    // 1. Traduções existentes no banco
-    const todosBanco=await fetch(`${API}/traducoes/admin?locale=${TR_LOCALE}`,
-      {headers:{Authorization:`Bearer ${TOKEN}`}}).then(r=>r.json());
+    // Determina o prefixo para filtrar apenas as chaves desta categoria no banco
+    const prefix = TR_PREFIX[cat.id] || (cat.dinamico ? null : cat.id);
+    const urlBanco = prefix
+      ? `${API}/traducoes/admin?locale=${TR_LOCALE}&prefixo=${prefix}`
+      : `${API}/traducoes/admin?locale=${TR_LOCALE}`;
+
+    // Paraleliza: busca banco e dados da categoria ao mesmo tempo
+    const [todosBanco, dadosCat] = await Promise.all([
+      fetch(urlBanco, {headers:{Authorization:`Bearer ${TOKEN}`}}).then(r=>r.json()),
+      cat.dinamico
+        ? fetch(`${API}${cat.endpoint}`, {headers:{Authorization:`Bearer ${TOKEN}`}}).then(r=>r.json())
+        : Promise.resolve(null),
+    ]);
 
     // 2. Chaves da categoria
-    let chavesDaCat=[];
-    if(cat.dinamico){
-      const resp=await fetch(`${API}${cat.endpoint}`,
-        {headers:{Authorization:`Bearer ${TOKEN}`}}).then(r=>r.json());
-      const lista=resp.items||resp.tropas||resp.dragoes||
-                  resp.edificios||resp.pesquisas||resp.itens||resp;
-      if(Array.isArray(lista)){
-        lista.forEach(item=>{ if(item.slug) chavesDaCat.push(...cat.mapear(item)); });
-      }
+    let chavesDaCat = [];
+    if (cat.dinamico) {
+      const lista = Array.isArray(dadosCat)
+        ? dadosCat
+        : (dadosCat?.items || dadosCat?.tropas || dadosCat?.dragoes ||
+           dadosCat?.edificios || dadosCat?.pesquisas || dadosCat?.itens || []);
+      // Corrigido: não filtra por item.slug (Tropas não tem slug)
+      lista.forEach(item => {
+        const chaves = cat.mapear(item) || [];
+        chavesDaCat.push(...chaves);
+      });
     } else {
-      chavesDaCat=cat.chaves||[];
+      chavesDaCat = cat.chaves || [];
     }
 
     // 3. Mescla com o que existe no banco
-    TR_DADOS=chavesDaCat.map(c=>{
-      const existente=Array.isArray(todosBanco)?todosBanco.find(d=>d.chave===c.chave):null;
-      return existente||{_id:null,chave:c.chave,textoPT:c.textoPT,traducao:'',status:'rascunho',fonte:'manual'};
-    }).filter(d=>d.textoPT);
+    const bancoMap = {};
+    if (Array.isArray(todosBanco)) todosBanco.forEach(d => { bancoMap[d.chave] = d; });
+
+    TR_DADOS = chavesDaCat
+      .filter(c => c.textoPT)
+      .map(c => bancoMap[c.chave] || {
+        _id:null, chave:c.chave, textoPT:c.textoPT,
+        traducao:'', status:'rascunho', fonte:'manual',
+      });
 
     renderListaCategoria();
-  }catch(e){ toast('Erro: '+e.message,'erro'); carregarTraducoes(); }
+  }catch(e){ toast('Erro: '+e.message,'erro'); grupo?abrirGrupo(grupo.id):carregarTraducoes(); }
 }
 
 function renderListaCategoria(){
@@ -3434,8 +3589,26 @@ function renderListaCategoria(){
       </div>
       <button class="btn btn-navy btn-sm" onclick="syncCategoria()">↻ Sincronizar</button>
       <button class="btn btn-navy btn-sm" onclick="autoTraduzirCategoria()">⚡ Auto-traduzir</button>
+      <button class="tr-btn tr-btn-rev" style="padding:5px 11px" onclick="ativarRascunhosCategoria()">✓ Ativar rascunhos</button>
       <button class="tr-btn tr-btn-rev" style="padding:5px 11px" onclick="ativarRevisadosCategoria()">✓ Ativar revisados</button>
     </div>
+
+    ${TR_ULTIMO_ERRO_AUTO && TR_ULTIMO_ERRO_AUTO.catId===cat.id ? `
+    <div class="tr-diag erro" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+      <div>
+        <strong>⚠️ ${TR_ULTIMO_ERRO_AUTO.erros.length} entrada${TR_ULTIMO_ERRO_AUTO.erros.length>1?'s':''} não foram traduzidas:</strong>
+        <ul style="margin:6px 0 0 18px;padding:0">
+          ${TR_ULTIMO_ERRO_AUTO.erros.slice(0,8).map(e=>
+            `<li style="margin-bottom:2px"><code style="font-size:0.68rem">${esc(e.chave)}</code> — ${esc(e.erro)}</li>`
+          ).join('')}
+          ${TR_ULTIMO_ERRO_AUTO.erros.length>8?`<li style="color:var(--muted)">e mais ${TR_ULTIMO_ERRO_AUTO.erros.length-8}…</li>`:''}
+        </ul>
+        <div style="font-size:0.7rem;margin-top:6px;color:var(--muted)">
+          Use o filtro <strong>Sem tradução</strong> abaixo pra achá-las e tentar de novo.
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="flex-shrink:0" onclick="TR_ULTIMO_ERRO_AUTO=null;renderListaCategoria()">✕</button>
+    </div>` : ''}
 
     <!-- Progresso -->
     <div style="margin-bottom:12px">
@@ -3603,79 +3776,181 @@ async function syncCategoria(){
   setLoading('Sincronizando…');
   try{
     const chaves=TR_DADOS.map(d=>({chave:d.chave,textoPT:d.textoPT}));
+    if(!chaves.length){ toast('Nenhuma chave para sincronizar.','aviso'); await abrirCategoria(TR_CAT.id); return; }
     const r=await fetch(`${API}/traducoes/seed`,{
       method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
       body:JSON.stringify({chaves,locale:TR_LOCALE}),
     });
     const res=await r.json();
     await abrirCategoria(TR_CAT.id);
+    if(!r.ok){ toast('Erro: '+(res.erro||r.status),'erro'); return; }
     toast(`↻ ${res.inseridos} novas, ${res.existentes} já existentes`,'ok');
   }catch(e){toast('Erro: '+e.message,'erro');}
 }
 
-async function autoTraduzirCategoria(){
+// Abre o modal de confirmação reutilizável com mensagem/botão customizados
+function confirmarCustom(mensagemHtml, textoBotao, onConfirm, btnClass='btn btn-navy'){
+  document.getElementById('confirm-msg').innerHTML=mensagemHtml;
+  const btn=document.getElementById('confirm-ok');
+  btn.textContent=textoBotao;
+  btn.className=btnClass;
+  btn.onclick=()=>{ fecharModal('confirm-modal'); onConfirm(); };
+  abrirModal('confirm-modal');
+}
+
+function autoTraduzirCategoria(){
   if(!TR_CAT) return;
-  const sem=TR_DADOS.filter(d=>!d.traducao).length;
-  if(sem===0){toast('Todas as entradas já têm tradução!','ok');return;}
-  if(!confirm(`Auto-traduzir ${sem} entradas em "${TR_CAT.label}"?\nRascunhos precisarão de revisão.`)) return;
-  setLoading('Traduzindo…');
+  const semTraducao=TR_DADOS.filter(d=>!d.traducao);
+  if(!semTraducao.length){toast('Todas as entradas já têm tradução!','ok');return;}
+
+  confirmarCustom(`
+    Auto-traduzir <strong>${semTraducao.length}</strong> entrada${semTraducao.length>1?'s':''}
+    em "<strong>${esc(TR_CAT.label)}</strong>" usando a MyMemory?
+    <br><span style="font-size:0.7rem;color:var(--muted);display:block;margin-top:6px">
+      Pode levar alguns segundos. As traduções entram como <strong>rascunho</strong>
+      e precisam de revisão antes de aparecerem no app.
+    </span>`,
+    '⚡ Traduzir',
+    ()=>executarAutoTraducao(semTraducao),
+  );
+}
+
+// Renderiza a tela de progresso da tradução em lote (substitui o spinner genérico)
+function renderProgressoAutoTraducao(feitos, total, erros){
+  const pct=total?Math.round((feitos/total)*100):0;
+  document.getElementById('content').innerHTML = TR_CSS + `
+    <div style="max-width:420px;margin:50px auto 0;text-align:center">
+      <p style="font-size:2.2rem;margin-bottom:8px;line-height:1">⚡</p>
+      <p style="font-family:'Cinzel',serif;font-weight:700;font-size:1rem;color:var(--text);margin-bottom:5px">
+        Traduzindo "${esc(TR_CAT.label)}"…
+      </p>
+      <p style="font-size:0.78rem;color:var(--muted);margin-bottom:16px">
+        ${feitos}/${total} entradas processadas
+        ${erros.length?` · <span style="color:#A83C2C;font-weight:700">${erros.length} erro${erros.length>1?'s':''}</span>`:''}
+      </p>
+      <div class="tr-progress-bar" style="height:10px">
+        <div class="tr-progress-fill" style="width:${pct}%;background:${TR_CAT.cor};transition:width 0.25s"></div>
+      </div>
+      <p style="font-size:1.05rem;font-weight:800;color:${TR_CAT.cor};margin-top:10px">${pct}%</p>
+    </div>`;
+}
+
+// Executa a tradução chave-por-chave, atualizando a barra de progresso a cada uma
+async function executarAutoTraducao(itens){
+  const total=itens.length;
+  let feitos=0, erros=[];
+  renderProgressoAutoTraducao(feitos, total, erros);
+
+  // Garante que todas as chaves já existem no banco antes de traduzir
   try{
     const chaves=TR_DADOS.map(d=>({chave:d.chave,textoPT:d.textoPT}));
     await fetch(`${API}/traducoes/seed`,{
       method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
       body:JSON.stringify({chaves,locale:TR_LOCALE}),
     });
-    const r=await fetch(`${API}/traducoes/auto`,{
-      method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
-      body:JSON.stringify({locale:TR_LOCALE}),
-    });
-    const res=await r.json();
+  }catch(e){
+    toast('Erro ao preparar tradução: '+e.message,'erro');
     await abrirCategoria(TR_CAT.id);
-    toast(res.erros?.length?`⚡ ${res.traduzidos} traduzidos, ${res.erros.length} erro(s)`:`⚡ ${res.traduzidos} traduzidos!`,'ok');
-  }catch(e){toast('Erro: '+e.message,'erro');}
+    return;
+  }
+
+  for(const item of itens){
+    try{
+      const r=await fetch(`${API}/traducoes/auto`,{
+        method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
+        body:JSON.stringify({chave:item.chave,locale:TR_LOCALE}),
+      });
+      const d=await r.json();
+      if(!r.ok) throw new Error(d.erro||`HTTP ${r.status}`);
+      if(d.erros?.length) erros.push({chave:item.chave, erro:d.erros[0].erro});
+    }catch(e){
+      erros.push({chave:item.chave, erro:e.message});
+    }
+    feitos++;
+    renderProgressoAutoTraducao(feitos, total, erros);
+  }
+
+  TR_ULTIMO_ERRO_AUTO = erros.length ? {catId:TR_CAT.id, erros} : null;
+  await abrirCategoria(TR_CAT.id);
+
+  const ok=feitos-erros.length;
+  if(erros.length){
+    toast(`⚡ ${ok}/${total} traduzidas — ${erros.length} com erro (veja detalhes na lista)`,'aviso');
+  } else {
+    toast(`⚡ ${ok} entrada${ok>1?'s':''} traduzida${ok>1?'s':''} com sucesso!`,'ok');
+  }
 }
 
-async function ativarRevisadosCategoria(){
-  const revisados=TR_DADOS.filter(d=>d.status==='revisado'&&d._id);
-  if(!revisados.length){toast('Nenhuma entrada revisada para ativar','aviso');return;}
-  if(!confirm(`Ativar ${revisados.length} traduções em "${TR_CAT.label}"?`)) return;
+async function ativarStatusCategoria(itens, mensagemSucesso){
   try{
-    await Promise.all(revisados.map(d=>fetch(`${API}/traducoes/${d._id}`,{
+    await Promise.all(itens.map(d=>fetch(`${API}/traducoes/${d._id}`,{
       method:'PATCH',headers:{'Content-Type':'application/json',Authorization:`Bearer ${TOKEN}`},
       body:JSON.stringify({status:'ativo'}),
     })));
     await abrirCategoria(TR_CAT.id);
-    toast(`✓ ${revisados.length} ativadas!`,'ok');
+    toast(mensagemSucesso,'ok');
   }catch(e){toast('Erro: '+e.message,'erro');}
+}
+
+function ativarRascunhosCategoria(){
+  const rascunhos=TR_DADOS.filter(d=>d.status==='rascunho'&&d.traducao&&d._id);
+  if(!rascunhos.length){toast('Nenhum rascunho pra ativar','aviso');return;}
+  const n=rascunhos.length;
+  confirmarCustom(`
+    Ativar <strong>${n}</strong> ${n>1?'traduções':'tradução'}
+    em rascunho em "<strong>${esc(TR_CAT.label)}</strong>"?
+    <br><span style="font-size:0.7rem;color:var(--muted);display:block;margin-top:6px">
+      Ela${n>1?'s':''} passa${n>1?'m':''} a aparecer no app sem revisão manual prévia.
+    </span>`,
+    '✓ Ativar rascunhos',
+    ()=>ativarStatusCategoria(rascunhos, `✓ ${n} rascunho${n>1?'s':''} ativado${n>1?'s':''}!`),
+    'btn btn-navy',
+  );
+}
+
+function ativarRevisadosCategoria(){
+  const revisados=TR_DADOS.filter(d=>d.status==='revisado'&&d._id);
+  if(!revisados.length){toast('Nenhuma entrada revisada para ativar','aviso');return;}
+  const n=revisados.length;
+  confirmarCustom(`
+    Ativar <strong>${n}</strong> ${n>1?'traduções revisadas':'tradução revisada'}
+    em "<strong>${esc(TR_CAT.label)}</strong>"?`,
+    '✓ Ativar revisados',
+    ()=>ativarStatusCategoria(revisados, `✓ ${n} ${n>1?'traduções revisadas ativadas':'tradução revisada ativada'}!`),
+    'btn btn-navy',
+  );
 }
 
 // ── Diagnóstico API ───────────────────────────────────────────────────────────
 async function testarAPITr(){
   const box=document.getElementById('tr-diag-box');
   if(!box) return;
-  box.innerHTML=`<div class="tr-diag aviso">🔄 Testando LibreTranslate…</div>`;
-  const urls=['https://translate.terraprint.co','https://lt.vern.cc','https://libretranslate.com'];
-  for(const url of urls){
-    try{
-      const r=await fetch(`${url}/translate`,{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({q:'Olá',source:'pt',target:'en',format:'text'}),
-        signal:AbortSignal.timeout(6000),
-      });
-      if(r.ok){
-        const d=await r.json();
+  box.innerHTML=`<div class="tr-diag aviso">🔄 Testando MyMemory…</div>`;
+  try{
+    const params=new URLSearchParams({q:'Olá',langpair:'pt|en'});
+    const r=await fetch(`https://api.mymemory.translated.net/get?${params.toString()}`,
+      {signal:AbortSignal.timeout(6000)});
+    if(r.ok){
+      const d=await r.json();
+      const traduzido=d.responseData?.translatedText;
+      if(traduzido && !/MYMEMORY WARNING/i.test(traduzido)){
         box.innerHTML=`<div class="tr-diag ok">
-          ✅ <strong>${url}</strong> funcionando — "Olá" → "<strong>${d.translatedText||'?'}</strong>"<br>
-          <small>Configure <code>LIBRETRANSLATE_URL=${url}</code> no Render para usar esta instância.</small>
+          ✅ <strong>MyMemory</strong> funcionando — "Olá" → "<strong>${traduzido}</strong>"<br>
+          <small>Sem necessidade de configuração. Limite gratuito: ~5.000 palavras/dia por IP
+          (configure <code>MYMEMORY_EMAIL</code> no Render para subir esse limite pra 50.000/dia).</small>
         </div>`;
         return;
       }
-    }catch(e){/* tenta próxima */}
+      box.innerHTML=`<div class="tr-diag erro">
+        ❌ MyMemory respondeu, mas a cota diária gratuita parece ter sido excedida.<br>
+        <small>Configure <code>MYMEMORY_EMAIL</code> no Render pra aumentar o limite, ou tente de novo mais tarde.</small>
+      </div>`;
+      return;
+    }
+    box.innerHTML=`<div class="tr-diag erro">❌ MyMemory retornou ${r.status}. Tente de novo mais tarde.</div>`;
+  }catch(e){
+    box.innerHTML=`<div class="tr-diag erro">❌ Não foi possível contatar a MyMemory: ${e.message}</div>`;
   }
-  box.innerHTML=`<div class="tr-diag erro">
-    ❌ Nenhuma instância pública respondeu. Configure <code>LIBRETRANSLATE_URL</code> no Render
-    ou use tradução manual.
-  </div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

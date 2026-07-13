@@ -37,6 +37,4 @@ const DragaoSchema = new mongoose.Schema({
   atualizadoEm: { type: Date, default: Date.now },
 }, { collection: 'doa_dragoes' });
 
-DragaoSchema.index({ slug: 1 }, { unique: true });
-
 export default mongoose.model('Dragao', DragaoSchema);

@@ -7,22 +7,22 @@ const COR     = '#5C7FA3';
 const COR_DRK = '#1A3050';
 
 const SUGESTOES = [
-  { emoji: '⚔️', texto: 'Qual tropa tem mais poder?' },
+  { emoji: '⚡', texto: 'Qual é a tropa mais rápida?' },
+  { emoji: '❤️', texto: 'Qual tropa possui mais vida?' },
+  { emoji: '🛡️', texto: 'Qual tem a maior defesa?' },
+  { emoji: '📦', texto: 'Qual tropa carrega mais recursos?' },
+  { emoji: '🏹', texto: 'Qual tem o maior ataque à distância?' },
+  { emoji: '⚔️', texto: 'Qual causa mais dano?' },
+  { emoji: '🏆', texto: 'Quais são as 5 tropas mais rápidas?' },
+  { emoji: '🔄', texto: 'Compare o Minotauro com o Arqueiro' },
   { emoji: '🐉', texto: 'Qual dragão é mais forte?' },
   { emoji: '🏆', texto: 'Qual carne vale mais no torneio?' },
   { emoji: '🧿', texto: 'Como funciona o torneio de talismã?' },
   { emoji: '🎖️', texto: 'Como treinar meus generais?' },
-  { emoji: '⚡', texto: 'Como ganhar mais pontos de poder?' },
   { emoji: '☠️', texto: 'Estratégia para matar tropas?' },
-  { emoji: '🌅', texto: 'O que são fósseis Crepúsculo?' },
-  { emoji: '🏗️', texto: 'O que a Fazenda nível 10 produz?' },
   { emoji: '🔬', texto: 'Quais pesquisas aumentam meu ataque?' },
-  { emoji: '🏰', texto: 'Quanto XP preciso para o nível 20?' },
   { emoji: '⏩', texto: 'Qual aceleração dá mais pontos no torneio?' },
   { emoji: '🔮', texto: 'Quanto custa aprimorar uma tropa Épica?' },
-  { emoji: '💥', texto: 'O que é Bombardeio Elemental?' },
-  { emoji: '🐑', texto: 'Quantos pontos 100 lagostas geram?' },
-  { emoji: '🌍', texto: 'Quais reinos existem no jogo?' },
 ];
 
 // Embaralha e pega 8 sugestões aleatórias a cada abertura

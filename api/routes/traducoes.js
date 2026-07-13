@@ -4,46 +4,34 @@ import { autenticar } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// URLs das instâncias LibreTranslate, em ordem de tentativa.
-// 1ª: a configurada via env (se houver) — usa LT_KEY, pois a key pertence a essa instância.
-// 2ª, 3ª, 4ª: mirrors públicos gratuitos, usados como fallback se a principal falhar/cair.
-const LT_KEY = process.env.LIBRETRANSLATE_KEY || ''; // vazio = instâncias sem key
+// E-mail opcional para aumentar o limite diário gratuito da MyMemory
+// (5.000 → 50.000 palavras/dia). Defina MYMEMORY_EMAIL no .env se quiser usar.
+const MYMEMORY_EMAIL = process.env.MYMEMORY_EMAIL || '';
 
-const LT_INSTANCES = [
-  ...(process.env.LIBRETRANSLATE_URL ? [{ url: process.env.LIBRETRANSLATE_URL, key: LT_KEY }] : []),
-  { url: 'https://translate.terraprint.co',     key: '' },
-  { url: 'https://libretranslate.de',           key: '' },
-  { url: 'https://translate.argosopentech.com', key: '' },
-];
-
-// ── Helper: tenta cada instância LibreTranslate em sequência até uma funcionar ──
+// ── Helper: traduz um texto usando a API gratuita da MyMemory ──────────────────
+// Limite: ~500 caracteres por requisição (key anônima) e ~5.000 palavras/dia por IP
+// (50.000/dia se MYMEMORY_EMAIL estiver configurado). Não precisa de API key.
 async function traduzirTexto(texto, de = 'pt', para = 'en') {
-  const erros = [];
+  const params = new URLSearchParams({ q: texto, langpair: `${de}|${para}` });
+  if (MYMEMORY_EMAIL) params.set('de', MYMEMORY_EMAIL);
 
-  for (const { url, key } of LT_INSTANCES) {
-    try {
-      const body = { q: texto, source: de, target: para, format: 'text' };
-      if (key) body.api_key = key;
+  const res = await fetch(`https://api.mymemory.translated.net/get?${params.toString()}`, {
+    signal: AbortSignal.timeout(8000),
+  });
 
-      const res = await fetch(`${url}/translate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(8000),
-      });
+  if (!res.ok) throw new Error(`MyMemory retornou ${res.status}`);
+  const data = await res.json();
 
-      if (!res.ok) throw new Error(`${url} retornou ${res.status}`);
-      const data = await res.json();
-      if (!data.translatedText) throw new Error(`${url} não retornou translatedText`);
-      return data.translatedText;
-    } catch (e) {
-      erros.push(e.message);
-      // continua para a próxima instância da lista
-    }
+  if (data.responseStatus && Number(data.responseStatus) !== 200) {
+    throw new Error(`MyMemory: ${data.responseDetails || 'erro desconhecido'}`);
   }
 
-  // Todas as instâncias falharam
-  throw new Error(`Todas as instâncias LibreTranslate falharam: ${erros.join(' | ')}`);
+  const traduzido = data.responseData?.translatedText;
+  if (!traduzido) throw new Error('MyMemory não retornou translatedText');
+  if (/MYMEMORY WARNING/i.test(traduzido)) {
+    throw new Error('MyMemory: cota diária gratuita excedida (tente de novo mais tarde, ou configure MYMEMORY_EMAIL no .env para aumentar o limite)');
+  }
+  return traduzido;
 }
 
 // ── GET /api/traducoes?locale=en-US
@@ -61,13 +49,48 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ── GET /api/traducoes/admin?locale=en-US
-// Retorna TODAS as traduções (qualquer status) para o painel admin
+// ── GET /api/traducoes/admin?locale=en-US[&prefixo=tropa]
+// Retorna traduções filtradas por locale (e opcionalmente por prefixo de chave)
 router.get('/admin', autenticar, async (req, res) => {
   try {
-    const locale = req.query.locale || 'en-US';
-    const docs = await Traducao.find({ locale }).sort({ chave: 1 }).lean();
+    const locale   = req.query.locale   || 'en-US';
+    const prefixo  = req.query.prefixo  || null;
+    const query    = { locale };
+    if (prefixo) query.chave = { $regex: `^${prefixo}\\.` };
+    const docs = await Traducao.find(query).sort({ chave: 1 }).lean();
     res.json(docs);
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
+  }
+});
+
+// ── GET /api/traducoes/admin/stats?locale=en-US
+// Retorna contagens agregadas por prefixo (primeiro segmento da chave)
+// Usado pelo grid de categorias — evita transferir todos os documentos
+router.get('/admin/stats', autenticar, async (req, res) => {
+  try {
+    const locale = req.query.locale || 'en-US';
+    const pipeline = [
+      { $match: { locale } },
+      { $project: {
+          prefix: { $arrayElemAt: [{ $split: ['$chave', '.'] }, 0] },
+          ativo:  { $cond: [{ $eq: ['$status', 'ativo'] }, 1, 0] },
+          semTrad:{ $cond: [{ $not: ['$traducao'] }, 1, 0] },
+        }
+      },
+      { $group: {
+          _id:    '$prefix',
+          total:  { $sum: 1 },
+          ativo:  { $sum: '$ativo' },
+          sem:    { $sum: '$semTrad' },
+        }
+      },
+    ];
+    const raw = await Traducao.aggregate(pipeline);
+    // Converte para objeto { prefix: {total, ativo, sem} }
+    const result = {};
+    raw.forEach(r => { result[r._id] = { total: r.total, ativo: r.ativo, sem: r.sem }; });
+    res.json(result);
   } catch (err) {
     res.status(500).json({ erro: err.message });
   }
@@ -140,7 +163,7 @@ router.post('/auto', autenticar, async (req, res) => {
         const traduzido = await traduzirTexto(doc.textoPT, 'pt', 'en');
         doc.traducao = traduzido;
         doc.status   = 'rascunho';
-        doc.fonte    = 'libretranslate';
+        doc.fonte    = 'mymemory';
         await doc.save();
         traduzidos++;
       } catch (e) {

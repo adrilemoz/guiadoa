@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
  * textoPT  → texto original em PT-BR (referência imutável)
  * traducao → texto traduzido no locale alvo
  * status   → rascunho (gerado por API) | revisado | ativo (exibido no app)
- * fonte    → manual | libretranslate
+ * fonte    → manual | mymemory | libretranslate (valor legado, mantido por compatibilidade)
  */
 const TraducaoSchema = new mongoose.Schema({
   chave:    { type: String, required: true, trim: true },
@@ -16,7 +16,7 @@ const TraducaoSchema = new mongoose.Schema({
   textoPT:  { type: String, required: true },
   traducao: { type: String, default: '' },
   status:   { type: String, enum: ['rascunho', 'revisado', 'ativo'], default: 'rascunho' },
-  fonte:    { type: String, enum: ['manual', 'libretranslate'], default: 'manual' },
+  fonte:    { type: String, enum: ['manual', 'mymemory', 'libretranslate'], default: 'manual' },
   updatedAt:{ type: Date, default: Date.now },
 }, { collection: 'doa_traducoes' });
 
